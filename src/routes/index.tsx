@@ -397,64 +397,70 @@ function VadIngar() {
 }
 
 /* ----------------------- PORTFOLIO ----------------------- */
+export const PORTFOLIO_PROJECTS = [
+  {
+    slug: "scandy-candy",
+    title: "Scandy Candy",
+    tag: "E-handel · Godismärke",
+    industry: "E-handel",
+    desc: "Färgstark webshop med produktfokus, prenumerationsboxar och Klarna-checkout.",
+    long: "En lekfull, färgstark e-handel byggd för att maxa konvertering. Fokus på produktbilder, snabba köp och prenumerationsboxar via Klarna. Integrerad lagerhantering och nyhetsbrev.",
+    image: "https://images.unsplash.com/photo-1581798459219-318e76aecc7b?auto=format&fit=crop&w=1600&q=80",
+    accent: "from-rose-400 to-amber-300",
+    domain: "scandycandy.se",
+    features: ["Webshop med Klarna", "Prenumerationsboxar", "Produktfilter & sök", "Nyhetsbrev & kampanjer", "Mobil-först design"],
+  },
+  {
+    slug: "lokal-restaurang",
+    title: "Restaurang Klippan",
+    tag: "Restaurang & café",
+    industry: "Restaurang",
+    desc: "Värmande, bildtung restaurangsida med digital meny och online-bordsbokning.",
+    long: "En atmosfärisk restaurangsida som lyfter köket genom storformatsbilder och en stilren digital meny. Inkluderar online-bordsbokning, öppettider och presentkortsförsäljning.",
+    image: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1600&q=80",
+    accent: "from-amber-500 to-orange-400",
+    domain: "klippan.se",
+    features: ["Online-bordsbokning", "Digital meny", "Eventkalender", "Google Maps & öppettider", "Presentkort"],
+  },
+  {
+    slug: "byggfirma",
+    title: "NorrBygg AB",
+    tag: "Bygg & hantverk",
+    industry: "Byggfirma",
+    desc: "Förtroendeingivande byggsida med projektgalleri, certifieringar och offertformulär.",
+    long: "Robust och pålitlig sida som stärker förtroendet hos både privatkunder och företag. Tydligt projektgalleri, certifieringar och ROT-information samt smidigt offertformulär.",
+    image: "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&w=1600&q=80",
+    accent: "from-yellow-500 to-amber-700",
+    domain: "norrbygg.se",
+    features: ["Projektgalleri", "Offertformulär", "Certifieringar & ROT", "Tjänstesidor", "Recensioner från kunder"],
+  },
+  {
+    slug: "salong-skonhet",
+    title: "Salong Lykke",
+    tag: "Salong & skönhet",
+    industry: "Skönhet & wellness",
+    desc: "Elegant salong- och wellness-sida med online-bokning och Instagram-galleri.",
+    long: "En lugn och elegant designvärld som speglar varumärket. Komplett online-bokning, behandlingsmeny med priser, presentkortsköp och Instagram-feed.",
+    image: "https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&w=1600&q=80",
+    accent: "from-pink-300 to-rose-400",
+    domain: "salonglykke.se",
+    features: ["Online-bokningssystem", "Behandlingsmeny & priser", "Presentkort online", "Instagram-galleri", "Personalprofiler"],
+  },
+  {
+    slug: "jurist-konsult",
+    title: "Lindberg Juridik",
+    tag: "Konsult · Juristbyrå",
+    industry: "Juridik & konsult",
+    desc: "Premium corporate-sida med ren typografi, teampresentation och säkert kontaktflöde.",
+    long: "En sofistikerad corporate-sida som signalerar professionalism och förtroende. Fokus på typografi, fallstudier och ett krypterat kontaktflöde för känsliga ärenden.",
+    image: "https://images.unsplash.com/photo-1450101499163-c8848c66ca85?auto=format&fit=crop&w=1600&q=80",
+    accent: "from-slate-500 to-indigo-500",
+    domain: "lindbergjuridik.se",
+    features: ["Teampresentation", "Tjänsteområden", "Krypterat kontaktformulär", "Fallstudier & artiklar", "Bokning av rådgivning"],
+  },
+] as const;
+
 function Portfolio() {
-  const items: {
-    title: string;
-    tag: string;
-    desc: string;
-    image: string;
-    accent: string;
-    domain: string;
-  }[] = [
-    {
-      title: "Scandy Candy",
-      tag: "E-handel · Godismärke",
-      desc: "Färgstark webshop med produktfokus, prenumerationsboxar och Klarna-checkout.",
-      image: "https://images.unsplash.com/photo-1581798459219-318e76aecc7b?auto=format&fit=crop&w=1200&q=80",
-      accent: "from-rose-400 to-amber-300",
-      domain: "scandycandy.se",
-    },
-    {
-      title: "Restaurang Klippan",
-      tag: "Restaurang & café",
-      desc: "Bildtung sida med digital meny, online-bordsbokning och berättelsen om köket.",
-      image: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1200&q=80",
-      accent: "from-amber-500 to-orange-400",
-      domain: "klippan.se",
-    },
-    {
-      title: "NorrBygg AB",
-      tag: "Byggfirma",
-      desc: "Professionell sida med projektgalleri, certifieringar, trust badges och offertformulär.",
-      image: "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&w=1200&q=80",
-      accent: "from-yellow-500 to-amber-700",
-      domain: "norrbygg.se",
-    },
-    {
-      title: "Salong Lykke",
-      tag: "Salong & skönhet",
-      desc: "Elegant salongsida med online-bokning, behandlingar, prislista och Instagram-galleri.",
-      image: "https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&w=1200&q=80",
-      accent: "from-pink-300 to-rose-400",
-      domain: "salonglykke.se",
-    },
-    {
-      title: "Lindberg Juridik",
-      tag: "Konsult · Juristbyrå",
-      desc: "Premium corporate-sida med ren typografi, teampresentation och bokningsflöde.",
-      image: "https://images.unsplash.com/photo-1450101499163-c8848c66ca85?auto=format&fit=crop&w=1200&q=80",
-      accent: "from-slate-500 to-indigo-500",
-      domain: "lindbergjuridik.se",
-    },
-    {
-      title: "Lykke Living",
-      tag: "E-handel · Inredning",
-      desc: "Skandinavisk inredningsbutik med curaterad katalog och betalning via Klarna.",
-      image: "https://images.unsplash.com/photo-1567016376408-0226e4d0c1ea?auto=format&fit=crop&w=1200&q=80",
-      accent: "from-emerald-300 to-teal-400",
-      domain: "lykkeliving.se",
-    },
-  ];
   return (
     <section id="portfolio" className="bg-muted/30 border-y border-border/50">
       <div className="container mx-auto px-4 py-24 md:py-32">
@@ -468,9 +474,9 @@ function Portfolio() {
           </p>
         </div>
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {items.map((it) => (
+          {PORTFOLIO_PROJECTS.map((it) => (
             <article
-              key={it.title}
+              key={it.slug}
               className="group flex flex-col rounded-3xl border border-border/60 overflow-hidden bg-card transition-smooth hover:shadow-premium hover:-translate-y-2"
             >
               <div className="relative aspect-[4/3] overflow-hidden bg-muted">
@@ -499,9 +505,11 @@ function Portfolio() {
               </div>
               <div className="flex flex-col flex-1 p-6">
                 <p className="text-sm text-muted-foreground leading-relaxed flex-1">{it.desc}</p>
-                <Button variant="soft" size="sm" className="mt-5 self-start group/btn">
-                  Se projekt
-                  <ArrowRight className="h-3.5 w-3.5 transition-smooth group-hover/btn:translate-x-1" />
+                <Button asChild variant="soft" size="sm" className="mt-5 self-start group/btn">
+                  <Link to="/portfolio/$slug" params={{ slug: it.slug }}>
+                    Se projekt
+                    <ArrowRight className="h-3.5 w-3.5 transition-smooth group-hover/btn:translate-x-1" />
+                  </Link>
                 </Button>
               </div>
             </article>
