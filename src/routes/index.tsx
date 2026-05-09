@@ -30,7 +30,7 @@ import {
   ServerCog,
   Sparkles,
   HeadphonesIcon,
-  TrendingUp,
+  
   Lock,
   Award,
 } from "lucide-react";
