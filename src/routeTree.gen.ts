@@ -13,6 +13,7 @@ import { Route as BestallRouteImport } from './routes/bestall'
 import { Route as BekraftelseRouteImport } from './routes/bekraftelse'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as PortfolioSlugRouteImport } from './routes/portfolio.$slug'
 
 const BestallRoute = BestallRouteImport.update({
   id: '/bestall',
@@ -34,18 +35,25 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PortfolioSlugRoute = PortfolioSlugRouteImport.update({
+  id: '/portfolio/$slug',
+  path: '/portfolio/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/bekraftelse': typeof BekraftelseRoute
   '/bestall': typeof BestallRoute
+  '/portfolio/$slug': typeof PortfolioSlugRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/bekraftelse': typeof BekraftelseRoute
   '/bestall': typeof BestallRoute
+  '/portfolio/$slug': typeof PortfolioSlugRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -53,13 +61,20 @@ export interface FileRoutesById {
   '/admin': typeof AdminRoute
   '/bekraftelse': typeof BekraftelseRoute
   '/bestall': typeof BestallRoute
+  '/portfolio/$slug': typeof PortfolioSlugRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/admin' | '/bekraftelse' | '/bestall'
+  fullPaths: '/' | '/admin' | '/bekraftelse' | '/bestall' | '/portfolio/$slug'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/admin' | '/bekraftelse' | '/bestall'
-  id: '__root__' | '/' | '/admin' | '/bekraftelse' | '/bestall'
+  to: '/' | '/admin' | '/bekraftelse' | '/bestall' | '/portfolio/$slug'
+  id:
+    | '__root__'
+    | '/'
+    | '/admin'
+    | '/bekraftelse'
+    | '/bestall'
+    | '/portfolio/$slug'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -67,6 +82,7 @@ export interface RootRouteChildren {
   AdminRoute: typeof AdminRoute
   BekraftelseRoute: typeof BekraftelseRoute
   BestallRoute: typeof BestallRoute
+  PortfolioSlugRoute: typeof PortfolioSlugRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -99,6 +115,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/portfolio/$slug': {
+      id: '/portfolio/$slug'
+      path: '/portfolio/$slug'
+      fullPath: '/portfolio/$slug'
+      preLoaderRoute: typeof PortfolioSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -107,6 +130,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminRoute: AdminRoute,
   BekraftelseRoute: BekraftelseRoute,
   BestallRoute: BestallRoute,
+  PortfolioSlugRoute: PortfolioSlugRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

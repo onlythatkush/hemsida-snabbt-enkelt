@@ -112,7 +112,7 @@ function ProjectPage() {
               </p>
             </div>
             <ul className="lg:col-span-2 grid sm:grid-cols-2 gap-3">
-              {project.features.map((f) => (
+              {project.features.map((f: string) => (
                 <li key={f} className="flex items-start gap-3 rounded-xl border border-border/60 bg-card p-4 shadow-soft">
                   <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-primary mt-0.5 shrink-0">
                     <Check className="h-3.5 w-3.5" />
