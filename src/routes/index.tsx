@@ -634,9 +634,20 @@ function Priser({ currency, setCurrency }: { currency: Currency; setCurrency: (c
           ))}
         </div>
 
-        <div className="mt-10 flex justify-center">
-          <div className="glass rounded-full px-5 py-2.5 text-sm flex items-center gap-2 shadow-soft">
-            <CreditCardIcon /> Delbetalning 24 eller 36 månader möjligt
+        <div className="mt-12 max-w-4xl mx-auto">
+          <div className="text-center text-sm font-medium text-muted-foreground mb-4">Flexibla betalalternativ</div>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            {[
+              { label: "Engångsbetalning", value: "från 6 999 kr" },
+              { label: "Delbetalning 24 mån", value: "från 349 kr/mån" },
+              { label: "Delbetalning 36 mån", value: "från 249 kr/mån" },
+              { label: "Support & drift", value: "från 299 kr/mån" },
+            ].map((o) => (
+              <div key={o.label} className="rounded-xl border border-border/60 bg-card px-4 py-3 text-center shadow-soft">
+                <div className="text-xs text-muted-foreground">{o.label}</div>
+                <div className="font-semibold text-sm mt-1">{o.value}</div>
+              </div>
+            ))}
           </div>
         </div>
       </div>
