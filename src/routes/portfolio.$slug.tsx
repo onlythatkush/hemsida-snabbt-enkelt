@@ -195,3 +195,94 @@ function ProjectPage() {
     </div>
   );
 }
+
+/* ----------------------- Scandy Candy live preview ----------------------- */
+const SCANDY_PRODUCTS: { name: string; price: string; img: string; soldOut?: boolean; vegan?: boolean }[] = [
+  { name: "Big sour bubs skulls", price: "From 43 SEK", img: "https://images.unsplash.com/photo-1581798459219-318e76aecc7b?auto=format&fit=crop&w=600&q=80", vegan: true },
+  { name: "S-Marks Super Sour", price: "From 43 SEK", img: "https://images.unsplash.com/photo-1582058091505-f87a2e55a40f?auto=format&fit=crop&w=600&q=80" },
+  { name: "Kexchoklad Mini", price: "From 43 SEK", img: "https://images.unsplash.com/photo-1606312619070-d48b4c652a52?auto=format&fit=crop&w=600&q=80" },
+  { name: "Sweet Hearts", price: "From 43 SEK", img: "https://images.unsplash.com/photo-1582058091505-f87a2e55a40f?auto=format&fit=crop&w=600&q=80" },
+  { name: "Cool fruity pear mini bubs", price: "From 43 SEK", img: "https://images.unsplash.com/photo-1599785209707-a456fc1337f3?auto=format&fit=crop&w=600&q=80", vegan: true },
+  { name: "Banana Bubs", price: "From 43 SEK", img: "https://images.unsplash.com/photo-1571115764595-644a1f56a55c?auto=format&fit=crop&w=600&q=80", vegan: true },
+  { name: "Polly Chocolate", price: "From 43 SEK", img: "https://images.unsplash.com/photo-1548907040-4baa42d10919?auto=format&fit=crop&w=600&q=80" },
+  { name: "Sour Cherries", price: "From 43 SEK", img: "https://images.unsplash.com/photo-1587049352846-4a222e784d38?auto=format&fit=crop&w=600&q=80" },
+  { name: "Chocolate Marshmallow Mushrooms", price: "From 43 SEK", img: "https://images.unsplash.com/photo-1606312619070-d48b4c652a52?auto=format&fit=crop&w=600&q=80" },
+  { name: "Chocolate covered puffed rice", price: "From 43 SEK", img: "https://images.unsplash.com/photo-1623660053975-cf75a8be0908?auto=format&fit=crop&w=600&q=80", soldOut: true },
+  { name: "Daim Mini", price: "From 43 SEK", img: "https://images.unsplash.com/photo-1621939514649-280e2ee25f60?auto=format&fit=crop&w=600&q=80" },
+  { name: "Sour Blue Fish", price: "From 43 SEK", img: "https://images.unsplash.com/photo-1582058091505-f87a2e55a40f?auto=format&fit=crop&w=600&q=80" },
+];
+
+function ScandyCandyPreview({ domain }: { domain: string }) {
+  return (
+    <section className="border-y border-border/50">
+      <div className="container mx-auto px-4 py-20 md:py-28">
+        <div className="text-center max-w-2xl mx-auto mb-10">
+          <Badge variant="secondary" className="rounded-full mb-4">Live preview</Badge>
+          <h2 className="text-3xl md:text-4xl font-semibold tracking-tighter leading-[1.1]">
+            Så ser webshoppen ut
+          </h2>
+          <p className="text-muted-foreground mt-4">En interaktiv mockup av {domain} – produktlistning, priser och varumärkeskänsla.</p>
+        </div>
+
+        {/* Browser frame */}
+        <div className="rounded-2xl border border-border/60 bg-card shadow-premium overflow-hidden">
+          <div className="flex items-center gap-1.5 px-3 py-2 border-b border-border/60 bg-muted/40">
+            <span className="h-2.5 w-2.5 rounded-full bg-destructive/60" />
+            <span className="h-2.5 w-2.5 rounded-full bg-yellow-400/70" />
+            <span className="h-2.5 w-2.5 rounded-full bg-emerald-400/70" />
+            <div className="ml-3 flex-1 max-w-md mx-auto">
+              <div className="rounded-md bg-background/80 border border-border/60 px-3 py-1 text-xs text-muted-foreground text-center">
+                {domain}
+              </div>
+            </div>
+          </div>
+
+          {/* Site body */}
+          <div className="bg-[#fff8ee] text-[#e96a7a]">
+            {/* Brand header */}
+            <div className="flex items-center justify-between px-6 md:px-10 py-6 border-b border-[#f3e3c7]/60">
+              <div className="flex items-center gap-2 text-sm font-medium">
+                <span className="inline-block h-4 w-5 rounded-sm bg-[#e96a7a]" />
+                <span>Menu</span>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl md:text-3xl font-extrabold tracking-tight" style={{ fontFamily: "'Comic Sans MS', cursive" }}>
+                  SCANDY
+                </div>
+                <div className="text-[10px] tracking-[0.3em] uppercase text-[#e96a7a]/80 mt-0.5">Swedish Candy</div>
+              </div>
+              <div className="text-sm">Sweden | SEK kr</div>
+            </div>
+
+            {/* Product grid */}
+            <div className="px-4 md:px-8 py-10">
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 md:gap-8">
+                {SCANDY_PRODUCTS.map((p) => (
+                  <div key={p.name} className="group">
+                    <div className="relative aspect-square rounded-xl bg-white overflow-hidden">
+                      <img src={p.img} alt={p.name} className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                      {p.soldOut && (
+                        <span className="absolute bottom-2 left-2 rounded-md bg-yellow-200 text-[#7a5a00] text-[10px] font-semibold px-2 py-0.5">
+                          Sold out
+                        </span>
+                      )}
+                    </div>
+                    <div className="mt-3 text-sm font-medium leading-snug">
+                      {p.name}{p.vegan && <span className="text-[#e96a7a]/70"> (vegan)</span>}
+                    </div>
+                    <div className="text-sm mt-1">{p.price}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Footer strip */}
+            <div className="border-t border-[#f3e3c7]/60 px-6 md:px-10 py-6 text-center text-xs text-[#e96a7a]/80">
+              © {new Date().getFullYear()} Scandy Candy · Made with ❤ in Sweden
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
