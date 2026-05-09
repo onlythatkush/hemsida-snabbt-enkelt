@@ -161,7 +161,7 @@ function Hero() {
 
 function SocialProof() {
   return (
-    <section className="border-y border-border/50 bg-muted/30">
+    <section className="border-y border-border/50 bg-black/25">
       <div className="container mx-auto px-4 py-10 grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
         {[
           ["120+", "Hemsidor levererade"],
@@ -250,7 +250,7 @@ function SaFungerar() {
     { icon: HeartHandshake, title: "5. Support & vidareutveckling", text: "Vi finns kvar efter lansering med uppdateringar, support och löpande förbättringar." },
   ];
   return (
-    <section id="tjanst" className="bg-muted/30 border-y border-border/50 relative overflow-hidden">
+    <section id="tjanst" className="bg-black/30 border-y border-white/10 backdrop-blur-sm relative overflow-hidden">
       <div className="absolute inset-0 grid-pattern opacity-30" />
       <div className="container relative mx-auto px-4 py-24 md:py-32">
         <div className="text-center max-w-2xl mx-auto mb-16">
@@ -417,7 +417,7 @@ export const PORTFOLIO_PROJECTS = [
 
 function Portfolio() {
   return (
-    <section id="portfolio" className="bg-muted/30 border-y border-border/50">
+    <section id="portfolio" className="bg-black/30 border-y border-white/10 backdrop-blur-sm">
       <div className="container mx-auto px-4 py-24 md:py-32">
         <div className="text-center max-w-2xl mx-auto mb-16">
           <Badge variant="secondary" className="rounded-full mb-4">Portfolio</Badge>
@@ -569,7 +569,7 @@ function Priser({ currency, setCurrency }: { currency: Currency; setCurrency: (c
     },
   ];
   return (
-    <section id="priser" className="relative bg-muted/30 border-y border-border/50">
+    <section id="priser" className="relative bg-black/30 border-y border-white/10 backdrop-blur-sm">
       <div className="absolute inset-0 grid-pattern opacity-30" />
       <div className="container relative mx-auto px-4 py-24 md:py-32">
         <div className="flex flex-col items-center text-center max-w-2xl mx-auto mb-10">
@@ -778,7 +778,7 @@ function Recensioner() {
     { name: "Lina S.", role: "Yogainstruktör", text: "Älskar designen. Det känns som en riktigt dyr hemsida — men priset var helt okej." },
   ];
   return (
-    <section className="bg-muted/30 border-y border-border/50">
+    <section className="bg-black/30 border-y border-white/10 backdrop-blur-sm">
       <div className="container mx-auto px-4 py-24 md:py-32">
         <div className="text-center max-w-2xl mx-auto mb-14">
           <Badge variant="secondary" className="rounded-full mb-4">Recensioner</Badge>
@@ -841,7 +841,7 @@ function FAQ() {
 /* ----------------------- KONTAKT ----------------------- */
 function Kontakt() {
   return (
-    <section id="kontakt" className="bg-muted/30 border-y border-border/50">
+    <section id="kontakt" className="bg-black/30 border-y border-white/10 backdrop-blur-sm">
       <div className="container mx-auto px-4 py-24 md:py-32">
         <div className="grid md:grid-cols-2 gap-12 items-start">
           <div>
