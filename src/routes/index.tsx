@@ -328,97 +328,37 @@ function SaFungerar() {
   );
 }
 
-/* ----------------------- PORTFOLIO ----------------------- */
-function Portfolio() {
+/* ----------------------- VAD INGÅR ----------------------- */
+function VadIngar() {
   const items = [
-    {
-      title: "Scandy Candy",
-      tag: "E-handel · Webshop",
-      desc: "Modern candy-brand med online-butik, prenumerationsboxar och drömmig produktpresentation.",
-      icon: ShoppingBag,
-      mockup: <ShopMockup />,
-      grad: "from-rose-300/40 via-fuchsia-300/30 to-amber-300/40",
-    },
-    {
-      title: "Restaurang Klippan",
-      tag: "Restaurang",
-      desc: "Stämningsfull sida med meny, bordsbokning och berättelsen bakom köket.",
-      icon: UtensilsCrossed,
-      mockup: <RestaurantMockup />,
-      grad: "from-amber-300/40 via-orange-300/30 to-rose-300/40",
-    },
-    {
-      title: "Lindberg Juridik",
-      tag: "Juridisk firma",
-      desc: "Förtroendeingivande sida med tjänsteöversikt, teampresentation och bokningsflöde.",
-      icon: Scale,
-      mockup: <LawMockup />,
-      grad: "from-slate-300/40 via-blue-300/30 to-indigo-300/40",
-    },
-    {
-      title: "NorrBygg AB",
-      tag: "Byggfirma",
-      desc: "Robust hemsida med projektgalleri, offertformulär och tydliga referenser.",
-      icon: HardHat,
-      mockup: <ConstructionMockup />,
-      grad: "from-amber-400/40 via-yellow-300/30 to-orange-400/40",
-    },
-    {
-      title: "Lykke Living",
-      tag: "E-handel · Inredning",
-      desc: "Skandinavisk inredningsbutik med curaterad produktkatalog och betalning via Klarna.",
-      icon: Store,
-      mockup: <EcomMockup />,
-      grad: "from-emerald-300/40 via-teal-300/30 to-cyan-300/40",
-    },
-    {
-      title: "Yoga med Lina",
-      tag: "Privatperson",
-      desc: "Lugn, personlig sida med klasschema, prenumeration och Instagram-flöde.",
-      icon: Sparkles,
-      mockup: <YogaMockup />,
-      grad: "from-violet-300/40 via-purple-300/30 to-pink-300/40",
-    },
+    { icon: Palette, title: "Skräddarsydd design", text: "Unik design som matchar ditt varumärke — inte en mall." },
+    { icon: Smartphone, title: "Mobilanpassad", text: "Sidan ser perfekt ut på mobil, surfplatta och dator." },
+    { icon: Search, title: "SEO från start", text: "Strukturerad data, snabb laddtid och Google-optimering." },
+    { icon: ServerCog, title: "Hosting & domän", text: "Vi sköter hosting, SSL och e-post — du behöver inte tänka." },
+    { icon: Zap, title: "Snabb laddtid", text: "Optimerade bilder och kod — under 1 sekunds laddtid." },
+    { icon: Lock, title: "GDPR & säkerhet", text: "Cookie-banner, krypterade formulär och daglig backup." },
+    { icon: Mail, title: "Kontaktformulär", text: "Mail, bokning eller offertformulär — kopplat till din e-post." },
+    { icon: HeadphonesIcon, title: "Personlig support", text: "Riktiga människor på svenska — alltid när du behöver." },
   ];
   return (
-    <section id="portfolio" className="container mx-auto px-4 py-24 md:py-32">
-      <div className="text-center max-w-2xl mx-auto mb-16">
-        <Badge variant="secondary" className="rounded-full mb-4">Portfolio</Badge>
+    <section id="ingar" className="container mx-auto px-4 py-24 md:py-32">
+      <div className="text-center max-w-2xl mx-auto mb-14">
+        <Badge variant="secondary" className="rounded-full mb-4">Vad ingår</Badge>
         <h2 className="text-3xl md:text-5xl font-semibold tracking-tighter leading-[1.1]">
-          Hemsidor vi nyligen levererat
+          Allt du behöver — i ett paket
         </h2>
         <p className="text-muted-foreground mt-5 text-lg">
-          Varje projekt är skräddarsytt efter kundens varumärke och affär.
+          Inga dolda kostnader. Du får en komplett, färdig hemsida redo att börja generera kunder.
         </p>
       </div>
-      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {items.map((it) => (
-          <div key={it.title} className="group rounded-3xl border border-border/60 overflow-hidden bg-card transition-smooth hover:shadow-premium hover:-translate-y-2">
-            <div className={`relative aspect-[4/3] bg-gradient-to-br ${it.grad} overflow-hidden`}>
-              <div className="absolute inset-0 grid-pattern opacity-30" />
-              <div className="absolute inset-5 rounded-2xl bg-card/95 backdrop-blur-sm border border-border/60 shadow-elegant overflow-hidden flex flex-col">
-                <div className="flex items-center gap-1.5 px-3 py-2 border-b border-border/60 bg-muted/40">
-                  <span className="h-2 w-2 rounded-full bg-destructive/60" />
-                  <span className="h-2 w-2 rounded-full bg-yellow-400/70" />
-                  <span className="h-2 w-2 rounded-full bg-emerald-400/70" />
-                </div>
-                <div className="flex-1 p-3">{it.mockup}</div>
-              </div>
-            </div>
-            <div className="p-6">
-              <div className="flex items-center gap-2 mb-2">
-                <span className="flex h-6 w-6 items-center justify-center rounded-md bg-primary/10 text-primary">
-                  <it.icon className="h-3.5 w-3.5" />
-                </span>
-                <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{it.tag}</span>
-              </div>
-              <div className="font-semibold text-lg">{it.title}</div>
-              <p className="text-sm text-muted-foreground mt-2 leading-relaxed">{it.desc}</p>
-              <Button variant="ghost" size="sm" className="mt-4 -ml-3 group/btn">
-                Visa projekt
-                <ArrowRight className="h-3.5 w-3.5 transition-smooth group-hover/btn:translate-x-1" />
-              </Button>
-            </div>
+      <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {items.map(({ icon: Icon, title, text }) => (
+          <div key={title} className="group rounded-2xl border border-border/60 bg-card p-6 transition-smooth hover:shadow-elegant hover:-translate-y-1">
+            <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary mb-4 transition-smooth group-hover:bg-gradient-primary group-hover:text-primary-foreground">
+              <Icon className="h-5 w-5" />
+            </span>
+            <div className="font-semibold">{title}</div>
+            <p className="text-sm text-muted-foreground mt-1.5 leading-relaxed">{text}</p>
           </div>
         ))}
       </div>
@@ -426,91 +366,122 @@ function Portfolio() {
   );
 }
 
-/* Mockup mini-components */
-function ShopMockup() {
+/* ----------------------- PORTFOLIO ----------------------- */
+function Portfolio() {
+  const items: {
+    title: string;
+    tag: string;
+    desc: string;
+    image: string;
+    accent: string;
+    domain: string;
+  }[] = [
+    {
+      title: "Scandy Candy",
+      tag: "E-handel · Godismärke",
+      desc: "Färgstark webshop med produktfokus, prenumerationsboxar och Klarna-checkout.",
+      image: "https://images.unsplash.com/photo-1581798459219-318e76aecc7b?auto=format&fit=crop&w=1200&q=80",
+      accent: "from-rose-400 to-amber-300",
+      domain: "scandycandy.se",
+    },
+    {
+      title: "Restaurang Klippan",
+      tag: "Restaurang & café",
+      desc: "Bildtung sida med digital meny, online-bordsbokning och berättelsen om köket.",
+      image: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1200&q=80",
+      accent: "from-amber-500 to-orange-400",
+      domain: "klippan.se",
+    },
+    {
+      title: "NorrBygg AB",
+      tag: "Byggfirma",
+      desc: "Professionell sida med projektgalleri, certifieringar, trust badges och offertformulär.",
+      image: "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&w=1200&q=80",
+      accent: "from-yellow-500 to-amber-700",
+      domain: "norrbygg.se",
+    },
+    {
+      title: "Salong Lykke",
+      tag: "Salong & skönhet",
+      desc: "Elegant salongsida med online-bokning, behandlingar, prislista och Instagram-galleri.",
+      image: "https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&w=1200&q=80",
+      accent: "from-pink-300 to-rose-400",
+      domain: "salonglykke.se",
+    },
+    {
+      title: "Lindberg Juridik",
+      tag: "Konsult · Juristbyrå",
+      desc: "Premium corporate-sida med ren typografi, teampresentation och bokningsflöde.",
+      image: "https://images.unsplash.com/photo-1450101499163-c8848c66ca85?auto=format&fit=crop&w=1200&q=80",
+      accent: "from-slate-500 to-indigo-500",
+      domain: "lindbergjuridik.se",
+    },
+    {
+      title: "Lykke Living",
+      tag: "E-handel · Inredning",
+      desc: "Skandinavisk inredningsbutik med curaterad katalog och betalning via Klarna.",
+      image: "https://images.unsplash.com/photo-1567016376408-0226e4d0c1ea?auto=format&fit=crop&w=1200&q=80",
+      accent: "from-emerald-300 to-teal-400",
+      domain: "lykkeliving.se",
+    },
+  ];
   return (
-    <div className="h-full flex flex-col gap-2">
-      <div className="h-3 w-20 rounded bg-foreground/70" />
-      <div className="grid grid-cols-3 gap-1.5 flex-1">
-        <div className="rounded-md bg-gradient-to-br from-rose-400/50 to-pink-300/50" />
-        <div className="rounded-md bg-gradient-to-br from-amber-400/50 to-orange-300/50" />
-        <div className="rounded-md bg-gradient-to-br from-fuchsia-400/50 to-purple-300/50" />
+    <section id="portfolio" className="bg-muted/30 border-y border-border/50">
+      <div className="container mx-auto px-4 py-24 md:py-32">
+        <div className="text-center max-w-2xl mx-auto mb-16">
+          <Badge variant="secondary" className="rounded-full mb-4">Portfolio</Badge>
+          <h2 className="text-3xl md:text-5xl font-semibold tracking-tighter leading-[1.1]">
+            Hemsidor vi nyligen levererat
+          </h2>
+          <p className="text-muted-foreground mt-5 text-lg">
+            Verkliga projekt åt verkliga företag. Varje sida är skräddarsydd efter kundens varumärke.
+          </p>
+        </div>
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {items.map((it) => (
+            <article
+              key={it.title}
+              className="group flex flex-col rounded-3xl border border-border/60 overflow-hidden bg-card transition-smooth hover:shadow-premium hover:-translate-y-2"
+            >
+              <div className="relative aspect-[4/3] overflow-hidden bg-muted">
+                <div className="absolute inset-x-0 top-0 z-10 flex items-center gap-1.5 px-3 py-2 bg-card/95 backdrop-blur border-b border-border/60">
+                  <span className="h-2 w-2 rounded-full bg-destructive/60" />
+                  <span className="h-2 w-2 rounded-full bg-yellow-400/70" />
+                  <span className="h-2 w-2 rounded-full bg-emerald-400/70" />
+                  <div className="ml-3 flex-1 max-w-[180px]">
+                    <div className="rounded-sm bg-background/80 border border-border/60 px-2 py-0.5 text-[10px] text-muted-foreground text-center truncate">
+                      {it.domain}
+                    </div>
+                  </div>
+                </div>
+                <img
+                  src={it.image}
+                  alt={`Hemsida för ${it.title}`}
+                  loading="lazy"
+                  className="absolute inset-0 h-full w-full object-cover transition-smooth group-hover:scale-[1.04]"
+                />
+                <div className={`absolute inset-0 bg-gradient-to-tr ${it.accent} opacity-25 mix-blend-overlay`} />
+                <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/70 to-transparent" />
+                <div className="absolute bottom-3 left-3 right-3 text-white">
+                  <div className="text-[10px] uppercase tracking-wider opacity-80">{it.tag}</div>
+                  <div className="font-semibold text-lg leading-tight drop-shadow">{it.title}</div>
+                </div>
+              </div>
+              <div className="flex flex-col flex-1 p-6">
+                <p className="text-sm text-muted-foreground leading-relaxed flex-1">{it.desc}</p>
+                <Button variant="soft" size="sm" className="mt-5 self-start group/btn">
+                  Se projekt
+                  <ArrowRight className="h-3.5 w-3.5 transition-smooth group-hover/btn:translate-x-1" />
+                </Button>
+              </div>
+            </article>
+          ))}
+        </div>
       </div>
-      <div className="flex justify-between items-center">
-        <div className="h-2 w-16 rounded bg-muted-foreground/40" />
-        <div className="h-5 w-12 rounded bg-foreground/80" />
-      </div>
-    </div>
+    </section>
   );
 }
-function RestaurantMockup() {
-  return (
-    <div className="h-full flex flex-col gap-2">
-      <div className="h-12 rounded-md bg-gradient-to-br from-amber-700/40 to-orange-500/40" />
-      <div className="h-2 w-24 rounded bg-foreground/70" />
-      <div className="space-y-1 flex-1">
-        <div className="flex justify-between"><div className="h-1.5 w-16 rounded bg-muted-foreground/40" /><div className="h-1.5 w-6 rounded bg-muted-foreground/40" /></div>
-        <div className="flex justify-between"><div className="h-1.5 w-20 rounded bg-muted-foreground/40" /><div className="h-1.5 w-6 rounded bg-muted-foreground/40" /></div>
-        <div className="flex justify-between"><div className="h-1.5 w-14 rounded bg-muted-foreground/40" /><div className="h-1.5 w-6 rounded bg-muted-foreground/40" /></div>
-      </div>
-      <div className="h-5 rounded bg-foreground/80" />
-    </div>
-  );
-}
-function LawMockup() {
-  return (
-    <div className="h-full flex flex-col gap-2">
-      <div className="h-2 w-12 rounded bg-foreground/70" />
-      <div className="h-3 w-32 rounded bg-foreground/80" />
-      <div className="h-2 w-28 rounded bg-muted-foreground/40" />
-      <div className="grid grid-cols-3 gap-1.5 mt-auto">
-        <div className="aspect-square rounded-full bg-slate-400/40" />
-        <div className="aspect-square rounded-full bg-slate-400/40" />
-        <div className="aspect-square rounded-full bg-slate-400/40" />
-      </div>
-    </div>
-  );
-}
-function ConstructionMockup() {
-  return (
-    <div className="h-full flex flex-col gap-2">
-      <div className="h-10 rounded-md bg-gradient-to-br from-yellow-500/50 to-amber-700/50" />
-      <div className="grid grid-cols-2 gap-1.5 flex-1">
-        <div className="rounded-md bg-amber-300/30" />
-        <div className="rounded-md bg-orange-300/30" />
-      </div>
-      <div className="h-5 w-20 rounded bg-foreground/80" />
-    </div>
-  );
-}
-function EcomMockup() {
-  return (
-    <div className="h-full flex flex-col gap-2">
-      <div className="flex justify-between">
-        <div className="h-2 w-12 rounded bg-foreground/70" />
-        <div className="h-2 w-6 rounded bg-foreground/70" />
-      </div>
-      <div className="grid grid-cols-2 gap-1.5 flex-1">
-        <div className="rounded-md bg-gradient-to-br from-emerald-300/50 to-teal-400/50" />
-        <div className="rounded-md bg-gradient-to-br from-cyan-300/50 to-blue-400/50" />
-      </div>
-      <div className="flex gap-1">
-        <div className="h-4 flex-1 rounded bg-muted-foreground/30" />
-        <div className="h-4 w-10 rounded bg-foreground/80" />
-      </div>
-    </div>
-  );
-}
-function YogaMockup() {
-  return (
-    <div className="h-full flex flex-col gap-2">
-      <div className="h-14 rounded-md bg-gradient-to-br from-violet-300/60 to-purple-400/40" />
-      <div className="h-2 w-20 rounded bg-foreground/70" />
-      <div className="h-1.5 w-24 rounded bg-muted-foreground/40" />
-      <div className="h-5 w-16 rounded bg-foreground/80 mt-auto" />
-    </div>
-  );
-}
+
 
 /* ----------------------- TRUST ----------------------- */
 function Trust() {
