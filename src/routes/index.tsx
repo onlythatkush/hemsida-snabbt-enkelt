@@ -87,17 +87,30 @@ function Index() {
 /* ----------------------- HERO ----------------------- */
 function Hero() {
   return (
-    <section className="relative overflow-hidden">
-      {/* Animated gradient background */}
-      <div className="absolute inset-0 bg-gradient-mesh animate-gradient -z-20" />
-      <div className="absolute inset-0 grid-pattern opacity-50 -z-10" />
-      <div className="absolute inset-0 -z-10">
-        <div className="absolute top-20 left-1/4 h-96 w-96 rounded-full bg-primary/30 blur-3xl animate-glow" />
-        <div className="absolute top-40 right-1/4 h-96 w-96 rounded-full bg-primary-glow/30 blur-3xl animate-glow" style={{ animationDelay: "2s" }} />
+    <section className="relative overflow-hidden bg-ink text-ink-foreground">
+      {/* Cinematic Stockholm skyline at night */}
+      <div className="absolute inset-0 -z-20 overflow-hidden">
+        <img
+          src="https://images.unsplash.com/photo-1509356843151-3e7d96241e11?auto=format&fit=crop&w=2400&q=80"
+          alt="Stockholms skyline på natten"
+          className="absolute inset-0 h-full w-full object-cover opacity-40 animate-city-pan will-change-transform"
+        />
+        {/* Layered gradients for cinematic depth */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/55 to-black" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_70%_50%_at_50%_0%,oklch(0.7_0.19_55_/_0.28),transparent_70%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_50%_40%_at_80%_20%,oklch(0.82_0.16_80_/_0.22),transparent_70%)]" />
+      </div>
+      {/* Subtle twinkling lights */}
+      <div className="absolute inset-0 -z-10 pointer-events-none">
+        <div className="absolute top-[18%] left-[12%] h-1.5 w-1.5 rounded-full bg-amber-300 animate-twinkle shadow-[0_0_12px_2px_oklch(0.85_0.16_80_/_0.7)]" />
+        <div className="absolute top-[34%] left-[28%] h-1 w-1 rounded-full bg-orange-300 animate-twinkle shadow-[0_0_10px_2px_oklch(0.78_0.18_60_/_0.7)]" style={{ animationDelay: "1.2s" }} />
+        <div className="absolute top-[24%] right-[18%] h-1.5 w-1.5 rounded-full bg-amber-200 animate-twinkle shadow-[0_0_14px_3px_oklch(0.88_0.14_85_/_0.7)]" style={{ animationDelay: "2.4s" }} />
+        <div className="absolute top-[50%] right-[32%] h-1 w-1 rounded-full bg-amber-300 animate-twinkle shadow-[0_0_10px_2px_oklch(0.85_0.16_80_/_0.7)]" style={{ animationDelay: "0.6s" }} />
+        <div className="absolute top-[46%] left-[44%] h-1 w-1 rounded-full bg-orange-200 animate-twinkle shadow-[0_0_8px_2px_oklch(0.82_0.16_70_/_0.6)]" style={{ animationDelay: "3s" }} />
       </div>
 
-      <div className="container mx-auto px-4 pt-20 pb-24 md:pt-28 md:pb-32 text-center">
-        <div className="animate-fade-up inline-flex items-center gap-2 rounded-full glass px-4 py-1.5 text-xs font-medium">
+      <div className="container relative mx-auto px-4 pt-20 pb-24 md:pt-28 md:pb-32 text-center">
+        <div className="animate-fade-up inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-xs font-medium bg-white/5 border border-white/10 backdrop-blur">
           <span className="relative flex h-2 w-2">
             <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75" />
             <span className="relative inline-flex h-2 w-2 rounded-full bg-primary" />
@@ -107,33 +120,22 @@ function Hero() {
 
         <h1 className="animate-fade-up mt-7 text-5xl md:text-6xl lg:text-7xl font-semibold tracking-tighter max-w-5xl mx-auto leading-[1.05]" style={{ animationDelay: "0.1s" }}>
           Din webbpartner för{" "}
-          <span className="relative inline-block">
-            <span className="text-gradient-primary">moderna hemsidor</span>
-            <svg className="absolute -bottom-2 left-0 w-full" viewBox="0 0 300 12" fill="none" preserveAspectRatio="none">
-              <path d="M2 9C50 3 150 3 298 7" stroke="url(#g)" strokeWidth="3" strokeLinecap="round" />
-              <defs>
-                <linearGradient id="g" x1="0" y1="0" x2="300" y2="0">
-                  <stop offset="0%" stopColor="oklch(0.52 0.22 262)" />
-                  <stop offset="100%" stopColor="oklch(0.72 0.18 250)" />
-                </linearGradient>
-              </defs>
-            </svg>
-          </span>
+          <span className="text-gradient-primary">moderna hemsidor</span>
           <br className="hidden sm:block" />
           som säljer
         </h1>
 
-        <p className="animate-fade-up mt-8 text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed" style={{ animationDelay: "0.2s" }}>
-          Vi bygger professionella hemsidor som hjälper företag att synas bättre, skapa förtroende och få fler kunder online.
+        <p className="animate-fade-up mt-8 text-lg md:text-xl text-ink-foreground/75 max-w-2xl mx-auto leading-relaxed" style={{ animationDelay: "0.2s" }}>
+          Professionella hemsidor för företag som vill synas bättre, skapa förtroende och få fler kunder online.
         </p>
 
         <div className="animate-fade-up mt-10 flex flex-wrap items-center justify-center gap-3" style={{ animationDelay: "0.3s" }}>
-          <Button asChild variant="hero" size="xl" className="shadow-premium">
+          <Button asChild variant="hero" size="xl" className="shadow-glow">
             <Link to="/bestall">
               Starta ditt projekt <ArrowRight className="ml-1" />
             </Link>
           </Button>
-          <Button asChild variant="outline" size="xl" className="glass">
+          <Button asChild variant="outline" size="xl" className="bg-white/5 border-white/15 text-ink-foreground hover:bg-white/10 hover:text-ink-foreground backdrop-blur">
             <a href="#portfolio">Se portfolio</a>
           </Button>
         </div>
@@ -148,7 +150,7 @@ function Hero() {
           ].map(({ icon: Icon, label }, i) => (
             <div
               key={label}
-              className="glass rounded-full px-4 py-2.5 text-sm flex items-center gap-2 shadow-soft animate-float"
+              className="rounded-full px-4 py-2.5 text-sm flex items-center gap-2 shadow-soft animate-float bg-white/5 border border-white/10 backdrop-blur"
               style={{ animationDelay: `${i * 0.4}s` }}
             >
               <span className="flex h-6 w-6 items-center justify-center rounded-full bg-gradient-primary">
@@ -157,47 +159,6 @@ function Hero() {
               <span className="font-medium">{label}</span>
             </div>
           ))}
-        </div>
-
-        {/* Browser mockup */}
-        <div className="animate-fade-up mt-20 max-w-5xl mx-auto" style={{ animationDelay: "0.5s" }}>
-          <div className="relative">
-            <div className="absolute -inset-4 bg-gradient-primary opacity-20 blur-3xl rounded-3xl" />
-            <div className="relative rounded-2xl border border-border/60 bg-card shadow-premium overflow-hidden">
-              <div className="flex items-center gap-2 px-4 py-3 border-b border-border/60 bg-muted/40">
-                <span className="h-3 w-3 rounded-full bg-destructive/60" />
-                <span className="h-3 w-3 rounded-full bg-yellow-400/70" />
-                <span className="h-3 w-3 rounded-full bg-emerald-400/70" />
-                <div className="ml-4 flex-1 max-w-md mx-auto">
-                  <div className="rounded-md bg-background/80 border border-border/60 px-3 py-1 text-xs text-muted-foreground text-center">
-                    dinwebbpartner.com
-                  </div>
-                </div>
-              </div>
-              <div className="aspect-[16/9] bg-gradient-mesh relative">
-                <div className="absolute inset-0 grid-pattern opacity-40" />
-                <div className="relative h-full p-8 md:p-12 flex flex-col justify-center">
-                  <div className="max-w-sm">
-                    <div className="h-2 w-20 rounded-full bg-primary/60 mb-4" />
-                    <div className="h-8 w-64 rounded-lg bg-foreground/80 mb-3" />
-                    <div className="h-8 w-52 rounded-lg bg-foreground/60 mb-6" />
-                    <div className="h-3 w-72 rounded bg-muted-foreground/40 mb-2" />
-                    <div className="h-3 w-64 rounded bg-muted-foreground/40 mb-6" />
-                    <div className="flex gap-2">
-                      <div className="h-10 w-32 rounded-lg bg-gradient-primary shadow-soft" />
-                      <div className="h-10 w-28 rounded-lg border border-border bg-background/60" />
-                    </div>
-                  </div>
-                  <div className="absolute right-8 md:right-12 top-1/2 -translate-y-1/2 hidden md:block">
-                    <div className="relative">
-                      <div className="h-48 w-48 rounded-2xl bg-gradient-primary shadow-elegant rotate-6" />
-                      <div className="absolute -bottom-6 -left-10 h-32 w-32 rounded-2xl glass shadow-soft -rotate-12" />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
     </section>
