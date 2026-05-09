@@ -88,17 +88,10 @@ function Index() {
 /* ----------------------- HERO ----------------------- */
 function Hero() {
   return (
-    <section className="relative overflow-hidden bg-ink text-ink-foreground">
-      {/* Cinematic Stockholm skyline at night */}
-      <div className="absolute inset-0 -z-20 overflow-hidden">
-        <img
-          src="https://images.unsplash.com/photo-1509356843151-3e7d96241e11?auto=format&fit=crop&w=2400&q=80"
-          alt="Stockholms skyline på natten"
-          className="absolute inset-0 h-full w-full object-cover opacity-40 animate-city-pan will-change-transform"
-        />
-        {/* Layered gradients for cinematic depth */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/55 to-black" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_70%_50%_at_50%_0%,oklch(0.7_0.19_55_/_0.28),transparent_70%)]" />
+    <section className="relative overflow-hidden text-ink-foreground">
+      {/* Cinematic ambient glows over the global Stockholm backdrop */}
+      <div className="absolute inset-0 -z-10 pointer-events-none">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_70%_50%_at_50%_0%,oklch(0.7_0.19_55_/_0.32),transparent_70%)]" />
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_50%_40%_at_80%_20%,oklch(0.82_0.16_80_/_0.22),transparent_70%)]" />
       </div>
       {/* Subtle twinkling lights */}
