@@ -97,11 +97,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootShell({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="sv" className="dark">
       <head>
         <HeadContent />
       </head>
       <body>
+        <div aria-hidden className="fixed inset-0 -z-50 bg-[url('https://images.unsplash.com/photo-1509356843151-3e7d96241e11?auto=format&fit=crop&w=2400&q=80')] bg-cover bg-center bg-no-repeat" style={{ backgroundAttachment: "fixed" }} />
+        <div aria-hidden className="fixed inset-0 -z-40 bg-[linear-gradient(180deg,rgba(8,6,4,0.78),rgba(8,6,4,0.92))]" />
+        <div aria-hidden className="fixed inset-0 -z-30 bg-[radial-gradient(ellipse_60%_50%_at_50%_0%,oklch(0.7_0.19_55_/_0.18),transparent_70%)]" />
         {children}
         <Scripts />
       </body>
