@@ -123,7 +123,7 @@ function Hero() {
         </h1>
 
         <p className="animate-fade-up mt-8 text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed" style={{ animationDelay: "0.2s" }}>
-          Vi bygger snabba, snygga och mobilanpassade hemsidor åt företag som vill se professionella ut och få fler kunder online.
+          Vi bygger professionella hemsidor som hjälper företag att synas bättre, skapa förtroende och få fler kunder online.
         </p>
 
         <div className="animate-fade-up mt-10 flex flex-wrap items-center justify-center gap-3" style={{ animationDelay: "0.3s" }}>
@@ -142,8 +142,8 @@ function Hero() {
           {[
             { icon: Zap, label: "Klar inom 7 dagar" },
             { icon: Smartphone, label: "Mobilanpassad" },
-            { icon: Search, label: "Google-optimerad" },
-            { icon: HeadphonesIcon, label: "Support inkluderad" },
+            { icon: Search, label: "SEO-optimerad" },
+            { icon: HeadphonesIcon, label: "Full support" },
           ].map(({ icon: Icon, label }, i) => (
             <div
               key={label}
