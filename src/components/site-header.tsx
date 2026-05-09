@@ -12,13 +12,14 @@ export function SiteHeader() {
             <Sparkles className="h-4 w-4 text-primary-foreground" />
             <span className="absolute -inset-1 rounded-xl bg-gradient-primary opacity-30 blur-md -z-10" />
           </span>
-          <span className="tracking-tight">Sidly<span className="text-primary">.</span></span>
+          <span className="tracking-tight">Din Webbpartner<span className="text-primary">.</span></span>
         </Link>
-        <nav className="hidden md:flex items-center gap-7 text-sm text-muted-foreground">
+        <nav className="hidden lg:flex items-center gap-7 text-sm text-muted-foreground">
           <a href="/#tjanst" className="hover:text-foreground transition-smooth">Så fungerar det</a>
+          <a href="/#ingar" className="hover:text-foreground transition-smooth">Vad ingår</a>
           <a href="/#portfolio" className="hover:text-foreground transition-smooth">Portfolio</a>
           <a href="/#priser" className="hover:text-foreground transition-smooth">Priser</a>
-          <a href="/#abonnemang" className="hover:text-foreground transition-smooth">Abonnemang</a>
+          <a href="/#abonnemang" className="hover:text-foreground transition-smooth">Support</a>
           <a href="/#faq" className="hover:text-foreground transition-smooth">FAQ</a>
         </nav>
         <div className="flex items-center gap-2">
@@ -46,10 +47,10 @@ export function SiteFooter() {
               <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-primary shadow-soft">
                 <Sparkles className="h-4 w-4 text-primary-foreground" />
               </span>
-              <span>Sidly<span className="text-primary-glow">.</span></span>
+              <span>Din Webbpartner<span className="text-primary-glow">.</span></span>
             </Link>
             <p className="mt-4 text-sm text-ink-foreground/70 max-w-md">
-              Vi bygger moderna, snabba och mobilanpassade hemsidor för svenska företag som vill se seriösa ut online.
+              Moderna hemsidor för företag. Vi bygger snabba, snygga och säljande hemsidor åt svenska företag och privatpersoner.
             </p>
             <div className="mt-6 flex gap-3">
               {[Instagram, Linkedin, Facebook].map((Icon, i) => (
@@ -62,23 +63,24 @@ export function SiteFooter() {
           <div>
             <div className="text-sm font-semibold mb-4">Kontakt</div>
             <ul className="space-y-3 text-sm text-ink-foreground/70">
-              <li className="flex items-center gap-2"><Mail className="h-4 w-4" /> hej@sidly.se</li>
+              <li className="flex items-center gap-2"><Mail className="h-4 w-4" /> hej@dinwebbpartner.com</li>
               <li className="flex items-center gap-2"><Phone className="h-4 w-4" /> +46 70 123 45 67</li>
               <li className="flex items-center gap-2"><MapPin className="h-4 w-4" /> Stockholm, Sverige</li>
             </ul>
           </div>
           <div>
-            <div className="text-sm font-semibold mb-4">Företag</div>
+            <div className="text-sm font-semibold mb-4">Snabblänkar</div>
             <ul className="space-y-3 text-sm text-ink-foreground/70">
+              <li><a href="/#tjanst" className="hover:text-ink-foreground transition-smooth">Tjänster</a></li>
               <li><a href="/#portfolio" className="hover:text-ink-foreground transition-smooth">Portfolio</a></li>
               <li><a href="/#priser" className="hover:text-ink-foreground transition-smooth">Priser</a></li>
-              <li><a href="/#abonnemang" className="hover:text-ink-foreground transition-smooth">Abonnemang</a></li>
+              <li><a href="/#abonnemang" className="hover:text-ink-foreground transition-smooth">Support & abonnemang</a></li>
               <li><Link to="/bestall" className="hover:text-ink-foreground transition-smooth">Beställ hemsida</Link></li>
             </ul>
           </div>
         </div>
         <div className="mt-12 pt-8 border-t border-white/10 flex flex-col md:flex-row items-center justify-between gap-3 text-xs text-ink-foreground/60">
-          <span>© {new Date().getFullYear()} Sidly AB. Alla rättigheter förbehållna.</span>
+          <span>© {new Date().getFullYear()} Din Webbpartner. Alla rättigheter förbehållna.</span>
           <span>Org.nr: 559XXX-XXXX · Moms: SE559XXXXXXXX01</span>
         </div>
       </div>
