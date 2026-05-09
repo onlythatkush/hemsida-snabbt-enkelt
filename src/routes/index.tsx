@@ -704,21 +704,21 @@ function Abonnemang({ currency }: { currency: Currency }) {
     {
       name: "Start",
       price: 299,
-      desc: "För dig som vill ha tryggheten på plats.",
-      features: ["Hosting & domän", "SSL & säkerhet", "Daglig backup", "E-post support"],
+      desc: "Tryggheten på plats — perfekt om du vill äga och driva sidan själv.",
+      features: ["Hosting", "SSL", "Säkerhetsuppdateringar", "Mindre ändringar"],
     },
     {
       name: "Growth",
       price: 599,
-      desc: "Vårt populäraste abonnemang.",
-      features: ["Allt i Start", "Mindre uppdateringar", "Prioriterad support", "Månatlig SEO-rapport", "Hastighetsövervakning"],
+      desc: "Vårt populäraste val — för företag som vill växa via webben.",
+      features: ["Allt i Start", "SEO-förbättringar", "Prioriterad support", "Innehållsuppdateringar"],
       popular: true,
     },
     {
       name: "Premium",
       price: 999,
-      desc: "Komplett trygghet med AI och proaktiv optimering.",
-      features: ["Allt i Growth", "AI-övervakning 24/7", "Löpande SEO-förbättringar", "Innehållsuppdateringar", "Dedikerad kontakt"],
+      desc: "Komplett partnerskap med löpande optimering och rådgivning.",
+      features: ["Allt i Growth", "Löpande förbättringar", "Kampanjsidor", "Strategisk rådgivning"],
     },
   ];
   return (
