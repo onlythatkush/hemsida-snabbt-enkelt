@@ -650,13 +650,6 @@ function Priser({ currency, setCurrency }: { currency: Currency; setCurrency: (c
   );
 }
 
-function CreditCardIcon() {
-  return (
-    <span className="flex h-6 w-6 items-center justify-center rounded-md bg-primary/10 text-primary">
-      <TrendingUp className="h-3.5 w-3.5" />
-    </span>
-  );
-}
 
 /* ----------------------- ABONNEMANG ----------------------- */
 function Abonnemang({ currency }: { currency: Currency }) {
