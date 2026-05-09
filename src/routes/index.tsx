@@ -73,6 +73,7 @@ function Index() {
         <SocialProof />
         <OmOss />
         <SaFungerar />
+        <VadIngar />
         <Portfolio />
         <Trust />
         <Priser currency={currency} setCurrency={setCurrency} />
