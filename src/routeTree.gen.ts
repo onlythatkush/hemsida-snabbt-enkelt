@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as BestallRouteImport } from './routes/bestall'
 import { Route as BekraftelseRouteImport } from './routes/bekraftelse'
+import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 
 const BestallRoute = BestallRouteImport.update({
@@ -23,6 +24,11 @@ const BekraftelseRoute = BekraftelseRouteImport.update({
   path: '/bekraftelse',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -31,30 +37,34 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
   '/bekraftelse': typeof BekraftelseRoute
   '/bestall': typeof BestallRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
   '/bekraftelse': typeof BekraftelseRoute
   '/bestall': typeof BestallRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
   '/bekraftelse': typeof BekraftelseRoute
   '/bestall': typeof BestallRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/bekraftelse' | '/bestall'
+  fullPaths: '/' | '/admin' | '/bekraftelse' | '/bestall'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/bekraftelse' | '/bestall'
-  id: '__root__' | '/' | '/bekraftelse' | '/bestall'
+  to: '/' | '/admin' | '/bekraftelse' | '/bestall'
+  id: '__root__' | '/' | '/admin' | '/bekraftelse' | '/bestall'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AdminRoute: typeof AdminRoute
   BekraftelseRoute: typeof BekraftelseRoute
   BestallRoute: typeof BestallRoute
 }
@@ -75,6 +85,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BekraftelseRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -87,6 +104,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AdminRoute: AdminRoute,
   BekraftelseRoute: BekraftelseRoute,
   BestallRoute: BestallRoute,
 }
