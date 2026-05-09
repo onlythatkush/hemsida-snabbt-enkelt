@@ -73,6 +73,7 @@ function Index() {
         <Portfolio />
         <Trust />
         <Priser currency={currency} setCurrency={setCurrency} />
+        <LopandeKostnader />
         <Abonnemang currency={currency} />
         <Recensioner />
         <FAQ />
@@ -87,17 +88,30 @@ function Index() {
 /* ----------------------- HERO ----------------------- */
 function Hero() {
   return (
-    <section className="relative overflow-hidden">
-      {/* Animated gradient background */}
-      <div className="absolute inset-0 bg-gradient-mesh animate-gradient -z-20" />
-      <div className="absolute inset-0 grid-pattern opacity-50 -z-10" />
-      <div className="absolute inset-0 -z-10">
-        <div className="absolute top-20 left-1/4 h-96 w-96 rounded-full bg-primary/30 blur-3xl animate-glow" />
-        <div className="absolute top-40 right-1/4 h-96 w-96 rounded-full bg-primary-glow/30 blur-3xl animate-glow" style={{ animationDelay: "2s" }} />
+    <section className="relative overflow-hidden bg-ink text-ink-foreground">
+      {/* Cinematic Stockholm skyline at night */}
+      <div className="absolute inset-0 -z-20 overflow-hidden">
+        <img
+          src="https://images.unsplash.com/photo-1509356843151-3e7d96241e11?auto=format&fit=crop&w=2400&q=80"
+          alt="Stockholms skyline på natten"
+          className="absolute inset-0 h-full w-full object-cover opacity-40 animate-city-pan will-change-transform"
+        />
+        {/* Layered gradients for cinematic depth */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/55 to-black" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_70%_50%_at_50%_0%,oklch(0.7_0.19_55_/_0.28),transparent_70%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_50%_40%_at_80%_20%,oklch(0.82_0.16_80_/_0.22),transparent_70%)]" />
+      </div>
+      {/* Subtle twinkling lights */}
+      <div className="absolute inset-0 -z-10 pointer-events-none">
+        <div className="absolute top-[18%] left-[12%] h-1.5 w-1.5 rounded-full bg-amber-300 animate-twinkle shadow-[0_0_12px_2px_oklch(0.85_0.16_80_/_0.7)]" />
+        <div className="absolute top-[34%] left-[28%] h-1 w-1 rounded-full bg-orange-300 animate-twinkle shadow-[0_0_10px_2px_oklch(0.78_0.18_60_/_0.7)]" style={{ animationDelay: "1.2s" }} />
+        <div className="absolute top-[24%] right-[18%] h-1.5 w-1.5 rounded-full bg-amber-200 animate-twinkle shadow-[0_0_14px_3px_oklch(0.88_0.14_85_/_0.7)]" style={{ animationDelay: "2.4s" }} />
+        <div className="absolute top-[50%] right-[32%] h-1 w-1 rounded-full bg-amber-300 animate-twinkle shadow-[0_0_10px_2px_oklch(0.85_0.16_80_/_0.7)]" style={{ animationDelay: "0.6s" }} />
+        <div className="absolute top-[46%] left-[44%] h-1 w-1 rounded-full bg-orange-200 animate-twinkle shadow-[0_0_8px_2px_oklch(0.82_0.16_70_/_0.6)]" style={{ animationDelay: "3s" }} />
       </div>
 
-      <div className="container mx-auto px-4 pt-20 pb-24 md:pt-28 md:pb-32 text-center">
-        <div className="animate-fade-up inline-flex items-center gap-2 rounded-full glass px-4 py-1.5 text-xs font-medium">
+      <div className="container relative mx-auto px-4 pt-20 pb-24 md:pt-28 md:pb-32 text-center">
+        <div className="animate-fade-up inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-xs font-medium bg-white/5 border border-white/10 backdrop-blur">
           <span className="relative flex h-2 w-2">
             <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75" />
             <span className="relative inline-flex h-2 w-2 rounded-full bg-primary" />
@@ -107,33 +121,22 @@ function Hero() {
 
         <h1 className="animate-fade-up mt-7 text-5xl md:text-6xl lg:text-7xl font-semibold tracking-tighter max-w-5xl mx-auto leading-[1.05]" style={{ animationDelay: "0.1s" }}>
           Din webbpartner för{" "}
-          <span className="relative inline-block">
-            <span className="text-gradient-primary">moderna hemsidor</span>
-            <svg className="absolute -bottom-2 left-0 w-full" viewBox="0 0 300 12" fill="none" preserveAspectRatio="none">
-              <path d="M2 9C50 3 150 3 298 7" stroke="url(#g)" strokeWidth="3" strokeLinecap="round" />
-              <defs>
-                <linearGradient id="g" x1="0" y1="0" x2="300" y2="0">
-                  <stop offset="0%" stopColor="oklch(0.52 0.22 262)" />
-                  <stop offset="100%" stopColor="oklch(0.72 0.18 250)" />
-                </linearGradient>
-              </defs>
-            </svg>
-          </span>
+          <span className="text-gradient-primary">moderna hemsidor</span>
           <br className="hidden sm:block" />
           som säljer
         </h1>
 
-        <p className="animate-fade-up mt-8 text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed" style={{ animationDelay: "0.2s" }}>
-          Vi bygger professionella hemsidor som hjälper företag att synas bättre, skapa förtroende och få fler kunder online.
+        <p className="animate-fade-up mt-8 text-lg md:text-xl text-ink-foreground/75 max-w-2xl mx-auto leading-relaxed" style={{ animationDelay: "0.2s" }}>
+          Professionella hemsidor för företag som vill synas bättre, skapa förtroende och få fler kunder online.
         </p>
 
         <div className="animate-fade-up mt-10 flex flex-wrap items-center justify-center gap-3" style={{ animationDelay: "0.3s" }}>
-          <Button asChild variant="hero" size="xl" className="shadow-premium">
+          <Button asChild variant="hero" size="xl" className="shadow-glow">
             <Link to="/bestall">
               Starta ditt projekt <ArrowRight className="ml-1" />
             </Link>
           </Button>
-          <Button asChild variant="outline" size="xl" className="glass">
+          <Button asChild variant="outline" size="xl" className="bg-white/5 border-white/15 text-ink-foreground hover:bg-white/10 hover:text-ink-foreground backdrop-blur">
             <a href="#portfolio">Se portfolio</a>
           </Button>
         </div>
@@ -148,7 +151,7 @@ function Hero() {
           ].map(({ icon: Icon, label }, i) => (
             <div
               key={label}
-              className="glass rounded-full px-4 py-2.5 text-sm flex items-center gap-2 shadow-soft animate-float"
+              className="rounded-full px-4 py-2.5 text-sm flex items-center gap-2 shadow-soft animate-float bg-white/5 border border-white/10 backdrop-blur"
               style={{ animationDelay: `${i * 0.4}s` }}
             >
               <span className="flex h-6 w-6 items-center justify-center rounded-full bg-gradient-primary">
@@ -157,47 +160,6 @@ function Hero() {
               <span className="font-medium">{label}</span>
             </div>
           ))}
-        </div>
-
-        {/* Browser mockup */}
-        <div className="animate-fade-up mt-20 max-w-5xl mx-auto" style={{ animationDelay: "0.5s" }}>
-          <div className="relative">
-            <div className="absolute -inset-4 bg-gradient-primary opacity-20 blur-3xl rounded-3xl" />
-            <div className="relative rounded-2xl border border-border/60 bg-card shadow-premium overflow-hidden">
-              <div className="flex items-center gap-2 px-4 py-3 border-b border-border/60 bg-muted/40">
-                <span className="h-3 w-3 rounded-full bg-destructive/60" />
-                <span className="h-3 w-3 rounded-full bg-yellow-400/70" />
-                <span className="h-3 w-3 rounded-full bg-emerald-400/70" />
-                <div className="ml-4 flex-1 max-w-md mx-auto">
-                  <div className="rounded-md bg-background/80 border border-border/60 px-3 py-1 text-xs text-muted-foreground text-center">
-                    dinwebbpartner.com
-                  </div>
-                </div>
-              </div>
-              <div className="aspect-[16/9] bg-gradient-mesh relative">
-                <div className="absolute inset-0 grid-pattern opacity-40" />
-                <div className="relative h-full p-8 md:p-12 flex flex-col justify-center">
-                  <div className="max-w-sm">
-                    <div className="h-2 w-20 rounded-full bg-primary/60 mb-4" />
-                    <div className="h-8 w-64 rounded-lg bg-foreground/80 mb-3" />
-                    <div className="h-8 w-52 rounded-lg bg-foreground/60 mb-6" />
-                    <div className="h-3 w-72 rounded bg-muted-foreground/40 mb-2" />
-                    <div className="h-3 w-64 rounded bg-muted-foreground/40 mb-6" />
-                    <div className="flex gap-2">
-                      <div className="h-10 w-32 rounded-lg bg-gradient-primary shadow-soft" />
-                      <div className="h-10 w-28 rounded-lg border border-border bg-background/60" />
-                    </div>
-                  </div>
-                  <div className="absolute right-8 md:right-12 top-1/2 -translate-y-1/2 hidden md:block">
-                    <div className="relative">
-                      <div className="h-48 w-48 rounded-2xl bg-gradient-primary shadow-elegant rotate-6" />
-                      <div className="absolute -bottom-6 -left-10 h-32 w-32 rounded-2xl glass shadow-soft -rotate-12" />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
     </section>
@@ -332,12 +294,12 @@ function Ownership() {
     {
       icon: Award,
       title: "Äger jag hemsidan?",
-      text: "Ja. Du äger din hemsida och allt innehåll. Vi kan överföra hela projektet till dig när som helst om du önskar — utan extra kostnad.",
+      text: "Ja, du äger hemsidan utan extra kostnad när projektet är slutbetalt. All kod, design och innehåll tillhör dig — vi kan när som helst överföra hela projektet.",
     },
     {
       icon: HeadphonesIcon,
-      title: "Kan ni hjälpa till med drift och support?",
-      text: "Ja. Vi erbjuder löpande support, hosting, säkerhetsuppdateringar och förbättringar via våra abonnemang — från 299 kr/mån.",
+      title: "Kan ni fortsätta hjälpa mig?",
+      text: "Ja, om du vill kan vi sköta drift, uppdateringar och support via abonnemang — så att din hemsida alltid är snabb, säker och uppdaterad.",
     },
   ];
   return (
@@ -617,17 +579,33 @@ function Priser({ currency, setCurrency }: { currency: Currency; setCurrency: (c
     <section id="priser" className="relative bg-muted/30 border-y border-border/50">
       <div className="absolute inset-0 grid-pattern opacity-30" />
       <div className="container relative mx-auto px-4 py-24 md:py-32">
-        <div className="flex flex-col items-center text-center max-w-2xl mx-auto mb-14">
+        <div className="flex flex-col items-center text-center max-w-2xl mx-auto mb-10">
           <Badge variant="secondary" className="rounded-full mb-4">Priser</Badge>
           <h2 className="text-3xl md:text-5xl font-semibold tracking-tighter leading-[1.1]">
-            Tydliga priser, inga överraskningar
+            Färdig hemsida <span className="text-gradient-primary">från 6 999 kr</span>
           </h2>
           <p className="text-muted-foreground mt-5 text-lg">
-            Fast engångskostnad — eller delbetala bekvämt över 24 eller 36 månader.
+            Engångsbetalning eller bekväm delbetalning över 24 eller 36 månader. Tydliga priser — inga dolda avgifter.
           </p>
           <div className="mt-6">
             <CurrencySwitcher currency={currency} setCurrency={setCurrency} />
           </div>
+        </div>
+
+        {/* Hero payment options */}
+        <div className="grid sm:grid-cols-3 gap-4 max-w-4xl mx-auto mb-14">
+          {[
+            { label: "Engångsbetalning", value: "från 6 999 kr", note: "Slutpris vid leverans" },
+            { label: "Delbetalning 24 mån", value: "från 349 kr/mån", note: "Räntefritt via partner" },
+            { label: "Delbetalning 36 mån", value: "från 249 kr/mån", note: "Lägsta månadskostnad" },
+          ].map((o) => (
+            <div key={o.label} className="relative rounded-2xl border border-border/60 bg-card p-5 text-center shadow-soft transition-smooth hover:shadow-elegant hover:-translate-y-1 overflow-hidden">
+              <div className="absolute -top-12 -right-12 h-32 w-32 rounded-full bg-gradient-primary opacity-10 blur-2xl" />
+              <div className="text-xs uppercase tracking-wider text-muted-foreground">{o.label}</div>
+              <div className="font-semibold text-xl mt-2 text-gradient-primary">{o.value}</div>
+              <div className="text-xs text-muted-foreground mt-1">{o.note}</div>
+            </div>
+          ))}
         </div>
 
         <div className="grid md:grid-cols-3 gap-6 max-w-6xl mx-auto">
@@ -672,26 +650,53 @@ function Priser({ currency, setCurrency }: { currency: Currency; setCurrency: (c
           ))}
         </div>
 
-        <div className="mt-12 max-w-4xl mx-auto">
-          <div className="text-center text-sm font-medium text-muted-foreground mb-4">Flexibla betalalternativ</div>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
-            {[
-              { label: "Engångsbetalning", value: "från 6 999 kr" },
-              { label: "Delbetalning 24 mån", value: "från 349 kr/mån" },
-              { label: "Delbetalning 36 mån", value: "från 249 kr/mån" },
-              { label: "Support & drift", value: "från 299 kr/mån" },
-            ].map((o) => (
-              <div key={o.label} className="rounded-xl border border-border/60 bg-card px-4 py-3 text-center shadow-soft">
-                <div className="text-xs text-muted-foreground">{o.label}</div>
-                <div className="font-semibold text-sm mt-1">{o.value}</div>
-              </div>
-            ))}
-          </div>
-        </div>
+        <p className="text-center text-sm text-muted-foreground mt-10 max-w-2xl mx-auto">
+          Priser från. Slutpris beror på antal sidor, designnivå och funktioner — du får alltid en fast offert innan vi börjar.
+        </p>
       </div>
     </section>
   );
 }
+
+/* ----------------------- LÖPANDE KOSTNADER ----------------------- */
+function LopandeKostnader() {
+  const items = [
+    { icon: ServerCog, label: "Domän", price: "ca 150–300 kr/år", note: "T.ex. dittforetag.se" },
+    { icon: ServerCog, label: "Hosting / server", price: "från 100–500 kr/mån", note: "Beror på trafik & behov" },
+    { icon: HeadphonesIcon, label: "Underhåll & support", price: "från 299 kr/mån", note: "Via våra abonnemang" },
+    { icon: Search, label: "Google Ads", price: "valfri budget", note: "Endast om du vill annonsera" },
+    { icon: Zap, label: "AI & automatisering", price: "offereras separat", note: "Endast vid behov" },
+  ];
+  return (
+    <section id="lopande" className="container mx-auto px-4 py-24 md:py-32">
+      <div className="text-center max-w-2xl mx-auto mb-12">
+        <Badge variant="secondary" className="rounded-full mb-4">Transparens</Badge>
+        <h2 className="text-3xl md:text-5xl font-semibold tracking-tighter leading-[1.1]">
+          Löpande kostnader
+        </h2>
+        <p className="text-muted-foreground mt-5 text-lg">
+          En hemsida har, precis som en bil eller en butikslokal, vissa löpande kostnader. Här är vad du faktiskt betalar för efter lansering — helt transparent.
+        </p>
+      </div>
+      <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-4 max-w-6xl mx-auto">
+        {items.map(({ icon: Icon, label, price, note }) => (
+          <div key={label} className="rounded-2xl border border-border/60 bg-card p-5 transition-smooth hover:shadow-elegant hover:-translate-y-1">
+            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary mb-3">
+              <Icon className="h-4 w-4" />
+            </span>
+            <div className="text-sm font-semibold">{label}</div>
+            <div className="text-base font-semibold text-gradient-primary mt-1">{price}</div>
+            <div className="text-xs text-muted-foreground mt-1.5 leading-relaxed">{note}</div>
+          </div>
+        ))}
+      </div>
+      <div className="mt-8 max-w-3xl mx-auto rounded-2xl border border-border/60 bg-muted/40 p-5 text-sm text-muted-foreground leading-relaxed">
+        <strong className="text-foreground">Bra att veta:</strong> AI-tjänster och avancerad automatisering ingår inte som standard. Om du vill ha t.ex. AI-chatt, automatiska uppföljningar eller smart innehållsgenerering offereras detta separat — kostnaden kan variera beroende på trafik och användning.
+      </div>
+    </section>
+  );
+}
+
 
 
 /* ----------------------- ABONNEMANG ----------------------- */
@@ -700,21 +705,21 @@ function Abonnemang({ currency }: { currency: Currency }) {
     {
       name: "Start",
       price: 299,
-      desc: "För dig som vill ha tryggheten på plats.",
-      features: ["Hosting & domän", "SSL & säkerhet", "Daglig backup", "E-post support"],
+      desc: "Tryggheten på plats — perfekt om du vill äga och driva sidan själv.",
+      features: ["Hosting", "SSL", "Säkerhetsuppdateringar", "Mindre ändringar"],
     },
     {
       name: "Growth",
       price: 599,
-      desc: "Vårt populäraste abonnemang.",
-      features: ["Allt i Start", "Mindre uppdateringar", "Prioriterad support", "Månatlig SEO-rapport", "Hastighetsövervakning"],
+      desc: "Vårt populäraste val — för företag som vill växa via webben.",
+      features: ["Allt i Start", "SEO-förbättringar", "Prioriterad support", "Innehållsuppdateringar"],
       popular: true,
     },
     {
       name: "Premium",
       price: 999,
-      desc: "Komplett trygghet med AI och proaktiv optimering.",
-      features: ["Allt i Growth", "AI-övervakning 24/7", "Löpande SEO-förbättringar", "Innehållsuppdateringar", "Dedikerad kontakt"],
+      desc: "Komplett partnerskap med löpande optimering och rådgivning.",
+      features: ["Allt i Growth", "Löpande förbättringar", "Kampanjsidor", "Strategisk rådgivning"],
     },
   ];
   return (
@@ -818,7 +823,7 @@ function FAQ() {
     ["Hur lång tid tar det?", "Normalt levererar vi din hemsida inom 7 dagar från att vi mottagit ditt material. För större projekt 2–3 veckor."],
     ["Kan jag delbetala?", "Ja. Vi erbjuder delbetalning över 24 eller 36 månader via vår betalningspartner. Du ser månadskostnaden direkt vid varje paket."],
     ["Hjälper ni med Google?", "Absolut. Alla hemsidor är SEO-optimerade från start. I Growth- och Premium-paketen ingår även Google Business-uppsättning."],
-    ["Ingår support?", "Vi har personlig support på svenska via mejl och telefon. Med ett abonnemang får du även löpande underhåll, uppdateringar och AI-övervakning."],
+    ["Ingår support?", "Vi har personlig support på svenska via mejl. Med ett abonnemang får du även löpande underhåll, säkerhetsuppdateringar och mindre ändringar."],
     ["Kan ni uppdatera sidan åt mig senare?", "Ja, det är vad våra abonnemang är till för. Mindre ändringar (text, bilder, kontaktuppgifter) ingår — större ändringar offereras separat."],
     ["Får jag äga hemsidan?", "Ja. Engångskostnaden gör att hemsidan är din. Abonnemanget täcker bara hosting, support och löpande förbättringar."],
   ];
