@@ -124,6 +124,9 @@ function ProjectPage() {
           </div>
         </section>
 
+        {/* Live preview (custom per project) */}
+        {project.slug === "scandy-candy" && <ScandyCandyPreview domain={project.domain} />}
+
         {/* Mockups */}
         <section className="bg-muted/30 border-y border-border/50">
           <div className="container mx-auto px-4 py-20 md:py-28">
