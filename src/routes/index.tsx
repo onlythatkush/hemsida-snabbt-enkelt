@@ -110,9 +110,9 @@ function Hero() {
         </div>
 
         <h1 className="animate-fade-up mt-7 text-5xl md:text-6xl lg:text-7xl font-semibold tracking-tighter max-w-5xl mx-auto leading-[1.05]" style={{ animationDelay: "0.1s" }}>
-          Få en{" "}
+          Din webbpartner för{" "}
           <span className="relative inline-block">
-            <span className="text-gradient-primary">professionell hemsida</span>
+            <span className="text-gradient-primary">moderna hemsidor</span>
             <svg className="absolute -bottom-2 left-0 w-full" viewBox="0 0 300 12" fill="none" preserveAspectRatio="none">
               <path d="M2 9C50 3 150 3 298 7" stroke="url(#g)" strokeWidth="3" strokeLinecap="round" />
               <defs>
@@ -124,17 +124,17 @@ function Hero() {
             </svg>
           </span>
           <br className="hidden sm:block" />
-          snabbt och enkelt
+          som säljer
         </h1>
 
         <p className="animate-fade-up mt-8 text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed" style={{ animationDelay: "0.2s" }}>
-          Vi bygger moderna, snabba och mobilanpassade hemsidor för företag som vill se seriösa ut online.
+          Vi bygger snabba, snygga och mobilanpassade hemsidor åt företag som vill se professionella ut och få fler kunder online.
         </p>
 
         <div className="animate-fade-up mt-10 flex flex-wrap items-center justify-center gap-3" style={{ animationDelay: "0.3s" }}>
           <Button asChild variant="hero" size="xl" className="shadow-premium">
             <Link to="/bestall">
-              Kom igång <ArrowRight className="ml-1" />
+              Starta ditt projekt <ArrowRight className="ml-1" />
             </Link>
           </Button>
           <Button asChild variant="outline" size="xl" className="glass">
@@ -174,7 +174,7 @@ function Hero() {
                 <span className="h-3 w-3 rounded-full bg-emerald-400/70" />
                 <div className="ml-4 flex-1 max-w-md mx-auto">
                   <div className="rounded-md bg-background/80 border border-border/60 px-3 py-1 text-xs text-muted-foreground text-center">
-                    sidly.se
+                    dinwebbpartner.com
                   </div>
                 </div>
               </div>
