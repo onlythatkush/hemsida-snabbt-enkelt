@@ -578,17 +578,33 @@ function Priser({ currency, setCurrency }: { currency: Currency; setCurrency: (c
     <section id="priser" className="relative bg-muted/30 border-y border-border/50">
       <div className="absolute inset-0 grid-pattern opacity-30" />
       <div className="container relative mx-auto px-4 py-24 md:py-32">
-        <div className="flex flex-col items-center text-center max-w-2xl mx-auto mb-14">
+        <div className="flex flex-col items-center text-center max-w-2xl mx-auto mb-10">
           <Badge variant="secondary" className="rounded-full mb-4">Priser</Badge>
           <h2 className="text-3xl md:text-5xl font-semibold tracking-tighter leading-[1.1]">
-            Tydliga priser, inga överraskningar
+            Färdig hemsida <span className="text-gradient-primary">från 6 999 kr</span>
           </h2>
           <p className="text-muted-foreground mt-5 text-lg">
-            Fast engångskostnad — eller delbetala bekvämt över 24 eller 36 månader.
+            Engångsbetalning eller bekväm delbetalning över 24 eller 36 månader. Tydliga priser — inga dolda avgifter.
           </p>
           <div className="mt-6">
             <CurrencySwitcher currency={currency} setCurrency={setCurrency} />
           </div>
+        </div>
+
+        {/* Hero payment options */}
+        <div className="grid sm:grid-cols-3 gap-4 max-w-4xl mx-auto mb-14">
+          {[
+            { label: "Engångsbetalning", value: "från 6 999 kr", note: "Slutpris vid leverans" },
+            { label: "Delbetalning 24 mån", value: "från 349 kr/mån", note: "Räntefritt via partner" },
+            { label: "Delbetalning 36 mån", value: "från 249 kr/mån", note: "Lägsta månadskostnad" },
+          ].map((o) => (
+            <div key={o.label} className="relative rounded-2xl border border-border/60 bg-card p-5 text-center shadow-soft transition-smooth hover:shadow-elegant hover:-translate-y-1 overflow-hidden">
+              <div className="absolute -top-12 -right-12 h-32 w-32 rounded-full bg-gradient-primary opacity-10 blur-2xl" />
+              <div className="text-xs uppercase tracking-wider text-muted-foreground">{o.label}</div>
+              <div className="font-semibold text-xl mt-2 text-gradient-primary">{o.value}</div>
+              <div className="text-xs text-muted-foreground mt-1">{o.note}</div>
+            </div>
+          ))}
         </div>
 
         <div className="grid md:grid-cols-3 gap-6 max-w-6xl mx-auto">
