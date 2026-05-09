@@ -848,9 +848,9 @@ function Kontakt() {
         <div className="grid md:grid-cols-2 gap-12 items-start">
           <div>
             <Badge variant="secondary" className="rounded-full mb-4">Kontakt</Badge>
-            <h2 className="text-3xl md:text-5xl font-semibold tracking-tighter mb-5 leading-[1.1]">Har du frågor? Vi finns här.</h2>
+            <h2 className="text-3xl md:text-5xl font-semibold tracking-tighter mb-5 leading-[1.1]">Få en kostnadsfri offert inom 24 timmar.</h2>
             <p className="text-muted-foreground text-lg leading-relaxed">
-              Skicka ett meddelande så återkommer vi inom 24 timmar. Eller hoppa direkt till beställningen.
+              Berätta kort om ditt projekt — vi återkommer med förslag, prisidé och tidsplan inom 24 timmar. Helt kostnadsfritt och utan förpliktelser.
             </p>
             <div className="mt-8 space-y-4 text-sm">
               <div className="flex items-center gap-3"><span className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary"><Mail className="h-4 w-4" /></span> hej@dinwebbpartner.com</div>
