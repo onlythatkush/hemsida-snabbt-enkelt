@@ -823,7 +823,7 @@ function FAQ() {
     ["Hur lång tid tar det?", "Normalt levererar vi din hemsida inom 7 dagar från att vi mottagit ditt material. För större projekt 2–3 veckor."],
     ["Kan jag delbetala?", "Ja. Vi erbjuder delbetalning över 24 eller 36 månader via vår betalningspartner. Du ser månadskostnaden direkt vid varje paket."],
     ["Hjälper ni med Google?", "Absolut. Alla hemsidor är SEO-optimerade från start. I Growth- och Premium-paketen ingår även Google Business-uppsättning."],
-    ["Ingår support?", "Vi har personlig support på svenska via mejl och telefon. Med ett abonnemang får du även löpande underhåll, uppdateringar och AI-övervakning."],
+    ["Ingår support?", "Vi har personlig support på svenska via mejl. Med ett abonnemang får du även löpande underhåll, säkerhetsuppdateringar och mindre ändringar."],
     ["Kan ni uppdatera sidan åt mig senare?", "Ja, det är vad våra abonnemang är till för. Mindre ändringar (text, bilder, kontaktuppgifter) ingår — större ändringar offereras separat."],
     ["Får jag äga hemsidan?", "Ja. Engångskostnaden gör att hemsidan är din. Abonnemanget täcker bara hosting, support och löpande förbättringar."],
   ];
