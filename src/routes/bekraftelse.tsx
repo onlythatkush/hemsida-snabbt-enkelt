@@ -53,7 +53,7 @@ function ConfirmPage() {
                   <Link to="/">Tillbaka till startsidan <ArrowRight /></Link>
                 </Button>
                 <Button variant="outline" size="lg" asChild>
-                  <a href="mailto:hej@dinwebbpartner.com"><Mail /> Kontakta oss</a>
+                  <a href="mailto:dinwebbpartner@hotmail.com"><Mail /> Kontakta oss</a>
                 </Button>
               </div>
             </CardContent>

@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
-import { Sparkles, Mail, Phone, MapPin, Instagram, Linkedin, Facebook } from "lucide-react";
+import { Sparkles, Mail, MapPin, Instagram, Linkedin, Facebook } from "lucide-react";
 
 export function SiteHeader() {
   return (
@@ -63,8 +63,7 @@ export function SiteFooter() {
           <div>
             <div className="text-sm font-semibold mb-4">Kontakt</div>
             <ul className="space-y-3 text-sm text-ink-foreground/70">
-              <li className="flex items-center gap-2"><Mail className="h-4 w-4" /> hej@dinwebbpartner.com</li>
-              <li className="flex items-center gap-2"><Phone className="h-4 w-4" /> +46 70 123 45 67</li>
+              <li className="flex items-center gap-2"><Mail className="h-4 w-4" /> dinwebbpartner@hotmail.com</li>
               <li className="flex items-center gap-2"><MapPin className="h-4 w-4" /> Stockholm, Sverige</li>
             </ul>
           </div>
