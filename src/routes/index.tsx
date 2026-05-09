@@ -288,9 +288,11 @@ function OmOss() {
 
 function SaFungerar() {
   const steps = [
-    { icon: Upload, title: "1. Fyll i formuläret", text: "Berätta om ditt företag, ladda upp bilder och välj färger. Tar bara några minuter." },
-    { icon: Palette, title: "2. Vi designar", text: "Vårt team bygger en modern hemsida anpassad efter ditt material och din stil." },
-    { icon: Rocket, title: "3. Publicera & klart", text: "Du får en länk att granska. När du är nöjd publicerar vi sidan och du är igång." },
+    { icon: Upload, title: "1. Du skickar material", text: "Bilder, text, logotyp och dina önskemål — vi guidar dig genom hela processen." },
+    { icon: Palette, title: "2. Vi designar din hemsida", text: "En unik design anpassad efter ditt företag, varumärke och målgrupp." },
+    { icon: Check, title: "3. Du granskar och godkänner", text: "Du får en länk att se sidan live. Vi gör justeringar tills du är 100 % nöjd." },
+    { icon: Rocket, title: "4. Vi publicerar sidan", text: "Domän, SSL och allt tekniskt ingår — vi sköter lanseringen åt dig." },
+    { icon: HeartHandshake, title: "5. Support & vidareutveckling", text: "Vi finns kvar efter lansering med uppdateringar, support och löpande förbättringar." },
   ];
   return (
     <section id="tjanst" className="bg-muted/30 border-y border-border/50 relative overflow-hidden">
@@ -299,26 +301,58 @@ function SaFungerar() {
         <div className="text-center max-w-2xl mx-auto mb-16">
           <Badge variant="secondary" className="rounded-full mb-4">Så fungerar det</Badge>
           <h2 className="text-3xl md:text-5xl font-semibold tracking-tighter leading-[1.1]">
-            Från beställning till färdig hemsida — på 7 dagar
+            Från första kontakt till färdig hemsida
           </h2>
-          <p className="text-muted-foreground mt-5 text-lg">Tre enkla steg. Vi sköter resten.</p>
+          <p className="text-muted-foreground mt-5 text-lg">Fem tydliga steg. Vi guidar dig hela vägen.</p>
         </div>
-        <div className="grid md:grid-cols-3 gap-6">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-5">
           {steps.map(({ icon: Icon, title, text }, i) => (
             <Card key={title} className="border-border/60 bg-card/80 backdrop-blur transition-smooth hover:shadow-elegant hover:-translate-y-2 relative overflow-hidden group">
-              <div className="absolute top-0 right-0 text-8xl font-bold text-primary/5 leading-none p-4 transition-smooth group-hover:text-primary/10">{i + 1}</div>
-              <CardHeader>
-                <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-primary shadow-soft mb-3">
+              <div className="absolute top-0 right-0 text-7xl font-bold text-primary/5 leading-none p-3 transition-smooth group-hover:text-primary/10">{i + 1}</div>
+              <CardHeader className="pb-3">
+                <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-primary shadow-soft mb-3">
                   <Icon className="h-5 w-5 text-primary-foreground" />
                 </span>
-                <CardTitle className="text-xl">{title}</CardTitle>
+                <CardTitle className="text-base">{title}</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-muted-foreground leading-relaxed">{text}</p>
+                <p className="text-sm text-muted-foreground leading-relaxed">{text}</p>
               </CardContent>
             </Card>
           ))}
         </div>
+      </div>
+    </section>
+  );
+}
+
+/* ----------------------- OWNERSHIP ----------------------- */
+function Ownership() {
+  const items = [
+    {
+      icon: Award,
+      title: "Äger jag hemsidan?",
+      text: "Ja. Du äger din hemsida och allt innehåll. Vi kan överföra hela projektet till dig när som helst om du önskar — utan extra kostnad.",
+    },
+    {
+      icon: HeadphonesIcon,
+      title: "Kan ni hjälpa till med drift och support?",
+      text: "Ja. Vi erbjuder löpande support, hosting, säkerhetsuppdateringar och förbättringar via våra abonnemang — från 299 kr/mån.",
+    },
+  ];
+  return (
+    <section id="agande" className="container mx-auto px-4 py-20 md:py-28">
+      <div className="grid md:grid-cols-2 gap-6">
+        {items.map(({ icon: Icon, title, text }) => (
+          <div key={title} className="relative rounded-3xl border border-border/60 bg-gradient-to-br from-card to-muted/40 p-8 shadow-soft transition-smooth hover:shadow-elegant hover:-translate-y-1 overflow-hidden">
+            <div className="absolute -top-10 -right-10 h-40 w-40 rounded-full bg-gradient-primary opacity-10 blur-2xl" />
+            <span className="relative flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-primary shadow-soft mb-5">
+              <Icon className="h-5 w-5 text-primary-foreground" />
+            </span>
+            <h3 className="relative text-xl md:text-2xl font-semibold tracking-tight">{title}</h3>
+            <p className="relative text-muted-foreground mt-3 leading-relaxed">{text}</p>
+          </div>
+        ))}
       </div>
     </section>
   );
