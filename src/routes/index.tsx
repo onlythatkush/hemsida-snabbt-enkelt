@@ -68,6 +68,7 @@ function Index() {
         <SocialProof />
         <OmOss />
         <SaFungerar />
+        <Ownership />
         <VadIngar />
         <Portfolio />
         <Trust />
@@ -123,7 +124,7 @@ function Hero() {
         </h1>
 
         <p className="animate-fade-up mt-8 text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed" style={{ animationDelay: "0.2s" }}>
-          Vi bygger snabba, snygga och mobilanpassade hemsidor åt företag som vill se professionella ut och få fler kunder online.
+          Vi bygger professionella hemsidor som hjälper företag att synas bättre, skapa förtroende och få fler kunder online.
         </p>
 
         <div className="animate-fade-up mt-10 flex flex-wrap items-center justify-center gap-3" style={{ animationDelay: "0.3s" }}>
@@ -142,8 +143,8 @@ function Hero() {
           {[
             { icon: Zap, label: "Klar inom 7 dagar" },
             { icon: Smartphone, label: "Mobilanpassad" },
-            { icon: Search, label: "Google-optimerad" },
-            { icon: HeadphonesIcon, label: "Support inkluderad" },
+            { icon: Search, label: "SEO-optimerad" },
+            { icon: HeadphonesIcon, label: "Full support" },
           ].map(({ icon: Icon, label }, i) => (
             <div
               key={label}
@@ -287,9 +288,11 @@ function OmOss() {
 
 function SaFungerar() {
   const steps = [
-    { icon: Upload, title: "1. Fyll i formuläret", text: "Berätta om ditt företag, ladda upp bilder och välj färger. Tar bara några minuter." },
-    { icon: Palette, title: "2. Vi designar", text: "Vårt team bygger en modern hemsida anpassad efter ditt material och din stil." },
-    { icon: Rocket, title: "3. Publicera & klart", text: "Du får en länk att granska. När du är nöjd publicerar vi sidan och du är igång." },
+    { icon: Upload, title: "1. Du skickar material", text: "Bilder, text, logotyp och dina önskemål — vi guidar dig genom hela processen." },
+    { icon: Palette, title: "2. Vi designar din hemsida", text: "En unik design anpassad efter ditt företag, varumärke och målgrupp." },
+    { icon: Check, title: "3. Du granskar och godkänner", text: "Du får en länk att se sidan live. Vi gör justeringar tills du är 100 % nöjd." },
+    { icon: Rocket, title: "4. Vi publicerar sidan", text: "Domän, SSL och allt tekniskt ingår — vi sköter lanseringen åt dig." },
+    { icon: HeartHandshake, title: "5. Support & vidareutveckling", text: "Vi finns kvar efter lansering med uppdateringar, support och löpande förbättringar." },
   ];
   return (
     <section id="tjanst" className="bg-muted/30 border-y border-border/50 relative overflow-hidden">
@@ -298,26 +301,58 @@ function SaFungerar() {
         <div className="text-center max-w-2xl mx-auto mb-16">
           <Badge variant="secondary" className="rounded-full mb-4">Så fungerar det</Badge>
           <h2 className="text-3xl md:text-5xl font-semibold tracking-tighter leading-[1.1]">
-            Från beställning till färdig hemsida — på 7 dagar
+            Från första kontakt till färdig hemsida
           </h2>
-          <p className="text-muted-foreground mt-5 text-lg">Tre enkla steg. Vi sköter resten.</p>
+          <p className="text-muted-foreground mt-5 text-lg">Fem tydliga steg. Vi guidar dig hela vägen.</p>
         </div>
-        <div className="grid md:grid-cols-3 gap-6">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-5">
           {steps.map(({ icon: Icon, title, text }, i) => (
             <Card key={title} className="border-border/60 bg-card/80 backdrop-blur transition-smooth hover:shadow-elegant hover:-translate-y-2 relative overflow-hidden group">
-              <div className="absolute top-0 right-0 text-8xl font-bold text-primary/5 leading-none p-4 transition-smooth group-hover:text-primary/10">{i + 1}</div>
-              <CardHeader>
-                <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-primary shadow-soft mb-3">
+              <div className="absolute top-0 right-0 text-7xl font-bold text-primary/5 leading-none p-3 transition-smooth group-hover:text-primary/10">{i + 1}</div>
+              <CardHeader className="pb-3">
+                <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-primary shadow-soft mb-3">
                   <Icon className="h-5 w-5 text-primary-foreground" />
                 </span>
-                <CardTitle className="text-xl">{title}</CardTitle>
+                <CardTitle className="text-base">{title}</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-muted-foreground leading-relaxed">{text}</p>
+                <p className="text-sm text-muted-foreground leading-relaxed">{text}</p>
               </CardContent>
             </Card>
           ))}
         </div>
+      </div>
+    </section>
+  );
+}
+
+/* ----------------------- OWNERSHIP ----------------------- */
+function Ownership() {
+  const items = [
+    {
+      icon: Award,
+      title: "Äger jag hemsidan?",
+      text: "Ja. Du äger din hemsida och allt innehåll. Vi kan överföra hela projektet till dig när som helst om du önskar — utan extra kostnad.",
+    },
+    {
+      icon: HeadphonesIcon,
+      title: "Kan ni hjälpa till med drift och support?",
+      text: "Ja. Vi erbjuder löpande support, hosting, säkerhetsuppdateringar och förbättringar via våra abonnemang — från 299 kr/mån.",
+    },
+  ];
+  return (
+    <section id="agande" className="container mx-auto px-4 py-20 md:py-28">
+      <div className="grid md:grid-cols-2 gap-6">
+        {items.map(({ icon: Icon, title, text }) => (
+          <div key={title} className="relative rounded-3xl border border-border/60 bg-gradient-to-br from-card to-muted/40 p-8 shadow-soft transition-smooth hover:shadow-elegant hover:-translate-y-1 overflow-hidden">
+            <div className="absolute -top-10 -right-10 h-40 w-40 rounded-full bg-gradient-primary opacity-10 blur-2xl" />
+            <span className="relative flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-primary shadow-soft mb-5">
+              <Icon className="h-5 w-5 text-primary-foreground" />
+            </span>
+            <h3 className="relative text-xl md:text-2xl font-semibold tracking-tight">{title}</h3>
+            <p className="relative text-muted-foreground mt-3 leading-relaxed">{text}</p>
+          </div>
+        ))}
       </div>
     </section>
   );
@@ -362,64 +397,70 @@ function VadIngar() {
 }
 
 /* ----------------------- PORTFOLIO ----------------------- */
+export const PORTFOLIO_PROJECTS = [
+  {
+    slug: "scandy-candy",
+    title: "Scandy Candy",
+    tag: "E-handel · Godismärke",
+    industry: "E-handel",
+    desc: "Färgstark webshop med produktfokus, prenumerationsboxar och Klarna-checkout.",
+    long: "En lekfull, färgstark e-handel byggd för att maxa konvertering. Fokus på produktbilder, snabba köp och prenumerationsboxar via Klarna. Integrerad lagerhantering och nyhetsbrev.",
+    image: "https://images.unsplash.com/photo-1581798459219-318e76aecc7b?auto=format&fit=crop&w=1600&q=80",
+    accent: "from-rose-400 to-amber-300",
+    domain: "scandycandy.se",
+    features: ["Webshop med Klarna", "Prenumerationsboxar", "Produktfilter & sök", "Nyhetsbrev & kampanjer", "Mobil-först design"],
+  },
+  {
+    slug: "lokal-restaurang",
+    title: "Restaurang Klippan",
+    tag: "Restaurang & café",
+    industry: "Restaurang",
+    desc: "Värmande, bildtung restaurangsida med digital meny och online-bordsbokning.",
+    long: "En atmosfärisk restaurangsida som lyfter köket genom storformatsbilder och en stilren digital meny. Inkluderar online-bordsbokning, öppettider och presentkortsförsäljning.",
+    image: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1600&q=80",
+    accent: "from-amber-500 to-orange-400",
+    domain: "klippan.se",
+    features: ["Online-bordsbokning", "Digital meny", "Eventkalender", "Google Maps & öppettider", "Presentkort"],
+  },
+  {
+    slug: "byggfirma",
+    title: "NorrBygg AB",
+    tag: "Bygg & hantverk",
+    industry: "Byggfirma",
+    desc: "Förtroendeingivande byggsida med projektgalleri, certifieringar och offertformulär.",
+    long: "Robust och pålitlig sida som stärker förtroendet hos både privatkunder och företag. Tydligt projektgalleri, certifieringar och ROT-information samt smidigt offertformulär.",
+    image: "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&w=1600&q=80",
+    accent: "from-yellow-500 to-amber-700",
+    domain: "norrbygg.se",
+    features: ["Projektgalleri", "Offertformulär", "Certifieringar & ROT", "Tjänstesidor", "Recensioner från kunder"],
+  },
+  {
+    slug: "salong-skonhet",
+    title: "Salong Lykke",
+    tag: "Salong & skönhet",
+    industry: "Skönhet & wellness",
+    desc: "Elegant salong- och wellness-sida med online-bokning och Instagram-galleri.",
+    long: "En lugn och elegant designvärld som speglar varumärket. Komplett online-bokning, behandlingsmeny med priser, presentkortsköp och Instagram-feed.",
+    image: "https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&w=1600&q=80",
+    accent: "from-pink-300 to-rose-400",
+    domain: "salonglykke.se",
+    features: ["Online-bokningssystem", "Behandlingsmeny & priser", "Presentkort online", "Instagram-galleri", "Personalprofiler"],
+  },
+  {
+    slug: "jurist-konsult",
+    title: "Lindberg Juridik",
+    tag: "Konsult · Juristbyrå",
+    industry: "Juridik & konsult",
+    desc: "Premium corporate-sida med ren typografi, teampresentation och säkert kontaktflöde.",
+    long: "En sofistikerad corporate-sida som signalerar professionalism och förtroende. Fokus på typografi, fallstudier och ett krypterat kontaktflöde för känsliga ärenden.",
+    image: "https://images.unsplash.com/photo-1450101499163-c8848c66ca85?auto=format&fit=crop&w=1600&q=80",
+    accent: "from-slate-500 to-indigo-500",
+    domain: "lindbergjuridik.se",
+    features: ["Teampresentation", "Tjänsteområden", "Krypterat kontaktformulär", "Fallstudier & artiklar", "Bokning av rådgivning"],
+  },
+] as const;
+
 function Portfolio() {
-  const items: {
-    title: string;
-    tag: string;
-    desc: string;
-    image: string;
-    accent: string;
-    domain: string;
-  }[] = [
-    {
-      title: "Scandy Candy",
-      tag: "E-handel · Godismärke",
-      desc: "Färgstark webshop med produktfokus, prenumerationsboxar och Klarna-checkout.",
-      image: "https://images.unsplash.com/photo-1581798459219-318e76aecc7b?auto=format&fit=crop&w=1200&q=80",
-      accent: "from-rose-400 to-amber-300",
-      domain: "scandycandy.se",
-    },
-    {
-      title: "Restaurang Klippan",
-      tag: "Restaurang & café",
-      desc: "Bildtung sida med digital meny, online-bordsbokning och berättelsen om köket.",
-      image: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1200&q=80",
-      accent: "from-amber-500 to-orange-400",
-      domain: "klippan.se",
-    },
-    {
-      title: "NorrBygg AB",
-      tag: "Byggfirma",
-      desc: "Professionell sida med projektgalleri, certifieringar, trust badges och offertformulär.",
-      image: "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&w=1200&q=80",
-      accent: "from-yellow-500 to-amber-700",
-      domain: "norrbygg.se",
-    },
-    {
-      title: "Salong Lykke",
-      tag: "Salong & skönhet",
-      desc: "Elegant salongsida med online-bokning, behandlingar, prislista och Instagram-galleri.",
-      image: "https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&w=1200&q=80",
-      accent: "from-pink-300 to-rose-400",
-      domain: "salonglykke.se",
-    },
-    {
-      title: "Lindberg Juridik",
-      tag: "Konsult · Juristbyrå",
-      desc: "Premium corporate-sida med ren typografi, teampresentation och bokningsflöde.",
-      image: "https://images.unsplash.com/photo-1450101499163-c8848c66ca85?auto=format&fit=crop&w=1200&q=80",
-      accent: "from-slate-500 to-indigo-500",
-      domain: "lindbergjuridik.se",
-    },
-    {
-      title: "Lykke Living",
-      tag: "E-handel · Inredning",
-      desc: "Skandinavisk inredningsbutik med curaterad katalog och betalning via Klarna.",
-      image: "https://images.unsplash.com/photo-1567016376408-0226e4d0c1ea?auto=format&fit=crop&w=1200&q=80",
-      accent: "from-emerald-300 to-teal-400",
-      domain: "lykkeliving.se",
-    },
-  ];
   return (
     <section id="portfolio" className="bg-muted/30 border-y border-border/50">
       <div className="container mx-auto px-4 py-24 md:py-32">
@@ -433,9 +474,9 @@ function Portfolio() {
           </p>
         </div>
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {items.map((it) => (
+          {PORTFOLIO_PROJECTS.map((it) => (
             <article
-              key={it.title}
+              key={it.slug}
               className="group flex flex-col rounded-3xl border border-border/60 overflow-hidden bg-card transition-smooth hover:shadow-premium hover:-translate-y-2"
             >
               <div className="relative aspect-[4/3] overflow-hidden bg-muted">
@@ -464,9 +505,11 @@ function Portfolio() {
               </div>
               <div className="flex flex-col flex-1 p-6">
                 <p className="text-sm text-muted-foreground leading-relaxed flex-1">{it.desc}</p>
-                <Button variant="soft" size="sm" className="mt-5 self-start group/btn">
-                  Se projekt
-                  <ArrowRight className="h-3.5 w-3.5 transition-smooth group-hover/btn:translate-x-1" />
+                <Button asChild variant="soft" size="sm" className="mt-5 self-start group/btn">
+                  <Link to="/portfolio/$slug" params={{ slug: it.slug }}>
+                    Se projekt
+                    <ArrowRight className="h-3.5 w-3.5 transition-smooth group-hover/btn:translate-x-1" />
+                  </Link>
                 </Button>
               </div>
             </article>
@@ -805,9 +848,9 @@ function Kontakt() {
         <div className="grid md:grid-cols-2 gap-12 items-start">
           <div>
             <Badge variant="secondary" className="rounded-full mb-4">Kontakt</Badge>
-            <h2 className="text-3xl md:text-5xl font-semibold tracking-tighter mb-5 leading-[1.1]">Har du frågor? Vi finns här.</h2>
+            <h2 className="text-3xl md:text-5xl font-semibold tracking-tighter mb-5 leading-[1.1]">Få en kostnadsfri offert inom 24 timmar.</h2>
             <p className="text-muted-foreground text-lg leading-relaxed">
-              Skicka ett meddelande så återkommer vi inom 24 timmar. Eller hoppa direkt till beställningen.
+              Berätta kort om ditt projekt — vi återkommer med förslag, prisidé och tidsplan inom 24 timmar. Helt kostnadsfritt och utan förpliktelser.
             </p>
             <div className="mt-8 space-y-4 text-sm">
               <div className="flex items-center gap-3"><span className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary"><Mail className="h-4 w-4" /></span> hej@dinwebbpartner.com</div>
