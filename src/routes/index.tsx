@@ -822,7 +822,7 @@ function Kontakt() {
               Skicka ett meddelande så återkommer vi inom 24 timmar. Eller hoppa direkt till beställningen.
             </p>
             <div className="mt-8 space-y-4 text-sm">
-              <div className="flex items-center gap-3"><span className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary"><Mail className="h-4 w-4" /></span> hej@sidly.se</div>
+              <div className="flex items-center gap-3"><span className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary"><Mail className="h-4 w-4" /></span> hej@dinwebbpartner.com</div>
               <div className="flex items-center gap-3"><span className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary"><Phone className="h-4 w-4" /></span> +46 70 123 45 67</div>
               <div className="flex items-center gap-3"><span className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary"><MapPin className="h-4 w-4" /></span> Stockholm, Sverige</div>
             </div>
@@ -840,21 +840,30 @@ function Kontakt() {
                   (e.target as HTMLFormElement).reset();
                 }}
               >
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid sm:grid-cols-2 gap-3">
                   <div>
                     <label className="text-sm font-medium">Namn</label>
                     <Input required className="mt-1" placeholder="Ditt namn" />
                   </div>
                   <div>
+                    <label className="text-sm font-medium">Företag</label>
+                    <Input className="mt-1" placeholder="Företagsnamn (valfritt)" />
+                  </div>
+                  <div>
                     <label className="text-sm font-medium">E-post</label>
                     <Input required type="email" className="mt-1" placeholder="din@epost.se" />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium">Telefon</label>
+                    <Input type="tel" className="mt-1" placeholder="+46 70 ..." />
                   </div>
                 </div>
                 <div>
                   <label className="text-sm font-medium">Meddelande</label>
-                  <Textarea required rows={5} className="mt-1" placeholder="Hur kan vi hjälpa dig?" />
+                  <Textarea required rows={5} className="mt-1" placeholder="Berätta kort om ditt projekt — vad behöver du hjälp med?" />
                 </div>
                 <Button type="submit" variant="hero" className="w-full" size="lg">Skicka meddelande</Button>
+                <p className="text-xs text-muted-foreground text-center">Vi svarar inom 24 timmar — ofta samma dag.</p>
               </form>
             </CardContent>
           </Card>
