@@ -10,11 +10,17 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as BestallRouteImport } from './routes/bestall'
+import { Route as BekraftelseRouteImport } from './routes/bekraftelse'
 import { Route as IndexRouteImport } from './routes/index'
 
 const BestallRoute = BestallRouteImport.update({
   id: '/bestall',
   path: '/bestall',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BekraftelseRoute = BekraftelseRouteImport.update({
+  id: '/bekraftelse',
+  path: '/bekraftelse',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -25,27 +31,31 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/bekraftelse': typeof BekraftelseRoute
   '/bestall': typeof BestallRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/bekraftelse': typeof BekraftelseRoute
   '/bestall': typeof BestallRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/bekraftelse': typeof BekraftelseRoute
   '/bestall': typeof BestallRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/bestall'
+  fullPaths: '/' | '/bekraftelse' | '/bestall'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/bestall'
-  id: '__root__' | '/' | '/bestall'
+  to: '/' | '/bekraftelse' | '/bestall'
+  id: '__root__' | '/' | '/bekraftelse' | '/bestall'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  BekraftelseRoute: typeof BekraftelseRoute
   BestallRoute: typeof BestallRoute
 }
 
@@ -56,6 +66,13 @@ declare module '@tanstack/react-router' {
       path: '/bestall'
       fullPath: '/bestall'
       preLoaderRoute: typeof BestallRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/bekraftelse': {
+      id: '/bekraftelse'
+      path: '/bekraftelse'
+      fullPath: '/bekraftelse'
+      preLoaderRoute: typeof BekraftelseRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -70,6 +87,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  BekraftelseRoute: BekraftelseRoute,
   BestallRoute: BestallRoute,
 }
 export const routeTree = rootRouteImport
