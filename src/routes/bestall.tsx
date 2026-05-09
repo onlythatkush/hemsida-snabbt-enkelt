@@ -22,7 +22,7 @@ import { toast } from "sonner";
 export const Route = createFileRoute("/bestall")({
   head: () => ({
     meta: [
-      { title: "Beställ din hemsida — Sidly" },
+      { title: "Beställ din hemsida — Din Webbpartner" },
       { name: "description", content: "Fyll i formuläret och ladda upp ditt material — vi bygger hemsidan åt dig." },
     ],
   }),
@@ -117,9 +117,9 @@ function OrderPage() {
       datum: new Date().toISOString(),
     };
     if (typeof window !== "undefined") {
-      const list = JSON.parse(localStorage.getItem("sidly-orders") || "[]");
+      const list = JSON.parse(localStorage.getItem("dwp-orders") || "[]");
       list.push(order);
-      localStorage.setItem("sidly-orders", JSON.stringify(list));
+      localStorage.setItem("dwp-orders", JSON.stringify(list));
     }
     navigate({ to: "/bekraftelse", search: { id: order.id } });
   };

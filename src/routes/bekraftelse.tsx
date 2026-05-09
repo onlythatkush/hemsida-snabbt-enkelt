@@ -8,7 +8,7 @@ import { Check, Mail, ArrowRight } from "lucide-react";
 export const Route = createFileRoute("/bekraftelse")({
   validateSearch: z.object({ id: z.string().optional() }),
   head: () => ({
-    meta: [{ title: "Tack för din beställning — Sidly" }],
+    meta: [{ title: "Tack för din beställning — Din Webbpartner" }],
   }),
   component: ConfirmPage,
 });
@@ -53,7 +53,7 @@ function ConfirmPage() {
                   <Link to="/">Tillbaka till startsidan <ArrowRight /></Link>
                 </Button>
                 <Button variant="outline" size="lg" asChild>
-                  <a href="mailto:hej@sidly.se"><Mail /> Kontakta oss</a>
+                  <a href="mailto:hej@dinwebbpartner.com"><Mail /> Kontakta oss</a>
                 </Button>
               </div>
             </CardContent>
