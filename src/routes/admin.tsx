@@ -15,7 +15,7 @@ import {
 import { Inbox, TrendingUp, Users, DollarSign } from "lucide-react";
 
 export const Route = createFileRoute("/admin")({
-  head: () => ({ meta: [{ title: "Adminpanel — Sidly" }] }),
+  head: () => ({ meta: [{ title: "Adminpanel — Din Webbpartner" }] }),
   component: Admin,
 });
 
@@ -39,7 +39,7 @@ function Admin() {
   const [orders, setOrders] = useState<Order[]>([]);
 
   useEffect(() => {
-    const local = JSON.parse(localStorage.getItem("sidly-orders") || "[]");
+    const local = JSON.parse(localStorage.getItem("dwp-orders") || "[]");
     setOrders([...local.reverse(), ...demoOrders]);
   }, []);
 
