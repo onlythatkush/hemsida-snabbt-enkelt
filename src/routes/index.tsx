@@ -33,11 +33,6 @@ import {
   TrendingUp,
   Lock,
   Award,
-  ShoppingBag,
-  UtensilsCrossed,
-  Scale,
-  HardHat,
-  Store,
 } from "lucide-react";
 import { toast } from "sonner";
 
