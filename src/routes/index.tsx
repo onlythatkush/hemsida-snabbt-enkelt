@@ -293,12 +293,12 @@ function Ownership() {
     {
       icon: Award,
       title: "Äger jag hemsidan?",
-      text: "Ja. Du äger din hemsida och allt innehåll. Vi kan överföra hela projektet till dig när som helst om du önskar — utan extra kostnad.",
+      text: "Ja, du äger hemsidan utan extra kostnad när projektet är slutbetalt. All kod, design och innehåll tillhör dig — vi kan när som helst överföra hela projektet.",
     },
     {
       icon: HeadphonesIcon,
-      title: "Kan ni hjälpa till med drift och support?",
-      text: "Ja. Vi erbjuder löpande support, hosting, säkerhetsuppdateringar och förbättringar via våra abonnemang — från 299 kr/mån.",
+      title: "Kan ni fortsätta hjälpa mig?",
+      text: "Ja, om du vill kan vi sköta drift, uppdateringar och support via abonnemang — så att din hemsida alltid är snabb, säker och uppdaterad.",
     },
   ];
   return (
