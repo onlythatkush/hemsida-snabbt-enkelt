@@ -73,6 +73,7 @@ function Index() {
         <Portfolio />
         <Trust />
         <Priser currency={currency} setCurrency={setCurrency} />
+        <LopandeKostnader />
         <Abonnemang currency={currency} />
         <Recensioner />
         <FAQ />
