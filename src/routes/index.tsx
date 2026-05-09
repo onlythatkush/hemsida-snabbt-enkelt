@@ -28,7 +28,7 @@ import {
   MapPin,
   Zap,
   ServerCog,
-  Sparkles,
+  
   HeadphonesIcon,
   
   Lock,
