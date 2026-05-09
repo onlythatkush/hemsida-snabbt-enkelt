@@ -61,7 +61,7 @@ type Currency = "SEK" | "EUR";
 function Index() {
   const [currency, setCurrency] = useState<Currency>("SEK");
   return (
-    <div className="min-h-screen flex flex-col bg-background">
+    <div className="min-h-screen flex flex-col bg-transparent">
       <SiteHeader />
       <main className="flex-1">
         <Hero />
