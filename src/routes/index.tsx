@@ -68,6 +68,7 @@ function Index() {
         <SocialProof />
         <OmOss />
         <SaFungerar />
+        <Ownership />
         <VadIngar />
         <Portfolio />
         <Trust />
