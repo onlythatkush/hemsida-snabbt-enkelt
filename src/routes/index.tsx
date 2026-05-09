@@ -649,26 +649,53 @@ function Priser({ currency, setCurrency }: { currency: Currency; setCurrency: (c
           ))}
         </div>
 
-        <div className="mt-12 max-w-4xl mx-auto">
-          <div className="text-center text-sm font-medium text-muted-foreground mb-4">Flexibla betalalternativ</div>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
-            {[
-              { label: "Engångsbetalning", value: "från 6 999 kr" },
-              { label: "Delbetalning 24 mån", value: "från 349 kr/mån" },
-              { label: "Delbetalning 36 mån", value: "från 249 kr/mån" },
-              { label: "Support & drift", value: "från 299 kr/mån" },
-            ].map((o) => (
-              <div key={o.label} className="rounded-xl border border-border/60 bg-card px-4 py-3 text-center shadow-soft">
-                <div className="text-xs text-muted-foreground">{o.label}</div>
-                <div className="font-semibold text-sm mt-1">{o.value}</div>
-              </div>
-            ))}
-          </div>
-        </div>
+        <p className="text-center text-sm text-muted-foreground mt-10 max-w-2xl mx-auto">
+          Priser från. Slutpris beror på antal sidor, designnivå och funktioner — du får alltid en fast offert innan vi börjar.
+        </p>
       </div>
     </section>
   );
 }
+
+/* ----------------------- LÖPANDE KOSTNADER ----------------------- */
+function LopandeKostnader() {
+  const items = [
+    { icon: ServerCog, label: "Domän", price: "ca 150–300 kr/år", note: "T.ex. dittforetag.se" },
+    { icon: ServerCog, label: "Hosting / server", price: "från 100–500 kr/mån", note: "Beror på trafik & behov" },
+    { icon: HeadphonesIcon, label: "Underhåll & support", price: "från 299 kr/mån", note: "Via våra abonnemang" },
+    { icon: Search, label: "Google Ads", price: "valfri budget", note: "Endast om du vill annonsera" },
+    { icon: Zap, label: "AI & automatisering", price: "offereras separat", note: "Endast vid behov" },
+  ];
+  return (
+    <section id="lopande" className="container mx-auto px-4 py-24 md:py-32">
+      <div className="text-center max-w-2xl mx-auto mb-12">
+        <Badge variant="secondary" className="rounded-full mb-4">Transparens</Badge>
+        <h2 className="text-3xl md:text-5xl font-semibold tracking-tighter leading-[1.1]">
+          Löpande kostnader
+        </h2>
+        <p className="text-muted-foreground mt-5 text-lg">
+          En hemsida har, precis som en bil eller en butikslokal, vissa löpande kostnader. Här är vad du faktiskt betalar för efter lansering — helt transparent.
+        </p>
+      </div>
+      <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-4 max-w-6xl mx-auto">
+        {items.map(({ icon: Icon, label, price, note }) => (
+          <div key={label} className="rounded-2xl border border-border/60 bg-card p-5 transition-smooth hover:shadow-elegant hover:-translate-y-1">
+            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary mb-3">
+              <Icon className="h-4 w-4" />
+            </span>
+            <div className="text-sm font-semibold">{label}</div>
+            <div className="text-base font-semibold text-gradient-primary mt-1">{price}</div>
+            <div className="text-xs text-muted-foreground mt-1.5 leading-relaxed">{note}</div>
+          </div>
+        ))}
+      </div>
+      <div className="mt-8 max-w-3xl mx-auto rounded-2xl border border-border/60 bg-muted/40 p-5 text-sm text-muted-foreground leading-relaxed">
+        <strong className="text-foreground">Bra att veta:</strong> AI-tjänster och avancerad automatisering ingår inte som standard. Om du vill ha t.ex. AI-chatt, automatiska uppföljningar eller smart innehållsgenerering offereras detta separat — kostnaden kan variera beroende på trafik och användning.
+      </div>
+    </section>
+  );
+}
+
 
 
 /* ----------------------- ABONNEMANG ----------------------- */
