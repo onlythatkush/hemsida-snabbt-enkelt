@@ -9,8 +9,26 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as BestallRouteImport } from './routes/bestall'
+import { Route as BekraftelseRouteImport } from './routes/bekraftelse'
+import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 
+const BestallRoute = BestallRouteImport.update({
+  id: '/bestall',
+  path: '/bestall',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BekraftelseRoute = BekraftelseRouteImport.update({
+  id: '/bekraftelse',
+  path: '/bekraftelse',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -19,28 +37,61 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
+  '/bekraftelse': typeof BekraftelseRoute
+  '/bestall': typeof BestallRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
+  '/bekraftelse': typeof BekraftelseRoute
+  '/bestall': typeof BestallRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
+  '/bekraftelse': typeof BekraftelseRoute
+  '/bestall': typeof BestallRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths: '/' | '/admin' | '/bekraftelse' | '/bestall'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to: '/' | '/admin' | '/bekraftelse' | '/bestall'
+  id: '__root__' | '/' | '/admin' | '/bekraftelse' | '/bestall'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AdminRoute: typeof AdminRoute
+  BekraftelseRoute: typeof BekraftelseRoute
+  BestallRoute: typeof BestallRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/bestall': {
+      id: '/bestall'
+      path: '/bestall'
+      fullPath: '/bestall'
+      preLoaderRoute: typeof BestallRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/bekraftelse': {
+      id: '/bekraftelse'
+      path: '/bekraftelse'
+      fullPath: '/bekraftelse'
+      preLoaderRoute: typeof BekraftelseRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -53,17 +104,10 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AdminRoute: AdminRoute,
+  BekraftelseRoute: BekraftelseRoute,
+  BestallRoute: BestallRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
