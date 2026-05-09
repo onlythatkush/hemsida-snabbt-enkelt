@@ -44,17 +44,17 @@ import { toast } from "sonner";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Sidly — Premium webbyrå för moderna företag" },
+      { title: "Din Webbpartner — Moderna hemsidor som säljer" },
       {
         name: "description",
         content:
-          "Vi bygger moderna, snabba och mobilanpassade hemsidor för svenska företag som vill se seriösa ut online. Klart inom 7 dagar.",
+          "Vi bygger snabba, snygga och mobilanpassade hemsidor åt företag som vill se professionella ut online. Färdig hemsida från 6 999 kr.",
       },
-      { property: "og:title", content: "Sidly — Premium webbyrå" },
+      { property: "og:title", content: "Din Webbpartner — Moderna hemsidor som säljer" },
       {
         property: "og:description",
         content:
-          "Få en professionell hemsida på 7 dagar. Fast pris från 6 999 kr. Svensk hosting, SEO och support inkluderat.",
+          "Snabba, snygga och mobilanpassade hemsidor för företag. Från 6 999 kr — eller delbetala från 249 kr/mån.",
       },
     ],
   }),
