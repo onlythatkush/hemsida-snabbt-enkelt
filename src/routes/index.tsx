@@ -61,7 +61,7 @@ type Currency = "SEK" | "EUR";
 function Index() {
   const [currency, setCurrency] = useState<Currency>("SEK");
   return (
-    <div className="min-h-screen flex flex-col bg-background">
+    <div className="min-h-screen flex flex-col bg-transparent">
       <SiteHeader />
       <main className="flex-1">
         <Hero />
@@ -88,17 +88,10 @@ function Index() {
 /* ----------------------- HERO ----------------------- */
 function Hero() {
   return (
-    <section className="relative overflow-hidden bg-ink text-ink-foreground">
-      {/* Cinematic Stockholm skyline at night */}
-      <div className="absolute inset-0 -z-20 overflow-hidden">
-        <img
-          src="https://images.unsplash.com/photo-1509356843151-3e7d96241e11?auto=format&fit=crop&w=2400&q=80"
-          alt="Stockholms skyline på natten"
-          className="absolute inset-0 h-full w-full object-cover opacity-40 animate-city-pan will-change-transform"
-        />
-        {/* Layered gradients for cinematic depth */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/55 to-black" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_70%_50%_at_50%_0%,oklch(0.7_0.19_55_/_0.28),transparent_70%)]" />
+    <section className="relative overflow-hidden text-ink-foreground">
+      {/* Cinematic ambient glows over the global Stockholm backdrop */}
+      <div className="absolute inset-0 -z-10 pointer-events-none">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_70%_50%_at_50%_0%,oklch(0.7_0.19_55_/_0.32),transparent_70%)]" />
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_50%_40%_at_80%_20%,oklch(0.82_0.16_80_/_0.22),transparent_70%)]" />
       </div>
       {/* Subtle twinkling lights */}
@@ -168,7 +161,7 @@ function Hero() {
 
 function SocialProof() {
   return (
-    <section className="border-y border-border/50 bg-muted/30">
+    <section className="border-y border-border/50 bg-black/25">
       <div className="container mx-auto px-4 py-10 grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
         {[
           ["120+", "Hemsidor levererade"],
@@ -257,7 +250,7 @@ function SaFungerar() {
     { icon: HeartHandshake, title: "5. Support & vidareutveckling", text: "Vi finns kvar efter lansering med uppdateringar, support och löpande förbättringar." },
   ];
   return (
-    <section id="tjanst" className="bg-muted/30 border-y border-border/50 relative overflow-hidden">
+    <section id="tjanst" className="bg-black/30 border-y border-white/10 backdrop-blur-sm relative overflow-hidden">
       <div className="absolute inset-0 grid-pattern opacity-30" />
       <div className="container relative mx-auto px-4 py-24 md:py-32">
         <div className="text-center max-w-2xl mx-auto mb-16">
@@ -424,7 +417,7 @@ export const PORTFOLIO_PROJECTS = [
 
 function Portfolio() {
   return (
-    <section id="portfolio" className="bg-muted/30 border-y border-border/50">
+    <section id="portfolio" className="bg-black/30 border-y border-white/10 backdrop-blur-sm">
       <div className="container mx-auto px-4 py-24 md:py-32">
         <div className="text-center max-w-2xl mx-auto mb-16">
           <Badge variant="secondary" className="rounded-full mb-4">Portfolio</Badge>
@@ -576,7 +569,7 @@ function Priser({ currency, setCurrency }: { currency: Currency; setCurrency: (c
     },
   ];
   return (
-    <section id="priser" className="relative bg-muted/30 border-y border-border/50">
+    <section id="priser" className="relative bg-black/30 border-y border-white/10 backdrop-blur-sm">
       <div className="absolute inset-0 grid-pattern opacity-30" />
       <div className="container relative mx-auto px-4 py-24 md:py-32">
         <div className="flex flex-col items-center text-center max-w-2xl mx-auto mb-10">
@@ -785,7 +778,7 @@ function Recensioner() {
     { name: "Lina S.", role: "Yogainstruktör", text: "Älskar designen. Det känns som en riktigt dyr hemsida — men priset var helt okej." },
   ];
   return (
-    <section className="bg-muted/30 border-y border-border/50">
+    <section className="bg-black/30 border-y border-white/10 backdrop-blur-sm">
       <div className="container mx-auto px-4 py-24 md:py-32">
         <div className="text-center max-w-2xl mx-auto mb-14">
           <Badge variant="secondary" className="rounded-full mb-4">Recensioner</Badge>
@@ -848,7 +841,7 @@ function FAQ() {
 /* ----------------------- KONTAKT ----------------------- */
 function Kontakt() {
   return (
-    <section id="kontakt" className="bg-muted/30 border-y border-border/50">
+    <section id="kontakt" className="bg-black/30 border-y border-white/10 backdrop-blur-sm">
       <div className="container mx-auto px-4 py-24 md:py-32">
         <div className="grid md:grid-cols-2 gap-12 items-start">
           <div>
