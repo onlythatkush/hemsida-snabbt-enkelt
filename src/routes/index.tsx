@@ -24,7 +24,7 @@ import {
   HeartHandshake,
   Star,
   Mail,
-  Phone,
+  
   MapPin,
   Zap,
   ServerCog,
@@ -853,8 +853,7 @@ function Kontakt() {
               Berätta kort om ditt projekt — vi återkommer med förslag, prisidé och tidsplan inom 24 timmar. Helt kostnadsfritt och utan förpliktelser.
             </p>
             <div className="mt-8 space-y-4 text-sm">
-              <div className="flex items-center gap-3"><span className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary"><Mail className="h-4 w-4" /></span> hej@dinwebbpartner.com</div>
-              <div className="flex items-center gap-3"><span className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary"><Phone className="h-4 w-4" /></span> +46 70 123 45 67</div>
+              <div className="flex items-center gap-3"><span className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary"><Mail className="h-4 w-4" /></span> dinwebbpartner@hotmail.com</div>
               <div className="flex items-center gap-3"><span className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary"><MapPin className="h-4 w-4" /></span> Stockholm, Sverige</div>
             </div>
             <Button asChild variant="hero" size="lg" className="mt-8">
