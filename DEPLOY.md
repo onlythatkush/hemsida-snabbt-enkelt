@@ -1,5 +1,8 @@
 # Deploying to Coolify from GitHub
 
+> Default branch is `main`. If your GitHub repo uses `master`, either rename it
+> to `main` on GitHub (Settings → Branches) or change the branch in Coolify.
+
 This app is a TanStack Start project that builds for the Cloudflare Workers
 runtime (workerd). The included `Dockerfile` builds the app and serves the
 built Worker via `wrangler` so it runs anywhere Docker runs — including Coolify.
