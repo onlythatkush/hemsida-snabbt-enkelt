@@ -513,30 +513,6 @@ function Trust() {
   );
 }
 
-/* ----------------------- PRISER ----------------------- */
-const RATE_EUR = 0.087; // approx
-function fmt(amountSek: number, c: Currency) {
-  if (c === "SEK") return new Intl.NumberFormat("sv-SE").format(amountSek) + " kr";
-  return "€" + new Intl.NumberFormat("sv-SE", { maximumFractionDigits: 0 }).format(Math.round(amountSek * RATE_EUR));
-}
-
-function CurrencySwitcher({ currency, setCurrency }: { currency: Currency; setCurrency: (c: Currency) => void }) {
-  return (
-    <div className="inline-flex items-center rounded-full border border-border bg-card p-1 shadow-soft">
-      {(["SEK", "EUR"] as Currency[]).map((c) => (
-        <button
-          key={c}
-          onClick={() => setCurrency(c)}
-          className={`px-4 py-1.5 text-xs font-medium rounded-full transition-smooth ${
-            currency === c ? "bg-gradient-primary text-primary-foreground shadow-soft" : "text-muted-foreground hover:text-foreground"
-          }`}
-        >
-          {c}
-        </button>
-      ))}
-    </div>
-  );
-}
 
 /* ----------------------- UPPLÄGG ----------------------- */
 function Upplagg() {
