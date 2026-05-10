@@ -50,7 +50,7 @@ const initial: FormData = {
   beskrivning: "", sociala: "", farger: "#2563eb", typ: "", extra: "", support: true,
 };
 
-const steps = ["Om dig", "Om företaget", "Stil & material", "Granska & betala"];
+const steps = ["Om dig", "Om företaget", "Stil & material", "Granska & skicka"];
 
 function OrderPage() {
   const navigate = useNavigate();
