@@ -108,7 +108,6 @@ function OrderPage() {
       return;
     }
     setSubmitting(true);
-    await new Promise((r) => setTimeout(r, 1400));
     const order = {
       id: "ORD-" + Math.random().toString(36).slice(2, 8).toUpperCase(),
       ...data,
@@ -116,6 +115,34 @@ function OrderPage() {
       total: 499 + (data.support ? 39.9 : 0),
       datum: new Date().toISOString(),
     };
+    try {
+      const res = await fetch("/api/public/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: data.namn,
+          email: data.epost,
+          phone: data.telefon,
+          company: data.foretagsnamn,
+          message: data.beskrivning,
+          source: `Offertförfrågan (${order.id})`,
+          extra: {
+            "Typ av hemsida": data.typ,
+            "Färger": data.farger || "",
+            "Adress": data.adress || "",
+            "Sociala medier": data.sociala || "",
+            "Extra önskemål": data.extra || "",
+            "Filer": files.length ? files.map((f) => f.name).join(", ") : "",
+            "Support & Hosting": data.support ? "Ja" : "Nej",
+          },
+        }),
+      });
+      if (!res.ok) throw new Error("send failed");
+    } catch {
+      toast.error("Kunde inte skicka — försök igen eller maila dinwebbpartner@hotmail.com");
+      setSubmitting(false);
+      return;
+    }
     if (typeof window !== "undefined") {
       const list = JSON.parse(localStorage.getItem("dwp-orders") || "[]");
       list.push(order);

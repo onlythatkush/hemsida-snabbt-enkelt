@@ -783,33 +783,54 @@ function Kontakt() {
             <CardContent className="pt-6">
               <form
                 className="space-y-4"
-                onSubmit={(e) => {
+                onSubmit={async (e) => {
                   e.preventDefault();
-                  toast.success("Tack! Vi hör av oss inom 24 timmar.");
-                  (e.target as HTMLFormElement).reset();
+                  const form = e.target as HTMLFormElement;
+                  const fd = new FormData(form);
+                  const payload = {
+                    name: String(fd.get("name") || ""),
+                    email: String(fd.get("email") || ""),
+                    phone: String(fd.get("phone") || ""),
+                    company: String(fd.get("company") || ""),
+                    message: String(fd.get("message") || ""),
+                    source: "Kontaktformulär (startsida)",
+                  };
+                  const t = toast.loading("Skickar...");
+                  try {
+                    const res = await fetch("/api/public/contact", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify(payload),
+                    });
+                    if (!res.ok) throw new Error("send failed");
+                    toast.success("Tack! Vi hör av oss inom 24 timmar.", { id: t });
+                    form.reset();
+                  } catch {
+                    toast.error("Något gick fel — försök igen eller maila oss direkt.", { id: t });
+                  }
                 }}
               >
                 <div className="grid sm:grid-cols-2 gap-3">
                   <div>
                     <label className="text-sm font-medium">Namn</label>
-                    <Input required className="mt-1" placeholder="Ditt namn" />
+                    <Input name="name" required className="mt-1" placeholder="Ditt namn" />
                   </div>
                   <div>
                     <label className="text-sm font-medium">Företag</label>
-                    <Input className="mt-1" placeholder="Företagsnamn (valfritt)" />
+                    <Input name="company" className="mt-1" placeholder="Företagsnamn (valfritt)" />
                   </div>
                   <div>
                     <label className="text-sm font-medium">E-post</label>
-                    <Input required type="email" className="mt-1" placeholder="din@epost.se" />
+                    <Input name="email" required type="email" className="mt-1" placeholder="din@epost.se" />
                   </div>
                   <div>
                     <label className="text-sm font-medium">Telefon</label>
-                    <Input type="tel" className="mt-1" placeholder="+46 70 ..." />
+                    <Input name="phone" type="tel" className="mt-1" placeholder="+46 70 ..." />
                   </div>
                 </div>
                 <div>
                   <label className="text-sm font-medium">Meddelande</label>
-                  <Textarea required rows={5} className="mt-1" placeholder="Berätta kort om ditt projekt — vad behöver du hjälp med?" />
+                  <Textarea name="message" required rows={5} className="mt-1" placeholder="Berätta kort om ditt projekt — vad behöver du hjälp med?" />
                 </div>
                 <Button type="submit" variant="hero" className="w-full" size="lg">Skicka meddelande</Button>
                 <p className="text-xs text-muted-foreground text-center">Vi svarar inom 24 timmar — ofta samma dag.</p>
