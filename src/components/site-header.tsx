@@ -18,8 +18,8 @@ export function SiteHeader() {
           <a href="/#tjanst" className="hover:text-foreground transition-smooth">Så fungerar det</a>
           <a href="/#ingar" className="hover:text-foreground transition-smooth">Vad ingår</a>
           <a href="/#portfolio" className="hover:text-foreground transition-smooth">Portfolio</a>
-          <a href="/#priser" className="hover:text-foreground transition-smooth">Priser</a>
-          <a href="/#abonnemang" className="hover:text-foreground transition-smooth">Support</a>
+          <a href="/#upplagg" className="hover:text-foreground transition-smooth">Upplägg</a>
+          <a href="/#kontakt" className="hover:text-foreground transition-smooth">Kontakt</a>
           <a href="/#faq" className="hover:text-foreground transition-smooth">FAQ</a>
         </nav>
         <div className="flex items-center gap-2">
