@@ -43,13 +43,13 @@ export const Route = createFileRoute("/")({
       {
         name: "description",
         content:
-          "Vi bygger snabba, snygga och mobilanpassade hemsidor åt företag som vill se professionella ut online. Färdig hemsida från 6 999 kr.",
+          "Vi bygger snabba, snygga och mobilanpassade hemsidor åt företag som vill se professionella ut online. Flexibla upplägg — från engångskostnad till månadsabonnemang.",
       },
       { property: "og:title", content: "Din Webbpartner — Moderna hemsidor som säljer" },
       {
         property: "og:description",
         content:
-          "Snabba, snygga och mobilanpassade hemsidor för företag. Från 6 999 kr — eller delbetala från 249 kr/mån.",
+          "Snabba, snygga och mobilanpassade hemsidor för företag. Engångskostnad eller månadsupplägg — kontakta oss för offert.",
       },
     ],
   }),
@@ -59,7 +59,6 @@ export const Route = createFileRoute("/")({
 type Currency = "SEK" | "EUR";
 
 function Index() {
-  const [currency, setCurrency] = useState<Currency>("SEK");
   return (
     <div className="min-h-screen flex flex-col bg-transparent">
       <SiteHeader />
@@ -72,9 +71,7 @@ function Index() {
         <VadIngar />
         <Portfolio />
         <Trust />
-        <Priser currency={currency} setCurrency={setCurrency} />
-        <LopandeKostnader />
-        <Abonnemang currency={currency} />
+        <Upplagg />
         <Recensioner />
         <FAQ />
         <Kontakt />
