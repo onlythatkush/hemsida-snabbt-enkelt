@@ -115,14 +115,14 @@ function Hero() {
         </div>
 
         <h1 className="animate-fade-up mt-7 text-5xl md:text-6xl lg:text-7xl font-semibold tracking-tighter max-w-5xl mx-auto leading-[1.05]" style={{ animationDelay: "0.1s" }}>
-          Din webbpartner för{" "}
-          <span className="text-gradient-primary">moderna hemsidor</span>
+          Hemsidor som{" "}
+          <span className="text-gradient-primary">lyfter ditt företag</span>
           <br className="hidden sm:block" />
-          som säljer
+          online
         </h1>
 
         <p className="animate-fade-up mt-8 text-lg md:text-xl text-ink-foreground/75 max-w-2xl mx-auto leading-relaxed" style={{ animationDelay: "0.2s" }}>
-          Professionella hemsidor för företag som vill synas bättre, skapa förtroende och få fler kunder online.
+          Snygga, snabba och hållbara webbplatser — byggda av din personliga webbpartner i Stockholm.
         </p>
 
         <div className="animate-fade-up mt-10 flex flex-wrap items-center justify-center gap-3" style={{ animationDelay: "0.3s" }}>
