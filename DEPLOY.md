@@ -1,70 +1,57 @@
-# Deploying to Coolify from GitHub
+# Deploying to Coolify
 
-> Default branch is `main`. If your GitHub repo uses `master`, either rename it
-> to `main` on GitHub (Settings → Branches) or change the branch in Coolify.
+`bun run build` succeeds — verified locally. If your Coolify build fails at
+`vite build` / `transforming...`, the cause is almost always the **build
+environment**, not the code. Fix one of these:
 
-This app is a TanStack Start project that builds for the Cloudflare Workers
-runtime (workerd). The included `Dockerfile` builds the app and serves the
-built Worker via `wrangler` so it runs anywhere Docker runs — including Coolify.
+## 1. Use the Dockerfile build pack (recommended)
 
-## 1. Push to GitHub
+This template is a TanStack Start app that compiles to a Cloudflare Worker
+(workerd) — it is **not** a plain static site. The included `Dockerfile`
+already builds and serves it correctly.
 
-In Lovable: **+ menu → GitHub → Connect project → Create Repository**.
-Every change in Lovable now auto-pushes to that repo.
+In Coolify:
+- **Build Pack:** `Dockerfile`
+- **Dockerfile location:** `./Dockerfile`
+- **Port:** `3000`
 
-## 2. Create the app in Coolify
+That's it — no `start` command needed.
 
-1. **Projects → + New → Application**
-2. Source: **Public Repository** (or **Private** + GitHub App if private)
-3. Paste the repo URL, branch `main`
-4. Build Pack: **Dockerfile**
-5. Dockerfile location: `./Dockerfile`
-6. Port: **3000**
+## 2. If you must use Nixpacks
 
-## 3. Environment variables
+Nixpacks doesn't natively know how to serve a Cloudflare Worker. Use:
 
-Add anything your app needs in **Environment Variables**, e.g.:
+- **Build command:** `bun run build`
+- **Start command:** `bun run start`
+  (runs `bunx wrangler dev --ip 0.0.0.0 --port $PORT`)
+
+You may need to add `bun` and `wrangler` to the Nixpacks providers, or set
+`NIXPACKS_PKGS=bun`. The Dockerfile route avoids all of this.
+
+## Required environment variables (build time)
+
+Vite inlines these at **build** time, so they must be set in Coolify before
+the build runs (they are also committed in `.env` for local dev):
 
 ```
-NODE_ENV=production
-# VITE_PUBLIC_* values needed at build time go here too
+VITE_SUPABASE_URL=https://zpjtdkkltogntqdzufct.supabase.co
+VITE_SUPABASE_PUBLISHABLE_KEY=<anon key from .env>
+VITE_SUPABASE_PROJECT_ID=zpjtdkkltogntqdzufct
 ```
 
-Any `VITE_*` variable must be set **before build** (Coolify injects build-time
-env vars automatically when defined in the app settings).
+If these are missing during build, the Supabase client throws at runtime on
+the first page render and the deployment looks broken.
 
-## 4. Domain & HTTPS
+## Branch
 
-Set your domain under **Domains** in the Coolify app settings. Coolify will
-issue a Let's Encrypt cert automatically.
+Default branch is `main`. If your GitHub repo uses `master`, rename it on
+GitHub (Settings → Branches) or change the branch field in Coolify.
 
-## 5. Deploy
-
-Click **Deploy**. Coolify will:
-1. Clone the repo
-2. Run the Dockerfile (`bun install` → `bun run build`)
-3. Start the container with `wrangler dev` bound to `0.0.0.0:3000`
-4. Route your domain to it
-
-## 6. Auto-deploy on push
-
-Enable **Auto Deploy** in the Coolify app → every push to `main` (from
-Lovable or local) triggers a redeploy.
-
-## Local sanity-check
+## Local sanity check
 
 ```bash
-docker build -t my-app .
-docker run --rm -p 3000:3000 my-app
+bun install
+bun run build      # must succeed
+docker build -t app . && docker run --rm -p 3000:3000 app
 # open http://localhost:3000
 ```
-
-## Notes
-
-- The runtime uses Cloudflare's `workerd` via `wrangler dev`. This is the same
-  engine used in production on Cloudflare and is fully supported for
-  self-hosting.
-- `wrangler.jsonc` must remain in the repo — it tells `wrangler` where the
-  built worker entry is (`dist/...`).
-- If you later move to Cloudflare directly, you can swap the deploy step for
-  `bunx wrangler deploy` and skip Docker entirely.
