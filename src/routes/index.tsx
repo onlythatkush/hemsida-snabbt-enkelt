@@ -292,7 +292,7 @@ function RotatingMockup() {
           ))}
         </div>
       </div>
-    </section>
+    </div>
   );
 }
 
