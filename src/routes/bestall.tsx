@@ -291,7 +291,7 @@ function OrderPage() {
                   </Button>
                 ) : (
                   <Button variant="hero" size="lg" onClick={handleSubmit} disabled={submitting}>
-                    {submitting ? "Behandlar..." : <>Bekräfta beställning <Check /></>}
+                    {submitting ? "Skickar..." : <>Skicka offertförfrågan <Check /></>}
                   </Button>
                 )}
               </div>
