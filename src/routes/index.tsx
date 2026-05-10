@@ -1,6 +1,10 @@
 import { useEffect, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 
+import mockupRestaurant from "@/assets/mockup-restaurant.jpg";
+import mockupWebshop from "@/assets/mockup-webshop.jpg";
+import mockupConsulting from "@/assets/mockup-consulting.jpg";
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
