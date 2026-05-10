@@ -1,6 +1,10 @@
 import { useEffect, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 
+import mockupRestaurant from "@/assets/mockup-restaurant.jpg";
+import mockupWebshop from "@/assets/mockup-webshop.jpg";
+import mockupConsulting from "@/assets/mockup-consulting.jpg";
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -221,19 +225,17 @@ const MOCKUP_EXAMPLES = [
     domain: "klippan.se",
     title: "Restaurang Klippan",
     subtitle: "Boka bord · Meny · Öppettider",
-    cta: "Boka bord",
-    bg: "from-amber-500/30 via-rose-500/20 to-orange-600/30",
-    swatches: ["from-amber-400 to-orange-500", "from-rose-400 to-red-500", "from-yellow-300 to-amber-500"],
+    image: mockupRestaurant,
+    accent: "from-amber-500/20 to-orange-600/30",
   },
   {
     device: "mobile" as const,
     label: "Webshop",
     domain: "scandycandy.se",
     title: "Scandy Candy",
-    subtitle: "Godis · Klarna",
-    cta: "Handla nu",
-    bg: "from-pink-500/30 via-fuchsia-500/20 to-rose-600/30",
-    swatches: ["from-pink-400 to-rose-500", "from-fuchsia-400 to-purple-500", "from-amber-300 to-pink-400"],
+    subtitle: "Godis · Klarna · Snabb leverans",
+    image: mockupWebshop,
+    accent: "from-pink-500/20 to-fuchsia-600/30",
   },
   {
     device: "tablet" as const,
@@ -241,34 +243,23 @@ const MOCKUP_EXAMPLES = [
     domain: "nordconsulting.se",
     title: "Nord Consulting",
     subtitle: "Rådgivning · Case · Kontakt",
-    cta: "Boka möte",
-    bg: "from-cyan-500/30 via-sky-500/20 to-indigo-600/30",
-    swatches: ["from-cyan-400 to-sky-500", "from-indigo-400 to-blue-500", "from-emerald-400 to-teal-500"],
+    image: mockupConsulting,
+    accent: "from-cyan-500/20 to-indigo-600/30",
   },
 ];
 
 type Mockup = (typeof MOCKUP_EXAMPLES)[number];
 
-function MockupContent({ ex }: { ex: Mockup }) {
+function ScreenImage({ ex, className = "" }: { ex: Mockup; className?: string }) {
   return (
-    <div className={`rounded-xl bg-gradient-to-br ${ex.bg} p-5 border border-border/40 relative overflow-hidden h-full`}>
-      <div className="absolute inset-0 grid-pattern opacity-30" />
-      <div className="relative">
-        <div className="text-[10px] font-medium text-foreground/70 mb-1.5 uppercase tracking-wider">{ex.label}</div>
-        <div className="text-base font-semibold text-foreground mb-1 leading-tight">{ex.title}</div>
-        <div className="text-[11px] text-muted-foreground mb-4">{ex.subtitle}</div>
-        <div className="flex gap-2 mb-4">
-          <div className="h-8 px-3 rounded-md bg-gradient-primary shadow-soft flex items-center text-[11px] font-semibold text-primary-foreground">
-            {ex.cta}
-          </div>
-          <div className="h-8 w-16 rounded-md border border-border bg-background/60" />
-        </div>
-        <div className="grid grid-cols-3 gap-1.5">
-          {ex.swatches.map((s, i) => (
-            <div key={i} className={`aspect-square rounded-md bg-gradient-to-br ${s} opacity-80`} />
-          ))}
-        </div>
-      </div>
+    <div className={`relative h-full w-full overflow-hidden ${className}`}>
+      <img
+        src={ex.image}
+        alt={`${ex.title} – ${ex.label}`}
+        loading="lazy"
+        className="absolute inset-0 h-full w-full object-cover"
+      />
+      <div className={`absolute inset-0 bg-gradient-to-tr ${ex.accent} mix-blend-overlay opacity-60`} />
     </div>
   );
 }
@@ -276,42 +267,41 @@ function MockupContent({ ex }: { ex: Mockup }) {
 function DeviceFrame({ ex }: { ex: Mockup }) {
   if (ex.device === "mobile") {
     return (
-      <div className="flex justify-center py-4">
-        <div className="relative w-[210px] h-[420px] rounded-[2.5rem] border-[10px] border-foreground/80 bg-background shadow-premium overflow-hidden">
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 h-5 w-24 bg-foreground/80 rounded-b-2xl z-10" />
-          <div className="h-full p-3 pt-8">
-            <MockupContent ex={ex} />
-          </div>
+      <div className="flex justify-center py-2">
+        <div className="relative w-[210px] h-[420px] rounded-[2.5rem] border-[10px] border-foreground/85 bg-foreground/85 shadow-premium overflow-hidden">
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 h-5 w-24 bg-foreground/85 rounded-b-2xl z-10" />
+          <ScreenImage ex={ex} className="rounded-[1.5rem]" />
         </div>
       </div>
     );
   }
   if (ex.device === "tablet") {
     return (
-      <div className="flex justify-center py-2">
-        <div className="relative w-full max-w-[420px] aspect-[4/3] rounded-2xl border-[8px] border-foreground/80 bg-background shadow-premium overflow-hidden">
-          <div className="h-full p-3">
-            <MockupContent ex={ex} />
-          </div>
+      <div className="flex justify-center">
+        <div className="relative w-full max-w-[440px] aspect-[4/3] rounded-2xl border-[8px] border-foreground/85 bg-foreground/85 shadow-premium overflow-hidden">
+          <ScreenImage ex={ex} />
         </div>
       </div>
     );
   }
   // desktop
   return (
-    <div>
-      <div className="flex items-center gap-2 mb-3">
+    <div className="rounded-xl border border-border/60 bg-card shadow-premium overflow-hidden">
+      <div className="flex items-center gap-2 px-3 py-2 border-b border-border/60 bg-muted/40">
         <span className="h-2.5 w-2.5 rounded-full bg-destructive/60" />
         <span className="h-2.5 w-2.5 rounded-full bg-yellow-400/70" />
         <span className="h-2.5 w-2.5 rounded-full bg-emerald-400/70" />
-        <div className="ml-2 flex-1 h-5 rounded-md bg-background/40 border border-border/40 flex items-center px-3">
+        <div className="ml-2 flex-1 max-w-xs mx-auto h-5 rounded-md bg-background/60 border border-border/60 flex items-center justify-center px-3">
           <span className="text-[10px] text-muted-foreground font-mono truncate">{ex.domain}</span>
         </div>
       </div>
-      <MockupContent ex={ex} />
+      <div className="relative aspect-[16/10]">
+        <ScreenImage ex={ex} />
+      </div>
     </div>
   );
 }
+
 
 function RotatingMockup() {
   const [active, setActive] = useState(0);
