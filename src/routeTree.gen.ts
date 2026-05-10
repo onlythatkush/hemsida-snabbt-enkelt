@@ -14,6 +14,7 @@ import { Route as BekraftelseRouteImport } from './routes/bekraftelse'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as PortfolioSlugRouteImport } from './routes/portfolio.$slug'
+import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/email/queue/process'
 
 const BestallRoute = BestallRouteImport.update({
   id: '/bestall',
@@ -40,6 +41,12 @@ const PortfolioSlugRoute = PortfolioSlugRouteImport.update({
   path: '/portfolio/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LovableEmailQueueProcessRoute =
+  LovableEmailQueueProcessRouteImport.update({
+    id: '/lovable/email/queue/process',
+    path: '/lovable/email/queue/process',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -47,6 +54,7 @@ export interface FileRoutesByFullPath {
   '/bekraftelse': typeof BekraftelseRoute
   '/bestall': typeof BestallRoute
   '/portfolio/$slug': typeof PortfolioSlugRoute
+  '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -54,6 +62,7 @@ export interface FileRoutesByTo {
   '/bekraftelse': typeof BekraftelseRoute
   '/bestall': typeof BestallRoute
   '/portfolio/$slug': typeof PortfolioSlugRoute
+  '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -62,12 +71,25 @@ export interface FileRoutesById {
   '/bekraftelse': typeof BekraftelseRoute
   '/bestall': typeof BestallRoute
   '/portfolio/$slug': typeof PortfolioSlugRoute
+  '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/admin' | '/bekraftelse' | '/bestall' | '/portfolio/$slug'
+  fullPaths:
+    | '/'
+    | '/admin'
+    | '/bekraftelse'
+    | '/bestall'
+    | '/portfolio/$slug'
+    | '/lovable/email/queue/process'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/admin' | '/bekraftelse' | '/bestall' | '/portfolio/$slug'
+  to:
+    | '/'
+    | '/admin'
+    | '/bekraftelse'
+    | '/bestall'
+    | '/portfolio/$slug'
+    | '/lovable/email/queue/process'
   id:
     | '__root__'
     | '/'
@@ -75,6 +97,7 @@ export interface FileRouteTypes {
     | '/bekraftelse'
     | '/bestall'
     | '/portfolio/$slug'
+    | '/lovable/email/queue/process'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -83,6 +106,7 @@ export interface RootRouteChildren {
   BekraftelseRoute: typeof BekraftelseRoute
   BestallRoute: typeof BestallRoute
   PortfolioSlugRoute: typeof PortfolioSlugRoute
+  LovableEmailQueueProcessRoute: typeof LovableEmailQueueProcessRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -122,6 +146,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PortfolioSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/lovable/email/queue/process': {
+      id: '/lovable/email/queue/process'
+      path: '/lovable/email/queue/process'
+      fullPath: '/lovable/email/queue/process'
+      preLoaderRoute: typeof LovableEmailQueueProcessRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -131,6 +162,7 @@ const rootRouteChildren: RootRouteChildren = {
   BekraftelseRoute: BekraftelseRoute,
   BestallRoute: BestallRoute,
   PortfolioSlugRoute: PortfolioSlugRoute,
+  LovableEmailQueueProcessRoute: LovableEmailQueueProcessRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
