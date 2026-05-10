@@ -206,32 +206,90 @@ function OmOss() {
             ))}
           </div>
         </div>
-        <div className="relative animate-float">
-          <div className="absolute -inset-8 bg-gradient-primary opacity-20 blur-3xl rounded-3xl" />
-          <div className="relative rounded-3xl border border-border/60 bg-card shadow-premium p-6">
-            <div className="flex gap-2 mb-4">
-              <span className="h-3 w-3 rounded-full bg-destructive/60" />
-              <span className="h-3 w-3 rounded-full bg-yellow-400/70" />
-              <span className="h-3 w-3 rounded-full bg-emerald-400/70" />
-            </div>
-            <div className="rounded-2xl bg-gradient-mesh p-6 border border-border/40 relative overflow-hidden">
-              <div className="absolute inset-0 grid-pattern opacity-30" />
-              <div className="relative">
-                <div className="h-3 w-32 rounded bg-foreground/80 mb-3" />
-                <div className="h-2 w-48 rounded bg-muted-foreground/40 mb-2" />
-                <div className="h-2 w-40 rounded bg-muted-foreground/40 mb-6" />
-                <div className="flex gap-2 mb-6">
-                  <div className="h-8 w-24 rounded-lg bg-gradient-primary shadow-soft" />
-                  <div className="h-8 w-24 rounded-lg border border-border bg-background/60" />
-                </div>
-                <div className="grid grid-cols-3 gap-2">
-                  <div className="aspect-square rounded-lg bg-gradient-to-br from-primary/30 to-primary-glow/30" />
-                  <div className="aspect-square rounded-lg bg-gradient-to-br from-rose-400/30 to-amber-400/30" />
-                  <div className="aspect-square rounded-lg bg-gradient-to-br from-emerald-400/30 to-cyan-400/30" />
-                </div>
+        <RotatingMockup />
+      </div>
+    </section>
+  );
+}
+
+/* ----------------------- ROTATING MOCKUP ----------------------- */
+const MOCKUP_EXAMPLES = [
+  {
+    label: "Restaurang",
+    domain: "klippan.se",
+    title: "Restaurang Klippan",
+    subtitle: "Boka bord · Meny · Öppettider",
+    cta: "Boka bord",
+    bg: "from-amber-500/30 via-rose-500/20 to-orange-600/30",
+    swatches: ["from-amber-400 to-orange-500", "from-rose-400 to-red-500", "from-yellow-300 to-amber-500"],
+  },
+  {
+    label: "Webshop",
+    domain: "scandycandy.se",
+    title: "Scandy Candy",
+    subtitle: "Godis · Prenumeration · Klarna",
+    cta: "Handla nu",
+    bg: "from-pink-500/30 via-fuchsia-500/20 to-rose-600/30",
+    swatches: ["from-pink-400 to-rose-500", "from-fuchsia-400 to-purple-500", "from-amber-300 to-pink-400"],
+  },
+  {
+    label: "Konsult",
+    domain: "nordconsulting.se",
+    title: "Nord Consulting",
+    subtitle: "Rådgivning · Case · Kontakt",
+    cta: "Boka möte",
+    bg: "from-cyan-500/30 via-sky-500/20 to-indigo-600/30",
+    swatches: ["from-cyan-400 to-sky-500", "from-indigo-400 to-blue-500", "from-emerald-400 to-teal-500"],
+  },
+];
+
+function RotatingMockup() {
+  const [active, setActive] = useState(0);
+  useEffect(() => {
+    const id = setInterval(() => setActive((i) => (i + 1) % MOCKUP_EXAMPLES.length), 3500);
+    return () => clearInterval(id);
+  }, []);
+  const ex = MOCKUP_EXAMPLES[active];
+  return (
+    <div className="relative">
+      <div className="absolute -inset-8 bg-gradient-primary opacity-20 blur-3xl rounded-3xl" />
+      <div className="relative rounded-3xl border border-border/60 bg-card shadow-premium p-6">
+        <div className="flex items-center gap-2 mb-4">
+          <span className="h-3 w-3 rounded-full bg-destructive/60" />
+          <span className="h-3 w-3 rounded-full bg-yellow-400/70" />
+          <span className="h-3 w-3 rounded-full bg-emerald-400/70" />
+          <div className="ml-3 flex-1 h-6 rounded-md bg-background/40 border border-border/40 flex items-center px-3">
+            <span className="text-[10px] text-muted-foreground font-mono truncate">{ex.domain}</span>
+          </div>
+        </div>
+        <div key={active} className={`rounded-2xl bg-gradient-to-br ${ex.bg} p-6 border border-border/40 relative overflow-hidden animate-fade-in min-h-[280px]`}>
+          <div className="absolute inset-0 grid-pattern opacity-30" />
+          <div className="relative">
+            <div className="text-xs font-medium text-foreground/70 mb-2">{ex.label}</div>
+            <div className="text-lg font-semibold text-foreground mb-1">{ex.title}</div>
+            <div className="text-xs text-muted-foreground mb-5">{ex.subtitle}</div>
+            <div className="flex gap-2 mb-6">
+              <div className="h-9 px-4 rounded-lg bg-gradient-primary shadow-soft flex items-center text-xs font-semibold text-primary-foreground">
+                {ex.cta}
               </div>
+              <div className="h-9 w-24 rounded-lg border border-border bg-background/60" />
+            </div>
+            <div className="grid grid-cols-3 gap-2">
+              {ex.swatches.map((s, i) => (
+                <div key={i} className={`aspect-square rounded-lg bg-gradient-to-br ${s} opacity-80`} />
+              ))}
             </div>
           </div>
+        </div>
+        <div className="flex justify-center gap-2 mt-4">
+          {MOCKUP_EXAMPLES.map((m, i) => (
+            <button
+              key={m.label}
+              onClick={() => setActive(i)}
+              className={`h-1.5 rounded-full transition-all ${i === active ? "w-8 bg-gradient-primary" : "w-1.5 bg-foreground/20 hover:bg-foreground/40"}`}
+              aria-label={m.label}
+            />
+          ))}
         </div>
       </div>
     </section>
