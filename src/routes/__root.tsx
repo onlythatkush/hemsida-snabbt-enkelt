@@ -9,6 +9,7 @@ import {
 } from "@tanstack/react-router";
 
 import appCss from "../styles.css?url";
+import stockholmBg from "@/assets/stockholm-skyline-night.jpg";
 import { Toaster } from "@/components/ui/sonner";
 
 function NotFoundComponent() {
