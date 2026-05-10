@@ -107,7 +107,7 @@ function RootShell({ children }: { children: React.ReactNode }) {
       </head>
       <body>
         <div aria-hidden className="fixed inset-0 -z-50 overflow-hidden">
-          <div className="absolute inset-[-8%] bg-[url('https://images.unsplash.com/photo-1578894381163-e72c17f2d45f?auto=format&fit=crop&w=2400&q=80')] bg-cover bg-center bg-no-repeat animate-city-pan will-change-transform" />
+          <div className="absolute inset-[-8%] bg-[url('https://images.unsplash.com/photo-1509356843151-3e7d96241e11?auto=format&fit=crop&w=2400&q=80')] bg-cover bg-center bg-no-repeat animate-city-pan will-change-transform" />
         </div>
         <div aria-hidden className="fixed inset-0 -z-45 bg-black/50" />
         <div aria-hidden className="pointer-events-none fixed inset-0 -z-35">
