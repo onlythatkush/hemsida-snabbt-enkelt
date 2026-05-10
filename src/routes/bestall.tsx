@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { SiteHeader, SiteFooter } from "@/components/site-header";
-import { ArrowLeft, ArrowRight, Check, Upload, X, CreditCard } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, Upload, X, Info } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/bestall")({
