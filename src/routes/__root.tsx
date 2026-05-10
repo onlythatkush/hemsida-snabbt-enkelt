@@ -107,7 +107,7 @@ function RootShell({ children }: { children: React.ReactNode }) {
       </head>
       <body>
         <div aria-hidden className="fixed inset-0 -z-50 overflow-hidden">
-          <div className="absolute inset-[-8%] bg-[url('https://images.unsplash.com/photo-1509356843151-3e7d96241e11?auto=format&fit=crop&w=2400&q=80')] bg-cover bg-center bg-no-repeat animate-city-pan will-change-transform" />
+          <div className="absolute inset-[-8%] bg-[url('https://images.unsplash.com/photo-1567361808960-dec9cb578182?auto=format&fit=crop&w=2400&q=80')] bg-cover bg-center bg-no-repeat animate-city-pan will-change-transform" />
         </div>
         <div aria-hidden className="fixed inset-0 -z-45 bg-[linear-gradient(180deg,rgba(8,14,28,0.65),rgba(4,8,18,0.85))]" />
         <div aria-hidden className="pointer-events-none fixed inset-0 -z-35">
@@ -121,7 +121,7 @@ function RootShell({ children }: { children: React.ReactNode }) {
           <span className="absolute top-[33%] left-[5%] h-[2px] w-[2px] rounded-full bg-amber-200 shadow-[0_0_6px_2px_rgba(253,230,138,0.7)] animate-twinkle" style={{ animationDelay: "3.2s" }} />
         </div>
         <div aria-hidden className="fixed inset-0 -z-40 bg-[linear-gradient(180deg,rgba(4,6,12,0.6),rgba(4,6,12,0.85))]" />
-        <div aria-hidden className="fixed inset-0 -z-30 bg-[radial-gradient(ellipse_60%_45%_at_50%_15%,oklch(0.55_0.18_280_/_0.28),transparent_70%),radial-gradient(ellipse_55%_40%_at_20%_80%,oklch(0.65_0.2_30_/_0.22),transparent_70%),radial-gradient(ellipse_55%_40%_at_80%_70%,oklch(0.6_0.18_260_/_0.22),transparent_70%)]" />
+        <div aria-hidden className="fixed inset-0 -z-30 bg-[radial-gradient(ellipse_60%_45%_at_50%_15%,oklch(0.6_0.18_240_/_0.32),transparent_70%),radial-gradient(ellipse_55%_40%_at_20%_80%,oklch(0.55_0.16_220_/_0.26),transparent_70%),radial-gradient(ellipse_55%_40%_at_80%_70%,oklch(0.5_0.14_260_/_0.22),transparent_70%)]" />
         {children}
         <Scripts />
       </body>
