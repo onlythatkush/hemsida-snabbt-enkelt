@@ -121,6 +121,9 @@ function OrderPage() {
       list.push(order);
       localStorage.setItem("dwp-orders", JSON.stringify(list));
     }
+    toast.success("Förfrågan skickad!", {
+      description: "Vi återkommer inom 24 timmar (vardagar).",
+    });
     navigate({ to: "/bekraftelse", search: { id: order.id } });
   };
 
