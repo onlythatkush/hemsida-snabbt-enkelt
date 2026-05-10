@@ -216,6 +216,7 @@ function OmOss() {
 /* ----------------------- ROTATING MOCKUP ----------------------- */
 const MOCKUP_EXAMPLES = [
   {
+    device: "desktop" as const,
     label: "Restaurang",
     domain: "klippan.se",
     title: "Restaurang Klippan",
@@ -225,15 +226,17 @@ const MOCKUP_EXAMPLES = [
     swatches: ["from-amber-400 to-orange-500", "from-rose-400 to-red-500", "from-yellow-300 to-amber-500"],
   },
   {
+    device: "mobile" as const,
     label: "Webshop",
     domain: "scandycandy.se",
     title: "Scandy Candy",
-    subtitle: "Godis · Prenumeration · Klarna",
+    subtitle: "Godis · Klarna",
     cta: "Handla nu",
     bg: "from-pink-500/30 via-fuchsia-500/20 to-rose-600/30",
     swatches: ["from-pink-400 to-rose-500", "from-fuchsia-400 to-purple-500", "from-amber-300 to-pink-400"],
   },
   {
+    device: "tablet" as const,
     label: "Konsult",
     domain: "nordconsulting.se",
     title: "Nord Consulting",
@@ -244,42 +247,92 @@ const MOCKUP_EXAMPLES = [
   },
 ];
 
+type Mockup = (typeof MOCKUP_EXAMPLES)[number];
+
+function MockupContent({ ex }: { ex: Mockup }) {
+  return (
+    <div className={`rounded-xl bg-gradient-to-br ${ex.bg} p-5 border border-border/40 relative overflow-hidden h-full`}>
+      <div className="absolute inset-0 grid-pattern opacity-30" />
+      <div className="relative">
+        <div className="text-[10px] font-medium text-foreground/70 mb-1.5 uppercase tracking-wider">{ex.label}</div>
+        <div className="text-base font-semibold text-foreground mb-1 leading-tight">{ex.title}</div>
+        <div className="text-[11px] text-muted-foreground mb-4">{ex.subtitle}</div>
+        <div className="flex gap-2 mb-4">
+          <div className="h-8 px-3 rounded-md bg-gradient-primary shadow-soft flex items-center text-[11px] font-semibold text-primary-foreground">
+            {ex.cta}
+          </div>
+          <div className="h-8 w-16 rounded-md border border-border bg-background/60" />
+        </div>
+        <div className="grid grid-cols-3 gap-1.5">
+          {ex.swatches.map((s, i) => (
+            <div key={i} className={`aspect-square rounded-md bg-gradient-to-br ${s} opacity-80`} />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function DeviceFrame({ ex }: { ex: Mockup }) {
+  if (ex.device === "mobile") {
+    return (
+      <div className="flex justify-center py-4">
+        <div className="relative w-[210px] h-[420px] rounded-[2.5rem] border-[10px] border-foreground/80 bg-background shadow-premium overflow-hidden">
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 h-5 w-24 bg-foreground/80 rounded-b-2xl z-10" />
+          <div className="h-full p-3 pt-8">
+            <MockupContent ex={ex} />
+          </div>
+        </div>
+      </div>
+    );
+  }
+  if (ex.device === "tablet") {
+    return (
+      <div className="flex justify-center py-2">
+        <div className="relative w-full max-w-[420px] aspect-[4/3] rounded-2xl border-[8px] border-foreground/80 bg-background shadow-premium overflow-hidden">
+          <div className="h-full p-3">
+            <MockupContent ex={ex} />
+          </div>
+        </div>
+      </div>
+    );
+  }
+  // desktop
+  return (
+    <div>
+      <div className="flex items-center gap-2 mb-3">
+        <span className="h-2.5 w-2.5 rounded-full bg-destructive/60" />
+        <span className="h-2.5 w-2.5 rounded-full bg-yellow-400/70" />
+        <span className="h-2.5 w-2.5 rounded-full bg-emerald-400/70" />
+        <div className="ml-2 flex-1 h-5 rounded-md bg-background/40 border border-border/40 flex items-center px-3">
+          <span className="text-[10px] text-muted-foreground font-mono truncate">{ex.domain}</span>
+        </div>
+      </div>
+      <MockupContent ex={ex} />
+    </div>
+  );
+}
+
 function RotatingMockup() {
   const [active, setActive] = useState(0);
   useEffect(() => {
-    const id = setInterval(() => setActive((i) => (i + 1) % MOCKUP_EXAMPLES.length), 3500);
+    const id = setInterval(() => setActive((i) => (i + 1) % MOCKUP_EXAMPLES.length), 4000);
     return () => clearInterval(id);
   }, []);
   const ex = MOCKUP_EXAMPLES[active];
   return (
     <div className="relative">
       <div className="absolute -inset-8 bg-gradient-primary opacity-20 blur-3xl rounded-3xl" />
-      <div className="relative rounded-3xl border border-border/60 bg-card shadow-premium p-6">
-        <div className="flex items-center gap-2 mb-4">
-          <span className="h-3 w-3 rounded-full bg-destructive/60" />
-          <span className="h-3 w-3 rounded-full bg-yellow-400/70" />
-          <span className="h-3 w-3 rounded-full bg-emerald-400/70" />
-          <div className="ml-3 flex-1 h-6 rounded-md bg-background/40 border border-border/40 flex items-center px-3">
-            <span className="text-[10px] text-muted-foreground font-mono truncate">{ex.domain}</span>
-          </div>
+      <div className="relative rounded-3xl border border-border/60 bg-card shadow-premium p-6 min-h-[480px] flex flex-col">
+        <div className="flex items-center justify-between mb-4">
+          <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">
+            {ex.device === "mobile" ? "Mobil" : ex.device === "tablet" ? "Surfplatta" : "Desktop"}
+          </span>
+          <span className="text-[10px] text-muted-foreground font-mono">{ex.domain}</span>
         </div>
-        <div key={active} className={`rounded-2xl bg-gradient-to-br ${ex.bg} p-6 border border-border/40 relative overflow-hidden animate-fade-in min-h-[280px]`}>
-          <div className="absolute inset-0 grid-pattern opacity-30" />
-          <div className="relative">
-            <div className="text-xs font-medium text-foreground/70 mb-2">{ex.label}</div>
-            <div className="text-lg font-semibold text-foreground mb-1">{ex.title}</div>
-            <div className="text-xs text-muted-foreground mb-5">{ex.subtitle}</div>
-            <div className="flex gap-2 mb-6">
-              <div className="h-9 px-4 rounded-lg bg-gradient-primary shadow-soft flex items-center text-xs font-semibold text-primary-foreground">
-                {ex.cta}
-              </div>
-              <div className="h-9 w-24 rounded-lg border border-border bg-background/60" />
-            </div>
-            <div className="grid grid-cols-3 gap-2">
-              {ex.swatches.map((s, i) => (
-                <div key={i} className={`aspect-square rounded-lg bg-gradient-to-br ${s} opacity-80`} />
-              ))}
-            </div>
+        <div key={active} className="flex-1 animate-fade-in flex items-center justify-center">
+          <div className="w-full">
+            <DeviceFrame ex={ex} />
           </div>
         </div>
         <div className="flex justify-center gap-2 mt-4">
