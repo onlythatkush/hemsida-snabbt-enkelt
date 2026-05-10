@@ -56,7 +56,7 @@ export const Route = createFileRoute("/")({
   component: Index,
 });
 
-type Currency = "SEK" | "EUR";
+
 
 function Index() {
   return (
