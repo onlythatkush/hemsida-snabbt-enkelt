@@ -72,8 +72,8 @@ export function SiteFooter() {
             <ul className="space-y-3 text-sm text-ink-foreground/70">
               <li><a href="/#tjanst" className="hover:text-ink-foreground transition-smooth">Tjänster</a></li>
               <li><a href="/#portfolio" className="hover:text-ink-foreground transition-smooth">Portfolio</a></li>
-              <li><a href="/#priser" className="hover:text-ink-foreground transition-smooth">Priser</a></li>
-              <li><a href="/#abonnemang" className="hover:text-ink-foreground transition-smooth">Support & abonnemang</a></li>
+              <li><a href="/#upplagg" className="hover:text-ink-foreground transition-smooth">Upplägg</a></li>
+              <li><a href="/#kontakt" className="hover:text-ink-foreground transition-smooth">Kontakt</a></li>
               <li><Link to="/bestall" className="hover:text-ink-foreground transition-smooth">Beställ hemsida</Link></li>
             </ul>
           </div>
