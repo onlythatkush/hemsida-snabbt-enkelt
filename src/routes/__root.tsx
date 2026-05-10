@@ -106,8 +106,20 @@ function RootShell({ children }: { children: React.ReactNode }) {
         <HeadContent />
       </head>
       <body>
-<div aria-hidden className="fixed inset-0 -z-50 bg-[url('https://images.unsplash.com/photo-1578894381163-e72c17f2d45f?auto=format&fit=crop&w=2400&q=80')] bg-cover bg-center bg-no-repeat" style={{ backgroundAttachment: "fixed" }} />
+        <div aria-hidden className="fixed inset-0 -z-50 overflow-hidden">
+          <div className="absolute inset-[-8%] bg-[url('https://images.unsplash.com/photo-1578894381163-e72c17f2d45f?auto=format&fit=crop&w=2400&q=80')] bg-cover bg-center bg-no-repeat animate-city-pan will-change-transform" />
+        </div>
         <div aria-hidden className="fixed inset-0 -z-45 bg-black/50" />
+        <div aria-hidden className="pointer-events-none fixed inset-0 -z-35">
+          <span className="absolute top-[22%] left-[18%] h-1 w-1 rounded-full bg-amber-200 shadow-[0_0_8px_2px_rgba(253,224,71,0.7)] animate-twinkle" style={{ animationDelay: "0s" }} />
+          <span className="absolute top-[28%] left-[42%] h-[3px] w-[3px] rounded-full bg-yellow-100 shadow-[0_0_10px_3px_rgba(254,240,138,0.7)] animate-twinkle" style={{ animationDelay: "0.8s" }} />
+          <span className="absolute top-[35%] left-[68%] h-1 w-1 rounded-full bg-amber-300 shadow-[0_0_8px_2px_rgba(252,211,77,0.7)] animate-twinkle" style={{ animationDelay: "1.6s" }} />
+          <span className="absolute top-[44%] left-[12%] h-[2px] w-[2px] rounded-full bg-orange-200 shadow-[0_0_6px_2px_rgba(254,215,170,0.7)] animate-twinkle" style={{ animationDelay: "2.2s" }} />
+          <span className="absolute top-[50%] left-[55%] h-1 w-1 rounded-full bg-yellow-200 shadow-[0_0_10px_3px_rgba(254,240,138,0.7)] animate-twinkle" style={{ animationDelay: "1.1s" }} />
+          <span className="absolute top-[58%] left-[80%] h-[3px] w-[3px] rounded-full bg-amber-100 shadow-[0_0_10px_3px_rgba(254,243,199,0.7)] animate-twinkle" style={{ animationDelay: "0.4s" }} />
+          <span className="absolute top-[40%] left-[90%] h-1 w-1 rounded-full bg-yellow-300 shadow-[0_0_8px_2px_rgba(253,224,71,0.7)] animate-twinkle" style={{ animationDelay: "2.8s" }} />
+          <span className="absolute top-[33%] left-[5%] h-[2px] w-[2px] rounded-full bg-amber-200 shadow-[0_0_6px_2px_rgba(253,230,138,0.7)] animate-twinkle" style={{ animationDelay: "3.2s" }} />
+        </div>
         <div aria-hidden className="fixed inset-0 -z-40 bg-[linear-gradient(180deg,rgba(4,6,12,0.6),rgba(4,6,12,0.85))]" />
         <div aria-hidden className="fixed inset-0 -z-30 bg-[radial-gradient(ellipse_60%_45%_at_50%_15%,oklch(0.55_0.18_280_/_0.28),transparent_70%),radial-gradient(ellipse_55%_40%_at_20%_80%,oklch(0.65_0.2_30_/_0.22),transparent_70%),radial-gradient(ellipse_55%_40%_at_80%_70%,oklch(0.6_0.18_260_/_0.22),transparent_70%)]" />
         {children}
