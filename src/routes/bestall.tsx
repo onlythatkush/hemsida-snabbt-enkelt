@@ -132,8 +132,8 @@ function OrderPage() {
       <main className="flex-1 bg-gradient-hero">
         <div className="container mx-auto px-4 py-12 md:py-16 max-w-3xl">
           <div className="mb-8 text-center">
-            <h1 className="text-3xl md:text-4xl font-semibold tracking-tight">Beställ din hemsida</h1>
-            <p className="text-muted-foreground mt-2">Fyll i steg för steg — det tar bara några minuter.</p>
+            <h1 className="text-3xl md:text-4xl font-semibold tracking-tight">Begär offert</h1>
+            <p className="text-muted-foreground mt-2">Fyll i steg för steg — kostnadsfritt och utan förpliktelser. Vi hör av oss inom 24 timmar.</p>
           </div>
 
           <div className="mb-8">
