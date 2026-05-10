@@ -3,12 +3,12 @@ import { z } from "zod";
 import { SiteHeader, SiteFooter } from "@/components/site-header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Check, Mail, ArrowRight } from "lucide-react";
+import { Check, Mail, ArrowRight, Clock } from "lucide-react";
 
 export const Route = createFileRoute("/bekraftelse")({
   validateSearch: z.object({ id: z.string().optional() }),
   head: () => ({
-    meta: [{ title: "Tack för din beställning — Din Webbpartner" }],
+    meta: [{ title: "Tack för din förfrågan — Din Webbpartner" }],
   }),
   component: ConfirmPage,
 });
@@ -26,21 +26,27 @@ function ConfirmPage() {
                 <Check className="h-8 w-8 text-primary-foreground" />
               </div>
               <h1 className="mt-6 text-3xl md:text-4xl font-semibold tracking-tight animate-fade-up" style={{ animationDelay: "0.1s" }}>
-                Tack för din beställning!
+                Tack — din förfrågan är skickad!
               </h1>
               <p className="mt-3 text-muted-foreground text-lg animate-fade-up" style={{ animationDelay: "0.2s" }}>
-                Vi har tagit emot din beställning och börjar bygga din hemsida direkt.
+                Vi har tagit emot dina uppgifter och hör av oss med en personlig offert.
               </p>
+
+              <div className="mt-6 mx-auto inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-5 py-2.5 text-primary font-medium animate-fade-up" style={{ animationDelay: "0.25s" }}>
+                <Clock className="h-4 w-4" />
+                Svarstid: inom 24 timmar (vardagar)
+              </div>
+
               {id && (
-                <div className="mt-6 inline-block rounded-full bg-muted px-4 py-2 text-sm">
-                  Ordernummer: <span className="font-mono font-medium">{id}</span>
+                <div className="mt-4 inline-block rounded-full bg-muted px-4 py-2 text-sm">
+                  Referens: <span className="font-mono font-medium">{id}</span>
                 </div>
               )}
               <div className="mt-8 grid sm:grid-cols-3 gap-4 text-left">
                 {[
-                  { t: "1. Bekräftelse", d: "Vi mailar en kvittens inom några minuter." },
-                  { t: "2. Vi bygger", d: "Du får en länk att granska inom 7 dagar." },
-                  { t: "3. Publicera", d: "När du är nöjd publicerar vi sidan." },
+                  { t: "1. Bekräftelse", d: "Du får en kvittens på e-post inom kort." },
+                  { t: "2. Offert", d: "Vi återkommer inom 24 timmar med pris och förslag." },
+                  { t: "3. Vi bygger", d: "Vid godkänd offert sätter vi igång direkt." },
                 ].map((s) => (
                   <div key={s.t} className="rounded-xl border border-border/60 p-4 bg-card">
                     <div className="text-sm font-semibold">{s.t}</div>
