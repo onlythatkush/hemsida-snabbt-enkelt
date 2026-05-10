@@ -22,8 +22,8 @@ import { toast } from "sonner";
 export const Route = createFileRoute("/bestall")({
   head: () => ({
     meta: [
-      { title: "Beställ din hemsida — Din Webbpartner" },
-      { name: "description", content: "Fyll i formuläret och ladda upp ditt material — vi bygger hemsidan åt dig." },
+      { title: "Begär offert — Din Webbpartner" },
+      { name: "description", content: "Skicka in en kostnadsfri offertförfrågan — vi kontaktar dig och skickar en offert. Ingen betalning vid förfrågan." },
     ],
   }),
   component: OrderPage,
