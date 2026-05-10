@@ -10,6 +10,11 @@ RUN bun install --frozen-lockfile || bun install
 
 # Copy source and build
 COPY . .
+# Remove the committed routeTree so the TanStack Router plugin generates it
+# once cleanly. Otherwise the parallel client/ssr/worker builds (Cloudflare
+# plugin) race on the existing file and spam:
+#   "File src/routeTree.gen.ts was modified by another process during processing."
+RUN rm -f src/routeTree.gen.ts
 RUN bun run build
 
 # ---------- Runtime stage ----------
