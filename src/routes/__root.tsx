@@ -107,9 +107,9 @@ function RootShell({ children }: { children: React.ReactNode }) {
       </head>
       <body>
         <div aria-hidden className="fixed inset-0 -z-50 overflow-hidden">
-          <div className="absolute inset-[-8%] bg-[url('https://images.unsplash.com/photo-1578894381163-e72c17f2d45f?auto=format&fit=crop&w=2400&q=80')] bg-cover bg-center bg-no-repeat animate-city-pan will-change-transform" />
+          <div className="absolute inset-[-8%] bg-[url('https://images.unsplash.com/photo-1509356843151-3e7d96241e11?auto=format&fit=crop&w=2400&q=80')] bg-cover bg-center bg-no-repeat animate-city-pan will-change-transform" />
         </div>
-        <div aria-hidden className="fixed inset-0 -z-45 bg-black/50" />
+        <div aria-hidden className="fixed inset-0 -z-45 bg-[linear-gradient(180deg,rgba(8,14,28,0.65),rgba(4,8,18,0.85))]" />
         <div aria-hidden className="pointer-events-none fixed inset-0 -z-35">
           <span className="absolute top-[22%] left-[18%] h-1 w-1 rounded-full bg-amber-200 shadow-[0_0_8px_2px_rgba(253,224,71,0.7)] animate-twinkle" style={{ animationDelay: "0s" }} />
           <span className="absolute top-[28%] left-[42%] h-[3px] w-[3px] rounded-full bg-yellow-100 shadow-[0_0_10px_3px_rgba(254,240,138,0.7)] animate-twinkle" style={{ animationDelay: "0.8s" }} />
