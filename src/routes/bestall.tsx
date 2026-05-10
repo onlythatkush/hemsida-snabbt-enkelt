@@ -243,7 +243,7 @@ function OrderPage() {
 
               {step === 3 && (
                 <div className="space-y-6">
-                  <h3 className="text-lg font-semibold">Ordersammanfattning</h3>
+                  <h3 className="text-lg font-semibold">Sammanfattning av din förfrågan</h3>
                   <div className="rounded-xl border border-border/60 divide-y divide-border/60 text-sm">
                     <Row label="Namn" value={data.namn} />
                     <Row label="E-post" value={data.epost} />
@@ -257,39 +257,20 @@ function OrderPage() {
                   <label className="flex items-start gap-3 rounded-xl border border-border/60 p-4 cursor-pointer hover:bg-muted/50 transition-smooth">
                     <Checkbox checked={data.support} onCheckedChange={(v) => set("support", Boolean(v))} className="mt-0.5" />
                     <div>
-                      <div className="font-medium">Lägg till Support & Hosting — 39.90 USD/mån</div>
-                      <div className="text-sm text-muted-foreground">Vi sköter hosting, ändringar och support löpande. Säg upp när du vill.</div>
+                      <div className="font-medium">Intresserad av Support & Hosting (39.90 USD/mån)</div>
+                      <div className="text-sm text-muted-foreground">Vi sköter hosting, ändringar och support löpande. Inkluderas i offerten — inget bindande val nu.</div>
                     </div>
                   </label>
 
-                  <div className="rounded-xl bg-gradient-hero border border-border/60 p-5">
-                    <div className="flex justify-between text-sm">
-                      <span>Hemsida (engångskostnad)</span>
-                      <span>499.00 USD</span>
+                  <div className="rounded-xl border border-border/60 p-4 bg-muted/30 flex gap-3">
+                    <Info className="h-5 w-5 text-primary shrink-0 mt-0.5" />
+                    <div className="text-sm">
+                      <div className="font-medium">Ingen betalning sker nu</div>
+                      <p className="text-muted-foreground mt-1">
+                        Att skicka in en offertförfrågan är helt kostnadsfritt. Vi kontaktar dig för en kort genomgång och skickar därefter en offert.
+                        En liten uppstartsavgift kan tillkomma först efter att du godkänt offerten — då börjar vi bygga och du får se en preview.
+                      </p>
                     </div>
-                    {data.support && (
-                      <div className="flex justify-between text-sm mt-2">
-                        <span>Support & Hosting (första månaden)</span>
-                        <span>39.90 USD</span>
-                      </div>
-                    )}
-                    <div className="flex justify-between font-semibold text-lg mt-3 pt-3 border-t border-border/60">
-                      <span>Att betala idag</span>
-                      <span>{(499 + (data.support ? 39.9 : 0)).toFixed(2)} USD</span>
-                    </div>
-                  </div>
-
-                  <div className="rounded-xl border border-border/60 p-4 bg-card">
-                    <div className="flex items-center gap-2 text-sm font-medium mb-3">
-                      <CreditCard className="h-4 w-4 text-primary" /> Betalning (demo)
-                    </div>
-                    <div className="grid grid-cols-2 gap-3">
-                      <Input placeholder="Kortnummer" />
-                      <Input placeholder="MM/ÅÅ" />
-                      <Input placeholder="CVC" />
-                      <Input placeholder="Namn på kort" />
-                    </div>
-                    <p className="text-xs text-muted-foreground mt-3">Detta är en demo. Ingen riktig betalning sker.</p>
                   </div>
                 </div>
               )}
