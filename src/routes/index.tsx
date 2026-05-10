@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -43,23 +43,22 @@ export const Route = createFileRoute("/")({
       {
         name: "description",
         content:
-          "Vi bygger snabba, snygga och mobilanpassade hemsidor åt företag som vill se professionella ut online. Färdig hemsida från 6 999 kr.",
+          "Vi bygger snabba, snygga och mobilanpassade hemsidor åt företag som vill se professionella ut online. Flexibla upplägg — från engångskostnad till månadsabonnemang.",
       },
       { property: "og:title", content: "Din Webbpartner — Moderna hemsidor som säljer" },
       {
         property: "og:description",
         content:
-          "Snabba, snygga och mobilanpassade hemsidor för företag. Från 6 999 kr — eller delbetala från 249 kr/mån.",
+          "Snabba, snygga och mobilanpassade hemsidor för företag. Engångskostnad eller månadsupplägg — kontakta oss för offert.",
       },
     ],
   }),
   component: Index,
 });
 
-type Currency = "SEK" | "EUR";
+
 
 function Index() {
-  const [currency, setCurrency] = useState<Currency>("SEK");
   return (
     <div className="min-h-screen flex flex-col bg-transparent">
       <SiteHeader />
@@ -72,9 +71,7 @@ function Index() {
         <VadIngar />
         <Portfolio />
         <Trust />
-        <Priser currency={currency} setCurrency={setCurrency} />
-        <LopandeKostnader />
-        <Abonnemang currency={currency} />
+        <Upplagg />
         <Recensioner />
         <FAQ />
         <Kontakt />
@@ -516,117 +513,56 @@ function Trust() {
   );
 }
 
-/* ----------------------- PRISER ----------------------- */
-const RATE_EUR = 0.087; // approx
-function fmt(amountSek: number, c: Currency) {
-  if (c === "SEK") return new Intl.NumberFormat("sv-SE").format(amountSek) + " kr";
-  return "€" + new Intl.NumberFormat("sv-SE", { maximumFractionDigits: 0 }).format(Math.round(amountSek * RATE_EUR));
-}
 
-function CurrencySwitcher({ currency, setCurrency }: { currency: Currency; setCurrency: (c: Currency) => void }) {
-  return (
-    <div className="inline-flex items-center rounded-full border border-border bg-card p-1 shadow-soft">
-      {(["SEK", "EUR"] as Currency[]).map((c) => (
-        <button
-          key={c}
-          onClick={() => setCurrency(c)}
-          className={`px-4 py-1.5 text-xs font-medium rounded-full transition-smooth ${
-            currency === c ? "bg-gradient-primary text-primary-foreground shadow-soft" : "text-muted-foreground hover:text-foreground"
-          }`}
-        >
-          {c}
-        </button>
-      ))}
-    </div>
-  );
-}
-
-function Priser({ currency, setCurrency }: { currency: Currency; setCurrency: (c: Currency) => void }) {
-  const plans = [
+/* ----------------------- UPPLÄGG ----------------------- */
+function Upplagg() {
+  const options = [
     {
-      name: "Starter",
-      price: 6999,
-      monthly: 249,
-      desc: "Perfekt för enmansföretag och privatpersoner som vill komma igång.",
-      features: ["1–3 sidor", "Mobilanpassad design", "Kontaktformulär", "Grundläggande SEO", "Klar inom 7 dagar"],
-      popular: false,
+      icon: Rocket,
+      title: "Engångskostnad",
+      desc: "Du betalar en gång — vi bygger och levererar din färdiga hemsida. Du äger sidan helt och hållet.",
+      points: ["Fast offert innan start", "Du äger hemsidan", "Inga månadsavgifter"],
     },
     {
-      name: "Growth",
-      price: 12999,
-      monthly: 499,
-      desc: "Det vanligaste valet för småföretag som vill växa via webben.",
-      features: ["Upp till 7 sidor", "Anpassad design & animationer", "Bokning / formulär", "SEO + Google Business", "Premium support", "Bloggfunktion"],
-      popular: true,
+      icon: Zap,
+      title: "Delbetalning",
+      desc: "Sprid ut kostnaden över 12, 24 eller 36 månader. Räntefritt via vår betalpartner.",
+      points: ["Lägre månadskostnad", "Räntefritt upplägg", "Snabb kreditprövning"],
     },
     {
-      name: "Premium",
-      price: 24999,
-      monthly: 999,
-      desc: "För företag som vill ha en hemsida i absolut toppklass.",
-      features: ["Obegränsat antal sidor", "Skräddarsydd design", "E-handel / bokningssystem", "Avancerad SEO & analytics", "Copywriting ingår", "Dedikerad projektledare"],
-      popular: false,
+      icon: HeartHandshake,
+      title: "Månadsupplägg",
+      desc: "Allt-i-ett: hemsida, hosting, support och löpande uppdateringar för en fast månadskostnad.",
+      points: ["Inget startpris", "Drift & support ingår", "Säg upp när du vill"],
     },
   ];
   return (
-    <section id="priser" className="relative bg-black/30 border-y border-white/10 backdrop-blur-sm">
+    <section id="upplagg" className="relative bg-black/30 border-y border-white/10 backdrop-blur-sm">
       <div className="absolute inset-0 grid-pattern opacity-30" />
       <div className="container relative mx-auto px-4 py-24 md:py-32">
-        <div className="flex flex-col items-center text-center max-w-2xl mx-auto mb-10">
-          <Badge variant="secondary" className="rounded-full mb-4">Priser</Badge>
+        <div className="text-center max-w-2xl mx-auto mb-14">
+          <Badge variant="secondary" className="rounded-full mb-4">Upplägg</Badge>
           <h2 className="text-3xl md:text-5xl font-semibold tracking-tighter leading-[1.1]">
-            Färdig hemsida <span className="text-gradient-primary">från 6 999 kr</span>
+            Välj det upplägg som passar dig
           </h2>
           <p className="text-muted-foreground mt-5 text-lg">
-            Engångsbetalning eller bekväm delbetalning över 24 eller 36 månader. Tydliga priser — inga dolda avgifter.
+            Allt från engångskostnad till månadsupplägg. Du får alltid en personlig offert efter ett kort kontaktsamtal — inga dolda avgifter.
           </p>
-          <div className="mt-6">
-            <CurrencySwitcher currency={currency} setCurrency={setCurrency} />
-          </div>
-        </div>
-
-        {/* Hero payment options */}
-        <div className="grid sm:grid-cols-3 gap-4 max-w-4xl mx-auto mb-14">
-          {[
-            { label: "Engångsbetalning", value: "från 6 999 kr", note: "Slutpris vid leverans" },
-            { label: "Delbetalning 24 mån", value: "från 349 kr/mån", note: "Räntefritt via partner" },
-            { label: "Delbetalning 36 mån", value: "från 249 kr/mån", note: "Lägsta månadskostnad" },
-          ].map((o) => (
-            <div key={o.label} className="relative rounded-2xl border border-border/60 bg-card p-5 text-center shadow-soft transition-smooth hover:shadow-elegant hover:-translate-y-1 overflow-hidden">
-              <div className="absolute -top-12 -right-12 h-32 w-32 rounded-full bg-gradient-primary opacity-10 blur-2xl" />
-              <div className="text-xs uppercase tracking-wider text-muted-foreground">{o.label}</div>
-              <div className="font-semibold text-xl mt-2 text-gradient-primary">{o.value}</div>
-              <div className="text-xs text-muted-foreground mt-1">{o.note}</div>
-            </div>
-          ))}
         </div>
 
         <div className="grid md:grid-cols-3 gap-6 max-w-6xl mx-auto">
-          {plans.map((p) => (
-            <Card
-              key={p.name}
-              className={`relative border-border/60 transition-smooth hover:-translate-y-2 ${
-                p.popular ? "shadow-premium border-primary/40 bg-gradient-to-b from-primary/5 to-transparent scale-[1.02]" : "hover:shadow-elegant"
-              }`}
-            >
-              {p.popular && (
-                <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-primary text-primary-foreground border-0 shadow-soft">
-                  Populärast
-                </Badge>
-              )}
+          {options.map(({ icon: Icon, title, desc, points }) => (
+            <Card key={title} className="relative border-border/60 bg-card/80 backdrop-blur transition-smooth hover:shadow-elegant hover:-translate-y-2">
               <CardHeader className="pb-4">
-                <CardTitle className="text-2xl">{p.name}</CardTitle>
-                <p className="text-sm text-muted-foreground mt-1">{p.desc}</p>
-                <div className="mt-5 flex items-baseline gap-2">
-                  <span className="text-4xl md:text-5xl font-semibold tracking-tight">{fmt(p.price, currency)}</span>
-                </div>
-                <div className="text-sm text-muted-foreground mt-1">
-                  eller från <span className="font-medium text-foreground">{fmt(p.monthly, currency)}/mån</span>
-                </div>
+                <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-primary shadow-soft mb-4">
+                  <Icon className="h-5 w-5 text-primary-foreground" />
+                </span>
+                <CardTitle className="text-2xl">{title}</CardTitle>
+                <p className="text-sm text-muted-foreground mt-2 leading-relaxed">{desc}</p>
               </CardHeader>
               <CardContent>
                 <ul className="space-y-3 text-sm">
-                  {p.features.map((f) => (
+                  {points.map((f) => (
                     <li key={f} className="flex items-start gap-2">
                       <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary/10 text-primary mt-0.5 shrink-0">
                         <Check className="h-3 w-3" />
@@ -635,136 +571,19 @@ function Priser({ currency, setCurrency }: { currency: Currency; setCurrency: (c
                     </li>
                   ))}
                 </ul>
-                <Button asChild className="w-full mt-7" variant={p.popular ? "hero" : "outline"} size="lg">
-                  <Link to="/bestall">Välj {p.name}</Link>
-                </Button>
               </CardContent>
             </Card>
           ))}
         </div>
 
-        <p className="text-center text-sm text-muted-foreground mt-10 max-w-2xl mx-auto">
-          Priser från. Slutpris beror på antal sidor, designnivå och funktioner — du får alltid en fast offert innan vi börjar.
-        </p>
-      </div>
-    </section>
-  );
-}
-
-/* ----------------------- LÖPANDE KOSTNADER ----------------------- */
-function LopandeKostnader() {
-  const items = [
-    { icon: ServerCog, label: "Domän", price: "ca 150–300 kr/år", note: "T.ex. dittforetag.se" },
-    { icon: ServerCog, label: "Hosting / server", price: "från 100–500 kr/mån", note: "Beror på trafik & behov" },
-    { icon: HeadphonesIcon, label: "Underhåll & support", price: "från 299 kr/mån", note: "Via våra abonnemang" },
-    { icon: Search, label: "Google Ads", price: "valfri budget", note: "Endast om du vill annonsera" },
-    { icon: Zap, label: "AI & automatisering", price: "offereras separat", note: "Endast vid behov" },
-  ];
-  return (
-    <section id="lopande" className="container mx-auto px-4 py-24 md:py-32">
-      <div className="text-center max-w-2xl mx-auto mb-12">
-        <Badge variant="secondary" className="rounded-full mb-4">Transparens</Badge>
-        <h2 className="text-3xl md:text-5xl font-semibold tracking-tighter leading-[1.1]">
-          Löpande kostnader
-        </h2>
-        <p className="text-muted-foreground mt-5 text-lg">
-          En hemsida har, precis som en bil eller en butikslokal, vissa löpande kostnader. Här är vad du faktiskt betalar för efter lansering — helt transparent.
-        </p>
-      </div>
-      <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-4 max-w-6xl mx-auto">
-        {items.map(({ icon: Icon, label, price, note }) => (
-          <div key={label} className="rounded-2xl border border-border/60 bg-card p-5 transition-smooth hover:shadow-elegant hover:-translate-y-1">
-            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary mb-3">
-              <Icon className="h-4 w-4" />
-            </span>
-            <div className="text-sm font-semibold">{label}</div>
-            <div className="text-base font-semibold text-gradient-primary mt-1">{price}</div>
-            <div className="text-xs text-muted-foreground mt-1.5 leading-relaxed">{note}</div>
-          </div>
-        ))}
-      </div>
-      <div className="mt-8 max-w-3xl mx-auto rounded-2xl border border-border/60 bg-muted/40 p-5 text-sm text-muted-foreground leading-relaxed">
-        <strong className="text-foreground">Bra att veta:</strong> AI-tjänster och avancerad automatisering ingår inte som standard. Om du vill ha t.ex. AI-chatt, automatiska uppföljningar eller smart innehållsgenerering offereras detta separat — kostnaden kan variera beroende på trafik och användning.
-      </div>
-    </section>
-  );
-}
-
-
-
-/* ----------------------- ABONNEMANG ----------------------- */
-function Abonnemang({ currency }: { currency: Currency }) {
-  const plans = [
-    {
-      name: "Start",
-      price: 299,
-      desc: "Tryggheten på plats — perfekt om du vill äga och driva sidan själv.",
-      features: ["Hosting", "SSL", "Säkerhetsuppdateringar", "Mindre ändringar"],
-    },
-    {
-      name: "Growth",
-      price: 599,
-      desc: "Vårt populäraste val — för företag som vill växa via webben.",
-      features: ["Allt i Start", "SEO-förbättringar", "Prioriterad support", "Innehållsuppdateringar"],
-      popular: true,
-    },
-    {
-      name: "Premium",
-      price: 999,
-      desc: "Komplett partnerskap med löpande optimering och rådgivning.",
-      features: ["Allt i Growth", "Löpande förbättringar", "Kampanjsidor", "Strategisk rådgivning"],
-    },
-  ];
-  return (
-    <section id="abonnemang" className="container mx-auto px-4 py-24 md:py-32">
-      <div className="text-center max-w-2xl mx-auto mb-14">
-        <Badge variant="secondary" className="rounded-full mb-4">Abonnemang</Badge>
-        <h2 className="text-3xl md:text-5xl font-semibold tracking-tighter leading-[1.1]">
-          Support & hosting som följer med
-        </h2>
-        <p className="text-muted-foreground mt-5 text-lg">
-          Hemsidan stannar inte vid lansering. Välj ett abonnemang så ser vi till att den fortsätter prestera.
-        </p>
-      </div>
-      <div className="grid md:grid-cols-3 gap-6 max-w-6xl mx-auto">
-        {plans.map((p) => (
-          <Card
-            key={p.name}
-            className={`relative border-border/60 transition-smooth hover:-translate-y-2 ${
-              p.popular ? "shadow-premium border-primary/40 bg-gradient-to-b from-primary/5 to-transparent" : "hover:shadow-elegant"
-            }`}
-          >
-            {p.popular && (
-              <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-primary text-primary-foreground border-0 shadow-soft">
-                Populärast
-              </Badge>
-            )}
-            <CardHeader className="pb-4">
-              <CardTitle className="text-2xl">{p.name}</CardTitle>
-              <p className="text-sm text-muted-foreground mt-1">{p.desc}</p>
-              <div className="mt-5 flex items-baseline gap-1">
-                <span className="text-4xl font-semibold tracking-tight">{fmt(p.price, currency)}</span>
-                <span className="text-muted-foreground text-sm">/mån</span>
-              </div>
-              <p className="text-xs text-muted-foreground mt-1">Säg upp när du vill.</p>
-            </CardHeader>
-            <CardContent>
-              <ul className="space-y-3 text-sm">
-                {p.features.map((f) => (
-                  <li key={f} className="flex items-start gap-2">
-                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary/10 text-primary mt-0.5 shrink-0">
-                      <Check className="h-3 w-3" />
-                    </span>
-                    {f}
-                  </li>
-                ))}
-              </ul>
-              <Button asChild className="w-full mt-7" variant={p.popular ? "hero" : "outline"} size="lg">
-                <Link to="/bestall">Välj {p.name}</Link>
-              </Button>
-            </CardContent>
-          </Card>
-        ))}
+        <div className="mt-12 text-center">
+          <Button asChild variant="hero" size="xl" className="shadow-glow">
+            <a href="#kontakt">Kontakta oss för offert <ArrowRight className="ml-1" /></a>
+          </Button>
+          <p className="text-sm text-muted-foreground mt-4">
+            Du får ett personligt förslag och tydligt pris efter en kort kontakt — inga prislappar på förhand.
+          </p>
+        </div>
       </div>
     </section>
   );
