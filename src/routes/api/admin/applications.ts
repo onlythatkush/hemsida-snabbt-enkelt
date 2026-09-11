@@ -2,6 +2,7 @@ import { createClient } from '@supabase/supabase-js'
 import { createFileRoute } from '@tanstack/react-router'
 import { z } from 'zod'
 import postgres from 'postgres'
+import { composeDesignSpec } from '@/lib/design/compose'
 
 const createPreviewSchema = z.object({
   reference: z.string().min(4).max(40),
