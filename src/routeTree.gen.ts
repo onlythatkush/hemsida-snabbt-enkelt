@@ -17,6 +17,10 @@ import { Route as PortfolioSlugRouteImport } from './routes/portfolio.$slug'
 import { Route as EmailUnsubscribeRouteImport } from './routes/email/unsubscribe'
 import { Route as LovableEmailSuppressionRouteImport } from './routes/lovable/email/suppression'
 import { Route as ApiPublicContactRouteImport } from './routes/api/public/contact'
+import { Route as ApiAdminApplicationsRouteImport } from './routes/api/admin/applications'
+import { Route as ApiPublicApplicationRouteImport } from './routes/api/public/application'
+import { Route as ApiPublicApplicationFilesRouteImport } from './routes/api/public/application-files'
+import { Route as ApiPublicHealthRouteImport } from './routes/api/public/health'
 import { Route as LovableEmailTransactionalSendRouteImport } from './routes/lovable/email/transactional/send'
 import { Route as LovableEmailTransactionalPreviewRouteImport } from './routes/lovable/email/transactional/preview'
 import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/email/queue/process'
@@ -61,6 +65,26 @@ const ApiPublicContactRoute = ApiPublicContactRouteImport.update({
   path: '/api/public/contact',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAdminApplicationsRoute = ApiAdminApplicationsRouteImport.update({
+  id: '/api/admin/applications',
+  path: '/api/admin/applications',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicApplicationRoute = ApiPublicApplicationRouteImport.update({
+  id: '/api/public/application',
+  path: '/api/public/application',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicApplicationFilesRoute = ApiPublicApplicationFilesRouteImport.update({
+  id: '/api/public/application-files',
+  path: '/api/public/application-files',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicHealthRoute = ApiPublicHealthRouteImport.update({
+  id: '/api/public/health',
+  path: '/api/public/health',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LovableEmailTransactionalSendRoute =
   LovableEmailTransactionalSendRouteImport.update({
     id: '/lovable/email/transactional/send',
@@ -88,6 +112,10 @@ export interface FileRoutesByFullPath {
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/portfolio/$slug': typeof PortfolioSlugRoute
   '/api/public/contact': typeof ApiPublicContactRoute
+  '/api/admin/applications': typeof ApiAdminApplicationsRoute
+  '/api/public/application': typeof ApiPublicApplicationRoute
+  '/api/public/application-files': typeof ApiPublicApplicationFilesRoute
+  '/api/public/health': typeof ApiPublicHealthRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
@@ -101,6 +129,10 @@ export interface FileRoutesByTo {
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/portfolio/$slug': typeof PortfolioSlugRoute
   '/api/public/contact': typeof ApiPublicContactRoute
+  '/api/admin/applications': typeof ApiAdminApplicationsRoute
+  '/api/public/application': typeof ApiPublicApplicationRoute
+  '/api/public/application-files': typeof ApiPublicApplicationFilesRoute
+  '/api/public/health': typeof ApiPublicHealthRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
@@ -115,6 +147,10 @@ export interface FileRoutesById {
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/portfolio/$slug': typeof PortfolioSlugRoute
   '/api/public/contact': typeof ApiPublicContactRoute
+  '/api/admin/applications': typeof ApiAdminApplicationsRoute
+  '/api/public/application': typeof ApiPublicApplicationRoute
+  '/api/public/application-files': typeof ApiPublicApplicationFilesRoute
+  '/api/public/health': typeof ApiPublicHealthRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
@@ -130,6 +166,10 @@ export interface FileRouteTypes {
     | '/email/unsubscribe'
     | '/portfolio/$slug'
     | '/api/public/contact'
+    | '/api/admin/applications'
+    | '/api/public/application'
+    | '/api/public/application-files'
+    | '/api/public/health'
     | '/lovable/email/suppression'
     | '/lovable/email/queue/process'
     | '/lovable/email/transactional/preview'
@@ -170,6 +210,10 @@ export interface RootRouteChildren {
   EmailUnsubscribeRoute: typeof EmailUnsubscribeRoute
   PortfolioSlugRoute: typeof PortfolioSlugRoute
   ApiPublicContactRoute: typeof ApiPublicContactRoute
+  ApiAdminApplicationsRoute: typeof ApiAdminApplicationsRoute
+  ApiPublicApplicationRoute: typeof ApiPublicApplicationRoute
+  ApiPublicApplicationFilesRoute: typeof ApiPublicApplicationFilesRoute
+  ApiPublicHealthRoute: typeof ApiPublicHealthRoute
   LovableEmailSuppressionRoute: typeof LovableEmailSuppressionRoute
   LovableEmailQueueProcessRoute: typeof LovableEmailQueueProcessRoute
   LovableEmailTransactionalPreviewRoute: typeof LovableEmailTransactionalPreviewRoute
@@ -234,6 +278,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicContactRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/admin/applications': {
+      id: '/api/admin/applications'
+      path: '/api/admin/applications'
+      fullPath: '/api/admin/applications'
+      preLoaderRoute: typeof ApiAdminApplicationsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/application': {
+      id: '/api/public/application'
+      path: '/api/public/application'
+      fullPath: '/api/public/application'
+      preLoaderRoute: typeof ApiPublicApplicationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/application-files': {
+      id: '/api/public/application-files'
+      path: '/api/public/application-files'
+      fullPath: '/api/public/application-files'
+      preLoaderRoute: typeof ApiPublicApplicationFilesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/health': {
+      id: '/api/public/health'
+      path: '/api/public/health'
+      fullPath: '/api/public/health'
+      preLoaderRoute: typeof ApiPublicHealthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/lovable/email/transactional/send': {
       id: '/lovable/email/transactional/send'
       path: '/lovable/email/transactional/send'
@@ -266,6 +338,10 @@ const rootRouteChildren: RootRouteChildren = {
   EmailUnsubscribeRoute: EmailUnsubscribeRoute,
   PortfolioSlugRoute: PortfolioSlugRoute,
   ApiPublicContactRoute: ApiPublicContactRoute,
+  ApiAdminApplicationsRoute: ApiAdminApplicationsRoute,
+  ApiPublicApplicationRoute: ApiPublicApplicationRoute,
+  ApiPublicApplicationFilesRoute: ApiPublicApplicationFilesRoute,
+  ApiPublicHealthRoute: ApiPublicHealthRoute,
   LovableEmailSuppressionRoute: LovableEmailSuppressionRoute,
   LovableEmailQueueProcessRoute: LovableEmailQueueProcessRoute,
   LovableEmailTransactionalPreviewRoute: LovableEmailTransactionalPreviewRoute,

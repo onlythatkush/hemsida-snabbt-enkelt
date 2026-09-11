@@ -18,12 +18,13 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { SiteHeader, SiteFooter } from "@/components/site-header";
 import { ArrowLeft, ArrowRight, Check, Upload, X, Info } from "lucide-react";
 import { toast } from "sonner";
+import { createClient } from "@supabase/supabase-js";
 
 export const Route = createFileRoute("/bestall")({
   head: () => ({
     meta: [
-      { title: "Begär offert — Din Webbpartner" },
-      { name: "description", content: "Skicka in en kostnadsfri offertförfrågan — vi kontaktar dig och skickar en offert. Ingen betalning vid förfrågan." },
+      { title: "Starta ditt webbprojekt — Din Webbpartner" },
+      { name: "description", content: "Skicka in ditt projektunderlag, material och önskemål. Vi bygger ett första förslag innan du bestämmer dig." },
     ],
   }),
   component: OrderPage,
@@ -56,7 +57,7 @@ function OrderPage() {
   const navigate = useNavigate();
   const [step, setStep] = useState(0);
   const [data, setData] = useState<FormData>(initial);
-  const [files, setFiles] = useState<{ name: string; size: number; progress: number }[]>([]);
+  const [files, setFiles] = useState<File[]>([]);
   const [submitting, setSubmitting] = useState(false);
 
   const set = <K extends keyof FormData>(k: K, v: FormData[K]) => setData((d) => ({ ...d, [k]: v }));
@@ -86,19 +87,13 @@ function OrderPage() {
 
   const handleFiles = (selected: FileList | null) => {
     if (!selected) return;
-    const arr = Array.from(selected).slice(0, 10);
-    arr.forEach((f) => {
-      const item = { name: f.name, size: f.size, progress: 0 };
-      setFiles((prev) => [...prev, item]);
-      let p = 0;
-      const t = setInterval(() => {
-        p += 10 + Math.random() * 25;
-        setFiles((prev) =>
-          prev.map((x) => (x.name === f.name ? { ...x, progress: Math.min(100, p) } : x)),
-        );
-        if (p >= 100) clearInterval(t);
-      }, 180);
-    });
+    const allowed = new Set(["image/jpeg", "image/png", "image/webp", "image/gif", "application/pdf"]);
+    const incoming = Array.from(selected);
+    const valid = incoming.filter((file) => allowed.has(file.type) && file.size <= 15 * 1024 * 1024);
+    if (valid.length !== incoming.length) {
+      toast.error("Någon fil hoppades över. Max 15 MB och JPG, PNG, WEBP, GIF eller PDF.");
+    }
+    setFiles((prev) => [...prev, ...valid].slice(0, 10));
   };
 
   const handleSubmit = async () => {
@@ -116,7 +111,90 @@ function OrderPage() {
       datum: new Date().toISOString(),
     };
     try {
-      const res = await fetch("/api/public/contact", {
+      // Save the application first. Email is deliberately secondary so a mail
+      // outage can never make us lose a customer brief.
+      const saveRes = await fetch("/api/public/application", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          reference: order.id,
+          name: data.namn,
+          email: data.epost,
+          phone: data.telefon,
+          company: data.foretagsnamn,
+          address: data.adress || "",
+          description: data.beskrivning,
+          socialLinks: data.sociala || "",
+          websiteType: data.typ,
+          colors: data.farger || "",
+          extraRequests: data.extra || "",
+          wantsSupport: data.support,
+          fileNames: [],
+        }),
+      });
+      if (!saveRes.ok) {
+        const body = await saveRes.json().catch(() => ({} as any));
+        throw new Error(body?.detail || body?.error || "save failed");
+      }
+
+      if (files.length) {
+        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+        const publishableKey =
+          import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY ||
+          import.meta.env.VITE_SUPABASE_ANON_KEY;
+        if (!supabaseUrl || !publishableKey) {
+          throw new Error("Filuppladdning saknar publik Supabase-konfiguration");
+        }
+
+        const storage = createClient(supabaseUrl, publishableKey);
+        const uploadedPaths: string[] = [];
+
+        for (const file of files) {
+          const ticketRes = await fetch("/api/public/application-files", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              action: "ticket",
+              reference: order.id,
+              name: file.name,
+              type: file.type,
+              size: file.size,
+            }),
+          });
+          const ticket = await ticketRes.json().catch(() => ({} as any));
+          if (!ticketRes.ok) {
+            throw new Error(ticket?.detail || ticket?.error || "Kunde inte förbereda filuppladdning");
+          }
+
+          const { error: uploadError } = await storage.storage
+            .from("project-files")
+            .uploadToSignedUrl(ticket.path, ticket.token, file, {
+              contentType: file.type,
+            });
+
+          if (uploadError) {
+            throw new Error(uploadError.message || "Filuppladdningen misslyckades");
+          }
+          uploadedPaths.push(ticket.path);
+        }
+
+        const completeRes = await fetch("/api/public/application-files", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            action: "complete",
+            reference: order.id,
+            paths: uploadedPaths,
+          }),
+        });
+        const completeBody = await completeRes.json().catch(() => ({} as any));
+        if (!completeRes.ok) {
+          throw new Error(completeBody?.detail || completeBody?.error || "Kunde inte spara filinformationen");
+        }
+      }
+
+      // Best-effort notification. The application is already safely stored.
+      fetch("/api/public/contact", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -125,21 +203,20 @@ function OrderPage() {
           phone: data.telefon,
           company: data.foretagsnamn,
           message: data.beskrivning,
-          source: `Offertförfrågan (${order.id})`,
+          source: `Ny projektansökan (${order.id})`,
           extra: {
             "Typ av hemsida": data.typ,
             "Färger": data.farger || "",
-            "Adress": data.adress || "",
-            "Sociala medier": data.sociala || "",
             "Extra önskemål": data.extra || "",
             "Filer": files.length ? files.map((f) => f.name).join(", ") : "",
-            "Support & Hosting": data.support ? "Ja" : "Nej",
           },
         }),
+      }).catch(() => undefined);
+    } catch (error) {
+      console.error(error);
+      toast.error("Ansökan kunde inte sparas.", {
+        description: error instanceof Error ? error.message : "Försök igen om en stund.",
       });
-      if (!res.ok) throw new Error("send failed");
-    } catch {
-      toast.error("Kunde inte skicka — försök igen eller maila dinwebbpartner@hotmail.com");
       setSubmitting(false);
       return;
     }
@@ -148,8 +225,8 @@ function OrderPage() {
       list.push(order);
       localStorage.setItem("dwp-orders", JSON.stringify(list));
     }
-    toast.success("Förfrågan skickad!", {
-      description: "Vi återkommer inom 24 timmar (vardagar).",
+    toast.success("Projektansökan mottagen!", {
+      description: "Ditt underlag är sparat. Vi går igenom det och återkommer med nästa steg.",
     });
     navigate({ to: "/bekraftelse", search: { id: order.id } });
   };
@@ -162,8 +239,8 @@ function OrderPage() {
       <main className="flex-1 bg-gradient-hero">
         <div className="container mx-auto px-4 py-12 md:py-16 max-w-3xl">
           <div className="mb-8 text-center">
-            <h1 className="text-3xl md:text-4xl font-semibold tracking-tight">Begär offert</h1>
-            <p className="text-muted-foreground mt-2">Fyll i steg för steg — kostnadsfritt och utan förpliktelser. Vi hör av oss inom 24 timmar.</p>
+            <h1 className="text-3xl md:text-4xl font-semibold tracking-tight">Starta ditt webbprojekt</h1>
+            <p className="text-muted-foreground mt-2">Berätta om företaget och ladda upp ditt material. Vi använder underlaget för att ta fram ett första förslag.</p>
           </div>
 
           <div className="mb-8">
@@ -259,7 +336,7 @@ function OrderPage() {
                                 <X className="h-4 w-4" />
                               </button>
                             </div>
-                            <Progress value={f.progress} className="h-1.5 mt-2" />
+                            <div className="text-xs text-muted-foreground mt-1">{(f.size / 1024 / 1024).toFixed(1)} MB</div>
                           </div>
                         ))}
                       </div>
@@ -321,7 +398,7 @@ function OrderPage() {
                   </Button>
                 ) : (
                   <Button variant="hero" size="lg" onClick={handleSubmit} disabled={submitting}>
-                    {submitting ? "Skickar..." : <>Skicka offertförfrågan <Check /></>}
+                    {submitting ? "Skickar..." : <>Skicka projektansökan <Check /></>}
                   </Button>
                 )}
               </div>

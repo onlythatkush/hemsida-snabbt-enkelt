@@ -4,119 +4,169 @@ import { SiteHeader, SiteFooter } from "@/components/site-header";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
+import {
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
-import { Inbox, TrendingUp, Users, DollarSign } from "lucide-react";
+import { Inbox, Loader2, RefreshCw, ExternalLink } from "lucide-react";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({ meta: [{ title: "Adminpanel — Din Webbpartner" }] }),
   component: Admin,
 });
 
-type Order = {
-  id: string;
-  foretagsnamn: string;
-  namn: string;
-  epost: string;
-  typ: string;
-  total: number;
-  datum: string;
+type Application = {
+  reference: string;
+  company: string;
+  name: string;
+  email: string;
+  phone: string;
+  website_type: string;
+  status: string;
+  preview_url?: string | null;
+  file_names?: string[];
+  created_at: string;
 };
 
-const demoOrders: Order[] = [
-  { id: "ORD-A1B2C3", foretagsnamn: "Café Lyckan", namn: "Anna Lind", epost: "anna@cafelyckan.se", typ: "restaurang", total: 538.9, datum: new Date(Date.now() - 86400000).toISOString() },
-  { id: "ORD-D4E5F6", foretagsnamn: "NorrBygg AB", namn: "Markus Berg", epost: "markus@norrbygg.se", typ: "tjanst", total: 499, datum: new Date(Date.now() - 172800000).toISOString() },
-  { id: "ORD-G7H8I9", foretagsnamn: "Yoga med Lina", namn: "Lina Sjö", epost: "lina@yoga.se", typ: "privatperson", total: 538.9, datum: new Date(Date.now() - 259200000).toISOString() },
-];
+const statuses = ["new","reviewing","building","preview","changes","approved","paid","delivered","archived"];
 
 function Admin() {
-  const [orders, setOrders] = useState<Order[]>([]);
+  const [key, setKey] = useState("");
+  const [savedKey, setSavedKey] = useState("");
+  const [items, setItems] = useState<Application[]>([]);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const local = JSON.parse(localStorage.getItem("dwp-orders") || "[]");
-    setOrders([...local.reverse(), ...demoOrders]);
+    const existing = sessionStorage.getItem("dwp-admin-key") || "";
+    if (existing) {
+      setKey(existing);
+      setSavedKey(existing);
+    }
   }, []);
 
-  const totalRevenue = orders.reduce((sum, o) => sum + (o.total || 0), 0);
-  const stats = [
-    { icon: Inbox, label: "Beställningar", value: orders.length },
-    { icon: Users, label: "Aktiva kunder", value: orders.length + 12 },
-    { icon: DollarSign, label: "Intäkter (USD)", value: totalRevenue.toFixed(0) },
-    { icon: TrendingUp, label: "Tillväxt", value: "+24%" },
-  ];
+  useEffect(() => {
+    if (savedKey) load(savedKey);
+  }, [savedKey]);
+
+  async function load(accessKey = savedKey) {
+    if (!accessKey) return;
+    setLoading(true);
+    try {
+      const res = await fetch("/api/admin/applications", { headers: { "x-admin-key": accessKey } });
+      if (res.status === 401) throw new Error("Fel adminnyckel");
+      if (!res.ok) throw new Error("Kunde inte hämta ansökningar");
+      const body = await res.json();
+      setItems(body.applications || []);
+    } catch (e: any) {
+      toast.error(e.message || "Något gick fel");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function login() {
+    const trimmed = key.trim();
+    if (!trimmed) return;
+    sessionStorage.setItem("dwp-admin-key", trimmed);
+    setSavedKey(trimmed);
+  }
+
+  async function update(reference: string, patch: { status?: string; previewUrl?: string }) {
+    const res = await fetch("/api/admin/applications", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json", "x-admin-key": savedKey },
+      body: JSON.stringify({ reference, ...patch }),
+    });
+    if (!res.ok) {
+      toast.error("Kunde inte uppdatera");
+      return;
+    }
+    const body = await res.json();
+    setItems((prev) => prev.map((x) => x.reference === reference ? body.application : x));
+    toast.success("Sparat");
+  }
+
+  if (!savedKey) {
+    return (
+      <div className="min-h-screen flex flex-col bg-background">
+        <SiteHeader />
+        <main className="flex-1">
+          <div className="container mx-auto px-4 py-16 max-w-md">
+            <Card><CardContent className="pt-6 space-y-4">
+              <div>
+                <h1 className="text-2xl font-semibold">Adminpanel</h1>
+                <p className="text-sm text-muted-foreground mt-1">Ange adminnyckeln för att öppna kundansökningar.</p>
+              </div>
+              <Input type="password" value={key} onChange={(e) => setKey(e.target.value)} onKeyDown={(e) => e.key === "Enter" && login()} placeholder="Adminnyckel" />
+              <Button onClick={login} className="w-full">Öppna admin</Button>
+            </CardContent></Card>
+          </div>
+        </main>
+        <SiteFooter />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <SiteHeader />
       <main className="flex-1">
-        <div className="container mx-auto px-4 py-12 max-w-6xl">
-          <div className="flex items-center justify-between mb-8">
+        <div className="container mx-auto px-4 py-12 max-w-7xl">
+          <div className="flex items-center justify-between gap-3 mb-8">
             <div>
-              <h1 className="text-3xl font-semibold tracking-tight">Adminpanel</h1>
-              <p className="text-muted-foreground mt-1">Översikt över beställningar och kunder.</p>
+              <h1 className="text-3xl font-semibold tracking-tight">Projektansökningar</h1>
+              <p className="text-muted-foreground mt-1">Hantera kundens väg från ansökan till leverans.</p>
             </div>
-            <Badge variant="secondary" className="rounded-full">Demo</Badge>
+            <Button variant="outline" onClick={() => load()} disabled={loading}>
+              {loading ? <Loader2 className="animate-spin" /> : <RefreshCw />} Uppdatera
+            </Button>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-            {stats.map(({ icon: Icon, label, value }) => (
-              <Card key={label} className="border-border/60">
-                <CardContent className="pt-5">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">{label}</span>
-                    <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                      <Icon className="h-4 w-4" />
-                    </span>
-                  </div>
-                  <div className="mt-2 text-2xl font-semibold">{value}</div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+          <Card className="mb-6">
+            <CardContent className="pt-5 flex items-center gap-3">
+              <Inbox className="text-primary" />
+              <div><div className="text-2xl font-semibold">{items.length}</div><div className="text-sm text-muted-foreground">ansökningar</div></div>
+            </CardContent>
+          </Card>
 
-          <Card className="border-border/60">
+          <Card>
             <CardContent className="pt-6">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="font-semibold">Senaste beställningar</h2>
-                <Button size="sm" variant="outline">Exportera</Button>
-              </div>
               <div className="overflow-x-auto">
                 <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Order</TableHead>
-                      <TableHead>Företag</TableHead>
-                      <TableHead>Kund</TableHead>
-                      <TableHead>Typ</TableHead>
-                      <TableHead>Datum</TableHead>
-                      <TableHead className="text-right">Belopp</TableHead>
-                      <TableHead>Status</TableHead>
-                    </TableRow>
-                  </TableHeader>
+                  <TableHeader><TableRow>
+                    <TableHead>Referens</TableHead><TableHead>Företag / kund</TableHead><TableHead>Kontakt</TableHead>
+                    <TableHead>Typ</TableHead><TableHead>Status</TableHead><TableHead>Preview</TableHead><TableHead>Datum</TableHead>
+                  </TableRow></TableHeader>
                   <TableBody>
-                    {orders.map((o, i) => (
-                      <TableRow key={o.id + i}>
-                        <TableCell className="font-mono text-xs">{o.id}</TableCell>
-                        <TableCell className="font-medium">{o.foretagsnamn}</TableCell>
-                        <TableCell className="text-muted-foreground">{o.namn}</TableCell>
-                        <TableCell className="capitalize text-muted-foreground">{o.typ}</TableCell>
-                        <TableCell className="text-muted-foreground text-sm">
-                          {new Date(o.datum).toLocaleDateString("sv-SE")}
-                        </TableCell>
-                        <TableCell className="text-right">{o.total?.toFixed(2)} USD</TableCell>
+                    {items.map((a) => (
+                      <TableRow key={a.reference}>
+                        <TableCell className="font-mono text-xs">{a.reference}</TableCell>
+                        <TableCell><div className="font-medium">{a.company}</div><div className="text-xs text-muted-foreground">{a.name}</div></TableCell>
+                        <TableCell><div className="text-sm">{a.email}</div><div className="text-xs text-muted-foreground">{a.phone}</div></TableCell>
+                        <TableCell className="capitalize">{a.website_type}</TableCell>
                         <TableCell>
-                          <Badge variant={i === 0 ? "default" : "secondary"} className="rounded-full">
-                            {i === 0 ? "Ny" : i < 3 ? "Pågår" : "Levererad"}
-                          </Badge>
+                          <Select value={a.status} onValueChange={(v) => update(a.reference, { status: v })}>
+                            <SelectTrigger className="w-[140px]"><SelectValue /></SelectTrigger>
+                            <SelectContent>{statuses.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
+                          </Select>
                         </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2 min-w-[240px]">
+                            <Input defaultValue={a.preview_url || ""} placeholder="https://preview..." onBlur={(e) => {
+                              const value = e.target.value.trim();
+                              if (value !== (a.preview_url || "")) update(a.reference, { previewUrl: value });
+                            }} />
+                            {a.preview_url && <a href={a.preview_url} target="_blank" rel="noreferrer"><ExternalLink className="h-4 w-4" /></a>}
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-sm text-muted-foreground">{new Date(a.created_at).toLocaleDateString("sv-SE")}</TableCell>
                       </TableRow>
                     ))}
+                    {!items.length && !loading && <TableRow><TableCell colSpan={7} className="text-center py-10 text-muted-foreground">Inga ansökningar ännu.</TableCell></TableRow>}
                   </TableBody>
                 </Table>
               </div>
