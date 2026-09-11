@@ -23,10 +23,24 @@ export const Route = createFileRoute('/api/public/application')({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL
-        const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SECRET_KEY
+        const supabaseUrl =
+          import.meta.env.VITE_SUPABASE_URL ||
+          import.meta.env.VITE_STORAGE_URL ||
+          process.env.SUPABASE_URL ||
+          process.env.STORAGE_URL
+        const serviceKey =
+          process.env.SUPABASE_SERVICE_ROLE_KEY ||
+          process.env.SUPABASE_SECRET_KEY ||
+          process.env.STORAGE_SERVICE_ROLE_KEY ||
+          process.env.STORAGE_SECRET_KEY
         if (!supabaseUrl || !serviceKey) {
-          return Response.json({ error: 'Server misconfigured' }, { status: 500 })
+          return Response.json({
+            error: 'Server misconfigured',
+            missing: {
+              supabaseUrl: !supabaseUrl,
+              serviceKey: !serviceKey,
+            },
+          }, { status: 500 })
         }
 
         let parsed: z.infer<typeof schema>
@@ -36,9 +50,16 @@ export const Route = createFileRoute('/api/public/application')({
           return Response.json({ error: 'Invalid input' }, { status: 400 })
         }
 
-        const databaseUrl = process.env.POSTGRES_URL
+        const databaseUrl =
+          process.env.POSTGRES_URL ||
+          process.env.STORAGE_POSTGRES_URL ||
+          process.env.STORAGE_DATABASE_URL ||
+          process.env.DATABASE_URL
         if (!databaseUrl) {
-          return Response.json({ error: 'Database not configured' }, { status: 500 })
+          return Response.json({
+            error: 'Database not configured',
+            hint: 'Missing POSTGRES_URL / STORAGE_POSTGRES_URL / STORAGE_DATABASE_URL / DATABASE_URL',
+          }, { status: 500 })
         }
 
         const sql = postgres(databaseUrl, { max: 1, prepare: false })
