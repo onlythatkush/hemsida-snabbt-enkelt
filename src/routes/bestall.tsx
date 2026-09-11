@@ -56,7 +56,7 @@ function OrderPage() {
   const navigate = useNavigate();
   const [step, setStep] = useState(0);
   const [data, setData] = useState<FormData>(initial);
-  const [files, setFiles] = useState<{ name: string; size: number; progress: number }[]>([]);
+  const [files, setFiles] = useState<File[]>([]);
   const [submitting, setSubmitting] = useState(false);\n  const [saved, setSaved] = useState(false);
 
   const set = <K extends keyof FormData>(k: K, v: FormData[K]) => setData((d) => ({ ...d, [k]: v }));
@@ -86,19 +86,13 @@ function OrderPage() {
 
   const handleFiles = (selected: FileList | null) => {
     if (!selected) return;
-    const arr = Array.from(selected).slice(0, 10);
-    arr.forEach((f) => {
-      const item = { name: f.name, size: f.size, progress: 0 };
-      setFiles((prev) => [...prev, item]);
-      let p = 0;
-      const t = setInterval(() => {
-        p += 10 + Math.random() * 25;
-        setFiles((prev) =>
-          prev.map((x) => (x.name === f.name ? { ...x, progress: Math.min(100, p) } : x)),
-        );
-        if (p >= 100) clearInterval(t);
-      }, 180);
-    });
+    const allowed = new Set(["image/jpeg", "image/png", "image/webp", "image/gif", "application/pdf"]);
+    const incoming = Array.from(selected);
+    const valid = incoming.filter((file) => allowed.has(file.type) && file.size <= 15 * 1024 * 1024);
+    if (valid.length !== incoming.length) {
+      toast.error("Någon fil hoppades över. Max 15 MB och JPG, PNG, WEBP, GIF eller PDF.");
+    }
+    setFiles((prev) => [...prev, ...valid].slice(0, 10));
   };
 
   const handleSubmit = async () => {
@@ -134,11 +128,18 @@ function OrderPage() {
           colors: data.farger || "",
           extraRequests: data.extra || "",
           wantsSupport: data.support,
-          fileNames: files.map((f) => f.name),
+          fileNames: [],
         }),
       });
       if (!saveRes.ok) throw new Error("save failed");
-      setSaved(true);
+
+      if (files.length) {
+        const upload = new FormData();
+        upload.append("reference", order.id);
+        files.forEach((file) => upload.append("files", file));
+        const uploadRes = await fetch("/api/public/application-files", { method: "POST", body: upload });
+        if (!uploadRes.ok) throw new Error("upload failed");
+      }
 
       // Best-effort notification. The application is already safely stored.
       fetch("/api/public/contact", {
@@ -280,7 +281,7 @@ function OrderPage() {
                                 <X className="h-4 w-4" />
                               </button>
                             </div>
-                            <Progress value={f.progress} className="h-1.5 mt-2" />
+                            <div className="text-xs text-muted-foreground mt-1">{(f.size / 1024 / 1024).toFixed(1)} MB</div>
                           </div>
                         ))}
                       </div>
