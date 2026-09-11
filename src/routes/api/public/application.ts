@@ -90,30 +90,52 @@ export const Route = createFileRoute('/api/public/application')({
           await sql.end()
         }
 
-        const supabase = createClient<any>(supabaseUrl, serviceKey, {
-          auth: { persistSession: false, autoRefreshToken: false },
-        })
-
-        const { error } = await supabase.from('project_applications').insert({
-          reference: parsed.reference,
-          name: parsed.name,
-          email: parsed.email,
-          phone: parsed.phone,
-          company: parsed.company,
-          address: parsed.address || null,
-          description: parsed.description,
-          social_links: parsed.socialLinks || null,
-          website_type: parsed.websiteType,
-          colors: parsed.colors || null,
-          extra_requests: parsed.extraRequests || null,
-          wants_support: parsed.wantsSupport,
-          file_names: parsed.fileNames,
-          status: 'new',
-        })
-
-        if (error) {
+        const sql2 = postgres(databaseUrl, { max: 1, prepare: false })
+        try {
+          await sql2`
+            INSERT INTO public.project_applications (
+              reference, name, email, phone, company, address, description,
+              social_links, website_type, colors, extra_requests, wants_support,
+              file_names, status, updated_at
+            ) VALUES (
+              ${parsed.reference},
+              ${parsed.name},
+              ${parsed.email},
+              ${parsed.phone},
+              ${parsed.company},
+              ${parsed.address || null},
+              ${parsed.description},
+              ${parsed.socialLinks || null},
+              ${parsed.websiteType},
+              ${parsed.colors || null},
+              ${parsed.extraRequests || null},
+              ${parsed.wantsSupport},
+              ${[]},
+              'new',
+              now()
+            )
+            ON CONFLICT (reference) DO UPDATE SET
+              name = EXCLUDED.name,
+              email = EXCLUDED.email,
+              phone = EXCLUDED.phone,
+              company = EXCLUDED.company,
+              address = EXCLUDED.address,
+              description = EXCLUDED.description,
+              social_links = EXCLUDED.social_links,
+              website_type = EXCLUDED.website_type,
+              colors = EXCLUDED.colors,
+              extra_requests = EXCLUDED.extra_requests,
+              wants_support = EXCLUDED.wants_support,
+              updated_at = now()
+          `
+        } catch (error) {
           console.error('Failed to save application', error)
-          return Response.json({ error: 'Failed to save application' }, { status: 500 })
+          return Response.json({
+            error: 'Failed to save application',
+            detail: error instanceof Error ? error.message : String(error),
+          }, { status: 500 })
+        } finally {
+          await sql2.end()
         }
 
         return Response.json({ success: true, reference: parsed.reference })
