@@ -14,16 +14,18 @@ import { Route as BekraftelseRouteImport } from './routes/bekraftelse'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as PortfolioSlugRouteImport } from './routes/portfolio.$slug'
+import { Route as KundPreviewReferenceRouteImport } from './routes/kund-preview.$reference'
 import { Route as EmailUnsubscribeRouteImport } from './routes/email/unsubscribe'
 import { Route as LovableEmailSuppressionRouteImport } from './routes/lovable/email/suppression'
-import { Route as ApiPublicContactRouteImport } from './routes/api/public/contact'
-import { Route as ApiAdminApplicationsRouteImport } from './routes/api/admin/applications'
-import { Route as ApiPublicApplicationRouteImport } from './routes/api/public/application'
-import { Route as ApiPublicApplicationFilesRouteImport } from './routes/api/public/application-files'
 import { Route as ApiPublicHealthRouteImport } from './routes/api/public/health'
+import { Route as ApiPublicContactRouteImport } from './routes/api/public/contact'
+import { Route as ApiPublicApplicationFilesRouteImport } from './routes/api/public/application-files'
+import { Route as ApiPublicApplicationRouteImport } from './routes/api/public/application'
+import { Route as ApiAdminApplicationsRouteImport } from './routes/api/admin/applications'
 import { Route as LovableEmailTransactionalSendRouteImport } from './routes/lovable/email/transactional/send'
 import { Route as LovableEmailTransactionalPreviewRouteImport } from './routes/lovable/email/transactional/preview'
 import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/email/queue/process'
+import { Route as ApiPublicProjectPreviewReferenceRouteImport } from './routes/api/public/project-preview.$reference'
 
 const BestallRoute = BestallRouteImport.update({
   id: '/bestall',
@@ -50,6 +52,11 @@ const PortfolioSlugRoute = PortfolioSlugRouteImport.update({
   path: '/portfolio/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const KundPreviewReferenceRoute = KundPreviewReferenceRouteImport.update({
+  id: '/kund-preview/$reference',
+  path: '/kund-preview/$reference',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const EmailUnsubscribeRoute = EmailUnsubscribeRouteImport.update({
   id: '/email/unsubscribe',
   path: '/email/unsubscribe',
@@ -60,29 +67,30 @@ const LovableEmailSuppressionRoute = LovableEmailSuppressionRouteImport.update({
   path: '/lovable/email/suppression',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicHealthRoute = ApiPublicHealthRouteImport.update({
+  id: '/api/public/health',
+  path: '/api/public/health',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicContactRoute = ApiPublicContactRouteImport.update({
   id: '/api/public/contact',
   path: '/api/public/contact',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiAdminApplicationsRoute = ApiAdminApplicationsRouteImport.update({
-  id: '/api/admin/applications',
-  path: '/api/admin/applications',
-  getParentRoute: () => rootRouteImport,
-} as any)
+const ApiPublicApplicationFilesRoute =
+  ApiPublicApplicationFilesRouteImport.update({
+    id: '/api/public/application-files',
+    path: '/api/public/application-files',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicApplicationRoute = ApiPublicApplicationRouteImport.update({
   id: '/api/public/application',
   path: '/api/public/application',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiPublicApplicationFilesRoute = ApiPublicApplicationFilesRouteImport.update({
-  id: '/api/public/application-files',
-  path: '/api/public/application-files',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiPublicHealthRoute = ApiPublicHealthRouteImport.update({
-  id: '/api/public/health',
-  path: '/api/public/health',
+const ApiAdminApplicationsRoute = ApiAdminApplicationsRouteImport.update({
+  id: '/api/admin/applications',
+  path: '/api/admin/applications',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LovableEmailTransactionalSendRoute =
@@ -103,6 +111,12 @@ const LovableEmailQueueProcessRoute =
     path: '/lovable/email/queue/process',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicProjectPreviewReferenceRoute =
+  ApiPublicProjectPreviewReferenceRouteImport.update({
+    id: '/api/public/project-preview/$reference',
+    path: '/api/public/project-preview/$reference',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -110,13 +124,15 @@ export interface FileRoutesByFullPath {
   '/bekraftelse': typeof BekraftelseRoute
   '/bestall': typeof BestallRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
+  '/kund-preview/$reference': typeof KundPreviewReferenceRoute
   '/portfolio/$slug': typeof PortfolioSlugRoute
-  '/api/public/contact': typeof ApiPublicContactRoute
   '/api/admin/applications': typeof ApiAdminApplicationsRoute
   '/api/public/application': typeof ApiPublicApplicationRoute
   '/api/public/application-files': typeof ApiPublicApplicationFilesRoute
+  '/api/public/contact': typeof ApiPublicContactRoute
   '/api/public/health': typeof ApiPublicHealthRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
+  '/api/public/project-preview/$reference': typeof ApiPublicProjectPreviewReferenceRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
   '/lovable/email/transactional/send': typeof LovableEmailTransactionalSendRoute
@@ -127,13 +143,15 @@ export interface FileRoutesByTo {
   '/bekraftelse': typeof BekraftelseRoute
   '/bestall': typeof BestallRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
+  '/kund-preview/$reference': typeof KundPreviewReferenceRoute
   '/portfolio/$slug': typeof PortfolioSlugRoute
-  '/api/public/contact': typeof ApiPublicContactRoute
   '/api/admin/applications': typeof ApiAdminApplicationsRoute
   '/api/public/application': typeof ApiPublicApplicationRoute
   '/api/public/application-files': typeof ApiPublicApplicationFilesRoute
+  '/api/public/contact': typeof ApiPublicContactRoute
   '/api/public/health': typeof ApiPublicHealthRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
+  '/api/public/project-preview/$reference': typeof ApiPublicProjectPreviewReferenceRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
   '/lovable/email/transactional/send': typeof LovableEmailTransactionalSendRoute
@@ -145,13 +163,15 @@ export interface FileRoutesById {
   '/bekraftelse': typeof BekraftelseRoute
   '/bestall': typeof BestallRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
+  '/kund-preview/$reference': typeof KundPreviewReferenceRoute
   '/portfolio/$slug': typeof PortfolioSlugRoute
-  '/api/public/contact': typeof ApiPublicContactRoute
   '/api/admin/applications': typeof ApiAdminApplicationsRoute
   '/api/public/application': typeof ApiPublicApplicationRoute
   '/api/public/application-files': typeof ApiPublicApplicationFilesRoute
+  '/api/public/contact': typeof ApiPublicContactRoute
   '/api/public/health': typeof ApiPublicHealthRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
+  '/api/public/project-preview/$reference': typeof ApiPublicProjectPreviewReferenceRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
   '/lovable/email/transactional/send': typeof LovableEmailTransactionalSendRoute
@@ -164,13 +184,15 @@ export interface FileRouteTypes {
     | '/bekraftelse'
     | '/bestall'
     | '/email/unsubscribe'
+    | '/kund-preview/$reference'
     | '/portfolio/$slug'
-    | '/api/public/contact'
     | '/api/admin/applications'
     | '/api/public/application'
     | '/api/public/application-files'
+    | '/api/public/contact'
     | '/api/public/health'
     | '/lovable/email/suppression'
+    | '/api/public/project-preview/$reference'
     | '/lovable/email/queue/process'
     | '/lovable/email/transactional/preview'
     | '/lovable/email/transactional/send'
@@ -181,9 +203,15 @@ export interface FileRouteTypes {
     | '/bekraftelse'
     | '/bestall'
     | '/email/unsubscribe'
+    | '/kund-preview/$reference'
     | '/portfolio/$slug'
+    | '/api/admin/applications'
+    | '/api/public/application'
+    | '/api/public/application-files'
     | '/api/public/contact'
+    | '/api/public/health'
     | '/lovable/email/suppression'
+    | '/api/public/project-preview/$reference'
     | '/lovable/email/queue/process'
     | '/lovable/email/transactional/preview'
     | '/lovable/email/transactional/send'
@@ -194,9 +222,15 @@ export interface FileRouteTypes {
     | '/bekraftelse'
     | '/bestall'
     | '/email/unsubscribe'
+    | '/kund-preview/$reference'
     | '/portfolio/$slug'
+    | '/api/admin/applications'
+    | '/api/public/application'
+    | '/api/public/application-files'
     | '/api/public/contact'
+    | '/api/public/health'
     | '/lovable/email/suppression'
+    | '/api/public/project-preview/$reference'
     | '/lovable/email/queue/process'
     | '/lovable/email/transactional/preview'
     | '/lovable/email/transactional/send'
@@ -208,13 +242,15 @@ export interface RootRouteChildren {
   BekraftelseRoute: typeof BekraftelseRoute
   BestallRoute: typeof BestallRoute
   EmailUnsubscribeRoute: typeof EmailUnsubscribeRoute
+  KundPreviewReferenceRoute: typeof KundPreviewReferenceRoute
   PortfolioSlugRoute: typeof PortfolioSlugRoute
-  ApiPublicContactRoute: typeof ApiPublicContactRoute
   ApiAdminApplicationsRoute: typeof ApiAdminApplicationsRoute
   ApiPublicApplicationRoute: typeof ApiPublicApplicationRoute
   ApiPublicApplicationFilesRoute: typeof ApiPublicApplicationFilesRoute
+  ApiPublicContactRoute: typeof ApiPublicContactRoute
   ApiPublicHealthRoute: typeof ApiPublicHealthRoute
   LovableEmailSuppressionRoute: typeof LovableEmailSuppressionRoute
+  ApiPublicProjectPreviewReferenceRoute: typeof ApiPublicProjectPreviewReferenceRoute
   LovableEmailQueueProcessRoute: typeof LovableEmailQueueProcessRoute
   LovableEmailTransactionalPreviewRoute: typeof LovableEmailTransactionalPreviewRoute
   LovableEmailTransactionalSendRoute: typeof LovableEmailTransactionalSendRoute
@@ -257,6 +293,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PortfolioSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/kund-preview/$reference': {
+      id: '/kund-preview/$reference'
+      path: '/kund-preview/$reference'
+      fullPath: '/kund-preview/$reference'
+      preLoaderRoute: typeof KundPreviewReferenceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/email/unsubscribe': {
       id: '/email/unsubscribe'
       path: '/email/unsubscribe'
@@ -271,25 +314,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LovableEmailSuppressionRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/health': {
+      id: '/api/public/health'
+      path: '/api/public/health'
+      fullPath: '/api/public/health'
+      preLoaderRoute: typeof ApiPublicHealthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/contact': {
       id: '/api/public/contact'
       path: '/api/public/contact'
       fullPath: '/api/public/contact'
       preLoaderRoute: typeof ApiPublicContactRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/admin/applications': {
-      id: '/api/admin/applications'
-      path: '/api/admin/applications'
-      fullPath: '/api/admin/applications'
-      preLoaderRoute: typeof ApiAdminApplicationsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/application': {
-      id: '/api/public/application'
-      path: '/api/public/application'
-      fullPath: '/api/public/application'
-      preLoaderRoute: typeof ApiPublicApplicationRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/application-files': {
@@ -299,11 +335,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicApplicationFilesRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/public/health': {
-      id: '/api/public/health'
-      path: '/api/public/health'
-      fullPath: '/api/public/health'
-      preLoaderRoute: typeof ApiPublicHealthRouteImport
+    '/api/public/application': {
+      id: '/api/public/application'
+      path: '/api/public/application'
+      fullPath: '/api/public/application'
+      preLoaderRoute: typeof ApiPublicApplicationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/applications': {
+      id: '/api/admin/applications'
+      path: '/api/admin/applications'
+      fullPath: '/api/admin/applications'
+      preLoaderRoute: typeof ApiAdminApplicationsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/lovable/email/transactional/send': {
@@ -327,6 +370,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LovableEmailQueueProcessRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/project-preview/$reference': {
+      id: '/api/public/project-preview/$reference'
+      path: '/api/public/project-preview/$reference'
+      fullPath: '/api/public/project-preview/$reference'
+      preLoaderRoute: typeof ApiPublicProjectPreviewReferenceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -336,13 +386,15 @@ const rootRouteChildren: RootRouteChildren = {
   BekraftelseRoute: BekraftelseRoute,
   BestallRoute: BestallRoute,
   EmailUnsubscribeRoute: EmailUnsubscribeRoute,
+  KundPreviewReferenceRoute: KundPreviewReferenceRoute,
   PortfolioSlugRoute: PortfolioSlugRoute,
-  ApiPublicContactRoute: ApiPublicContactRoute,
   ApiAdminApplicationsRoute: ApiAdminApplicationsRoute,
   ApiPublicApplicationRoute: ApiPublicApplicationRoute,
   ApiPublicApplicationFilesRoute: ApiPublicApplicationFilesRoute,
+  ApiPublicContactRoute: ApiPublicContactRoute,
   ApiPublicHealthRoute: ApiPublicHealthRoute,
   LovableEmailSuppressionRoute: LovableEmailSuppressionRoute,
+  ApiPublicProjectPreviewReferenceRoute: ApiPublicProjectPreviewReferenceRoute,
   LovableEmailQueueProcessRoute: LovableEmailQueueProcessRoute,
   LovableEmailTransactionalPreviewRoute: LovableEmailTransactionalPreviewRoute,
   LovableEmailTransactionalSendRoute: LovableEmailTransactionalSendRoute,
@@ -350,3 +402,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
