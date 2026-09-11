@@ -18,6 +18,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { SiteHeader, SiteFooter } from "@/components/site-header";
 import { ArrowLeft, ArrowRight, Check, Upload, X, Info } from "lucide-react";
 import { toast } from "sonner";
+import { createClient } from "@supabase/supabase-js";
 
 export const Route = createFileRoute("/bestall")({
   head: () => ({
@@ -137,13 +138,58 @@ function OrderPage() {
       }
 
       if (files.length) {
-        const upload = new FormData();
-        upload.append("reference", order.id);
-        files.forEach((file) => upload.append("files", file));
-        const uploadRes = await fetch("/api/public/application-files", { method: "POST", body: upload });
-        if (!uploadRes.ok) {
-          const body = await uploadRes.json().catch(() => ({} as any));
-          throw new Error(body?.detail || body?.error || "upload failed");
+        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+        const publishableKey =
+          import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY ||
+          import.meta.env.VITE_SUPABASE_ANON_KEY;
+        if (!supabaseUrl || !publishableKey) {
+          throw new Error("Filuppladdning saknar publik Supabase-konfiguration");
+        }
+
+        const storage = createClient(supabaseUrl, publishableKey);
+        const uploadedPaths: string[] = [];
+
+        for (const file of files) {
+          const ticketRes = await fetch("/api/public/application-files", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              action: "ticket",
+              reference: order.id,
+              name: file.name,
+              type: file.type,
+              size: file.size,
+            }),
+          });
+          const ticket = await ticketRes.json().catch(() => ({} as any));
+          if (!ticketRes.ok) {
+            throw new Error(ticket?.detail || ticket?.error || "Kunde inte förbereda filuppladdning");
+          }
+
+          const { error: uploadError } = await storage.storage
+            .from("project-files")
+            .uploadToSignedUrl(ticket.path, ticket.token, file, {
+              contentType: file.type,
+            });
+
+          if (uploadError) {
+            throw new Error(uploadError.message || "Filuppladdningen misslyckades");
+          }
+          uploadedPaths.push(ticket.path);
+        }
+
+        const completeRes = await fetch("/api/public/application-files", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            action: "complete",
+            reference: order.id,
+            paths: uploadedPaths,
+          }),
+        });
+        const completeBody = await completeRes.json().catch(() => ({} as any));
+        if (!completeRes.ok) {
+          throw new Error(completeBody?.detail || completeBody?.error || "Kunde inte spara filinformationen");
         }
       }
 
