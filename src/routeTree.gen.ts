@@ -17,6 +17,7 @@ import { Route as PortfolioSlugRouteImport } from './routes/portfolio.$slug'
 import { Route as EmailUnsubscribeRouteImport } from './routes/email/unsubscribe'
 import { Route as LovableEmailSuppressionRouteImport } from './routes/lovable/email/suppression'
 import { Route as ApiPublicContactRouteImport } from './routes/api/public/contact'
+import { Route as ApiAdminApplicationsRouteImport } from './routes/api/admin/applications'
 import { Route as ApiPublicApplicationRouteImport } from './routes/api/public/application'
 import { Route as ApiPublicApplicationFilesRouteImport } from './routes/api/public/application-files'
 import { Route as ApiPublicHealthRouteImport } from './routes/api/public/health'
@@ -64,6 +65,11 @@ const ApiPublicContactRoute = ApiPublicContactRouteImport.update({
   path: '/api/public/contact',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAdminApplicationsRoute = ApiAdminApplicationsRouteImport.update({
+  id: '/api/admin/applications',
+  path: '/api/admin/applications',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicApplicationRoute = ApiPublicApplicationRouteImport.update({
   id: '/api/public/application',
   path: '/api/public/application',
@@ -106,6 +112,7 @@ export interface FileRoutesByFullPath {
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/portfolio/$slug': typeof PortfolioSlugRoute
   '/api/public/contact': typeof ApiPublicContactRoute
+  '/api/admin/applications': typeof ApiAdminApplicationsRoute
   '/api/public/application': typeof ApiPublicApplicationRoute
   '/api/public/application-files': typeof ApiPublicApplicationFilesRoute
   '/api/public/health': typeof ApiPublicHealthRoute
@@ -122,6 +129,7 @@ export interface FileRoutesByTo {
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/portfolio/$slug': typeof PortfolioSlugRoute
   '/api/public/contact': typeof ApiPublicContactRoute
+  '/api/admin/applications': typeof ApiAdminApplicationsRoute
   '/api/public/application': typeof ApiPublicApplicationRoute
   '/api/public/application-files': typeof ApiPublicApplicationFilesRoute
   '/api/public/health': typeof ApiPublicHealthRoute
@@ -139,6 +147,7 @@ export interface FileRoutesById {
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/portfolio/$slug': typeof PortfolioSlugRoute
   '/api/public/contact': typeof ApiPublicContactRoute
+  '/api/admin/applications': typeof ApiAdminApplicationsRoute
   '/api/public/application': typeof ApiPublicApplicationRoute
   '/api/public/application-files': typeof ApiPublicApplicationFilesRoute
   '/api/public/health': typeof ApiPublicHealthRoute
@@ -157,6 +166,7 @@ export interface FileRouteTypes {
     | '/email/unsubscribe'
     | '/portfolio/$slug'
     | '/api/public/contact'
+    | '/api/admin/applications'
     | '/api/public/application'
     | '/api/public/application-files'
     | '/api/public/health'
@@ -200,6 +210,7 @@ export interface RootRouteChildren {
   EmailUnsubscribeRoute: typeof EmailUnsubscribeRoute
   PortfolioSlugRoute: typeof PortfolioSlugRoute
   ApiPublicContactRoute: typeof ApiPublicContactRoute
+  ApiAdminApplicationsRoute: typeof ApiAdminApplicationsRoute
   ApiPublicApplicationRoute: typeof ApiPublicApplicationRoute
   ApiPublicApplicationFilesRoute: typeof ApiPublicApplicationFilesRoute
   ApiPublicHealthRoute: typeof ApiPublicHealthRoute
@@ -267,6 +278,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicContactRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/admin/applications': {
+      id: '/api/admin/applications'
+      path: '/api/admin/applications'
+      fullPath: '/api/admin/applications'
+      preLoaderRoute: typeof ApiAdminApplicationsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/application': {
       id: '/api/public/application'
       path: '/api/public/application'
@@ -320,6 +338,7 @@ const rootRouteChildren: RootRouteChildren = {
   EmailUnsubscribeRoute: EmailUnsubscribeRoute,
   PortfolioSlugRoute: PortfolioSlugRoute,
   ApiPublicContactRoute: ApiPublicContactRoute,
+  ApiAdminApplicationsRoute: ApiAdminApplicationsRoute,
   ApiPublicApplicationRoute: ApiPublicApplicationRoute,
   ApiPublicApplicationFilesRoute: ApiPublicApplicationFilesRoute,
   ApiPublicHealthRoute: ApiPublicHealthRoute,
