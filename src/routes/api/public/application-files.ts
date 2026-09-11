@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
 import { createFileRoute } from '@tanstack/react-router'
+import postgres from 'postgres'
 
 const MAX_FILES = 10
 const MAX_SIZE = 15 * 1024 * 1024
@@ -83,14 +84,31 @@ export const Route = createFileRoute('/api/public/application-files')({
           uploaded.push(path)
         }
 
-        const { error: updateError } = await supabase
-          .from('project_applications')
-          .update({ file_names: uploaded, updated_at: new Date().toISOString() })
-          .eq('reference', reference)
+        const databaseUrl =
+          process.env.POSTGRES_URL ||
+          process.env.STORAGE_POSTGRES_URL ||
+          process.env.STORAGE_DATABASE_URL ||
+          process.env.DATABASE_URL
 
-        if (updateError) {
-          console.error('Failed to attach files', updateError)
-          return Response.json({ error: 'Failed to attach files' }, { status: 500 })
+        if (!databaseUrl) {
+          return Response.json({ error: 'Database not configured for file metadata' }, { status: 500 })
+        }
+
+        const sql = postgres(databaseUrl, { max: 1, prepare: false })
+        try {
+          await sql`
+            UPDATE public.project_applications
+            SET file_names = ${uploaded}, updated_at = now()
+            WHERE reference = ${reference}
+          `
+        } catch (error) {
+          console.error('Failed to attach files', error)
+          return Response.json({
+            error: 'Failed to attach files',
+            detail: error instanceof Error ? error.message : String(error),
+          }, { status: 500 })
+        } finally {
+          await sql.end()
         }
 
         return Response.json({ success: true, files: uploaded })
