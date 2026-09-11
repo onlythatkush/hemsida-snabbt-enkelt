@@ -5,7 +5,8 @@ import postgres from 'postgres'
 
 const createPreviewSchema = z.object({
   reference: z.string().min(4).max(40),
-  action: z.literal('create-preview'),
+  action: z.enum(['create-preview', 'regenerate-design']),
+  family: z.string().max(40).optional(),
 })
 
 const updateSchema = z.object({
