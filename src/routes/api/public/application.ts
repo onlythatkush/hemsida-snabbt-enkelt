@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js'
 import { createFileRoute } from '@tanstack/react-router'
 import { z } from 'zod'
+import postgres from 'postgres'
 
 const schema = z.object({
   reference: z.string().trim().min(4).max(40),
@@ -23,7 +24,7 @@ export const Route = createFileRoute('/api/public/application')({
     handlers: {
       POST: async ({ request }) => {
         const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL
-        const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+        const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SECRET_KEY
         if (!supabaseUrl || !serviceKey) {
           return Response.json({ error: 'Server misconfigured' }, { status: 500 })
         }
@@ -33,6 +34,39 @@ export const Route = createFileRoute('/api/public/application')({
           parsed = schema.parse(await request.json())
         } catch {
           return Response.json({ error: 'Invalid input' }, { status: 400 })
+        }
+
+        const databaseUrl = process.env.POSTGRES_URL
+        if (!databaseUrl) {
+          return Response.json({ error: 'Database not configured' }, { status: 500 })
+        }
+
+        const sql = postgres(databaseUrl, { max: 1, prepare: false })
+        try {
+          await sql`
+            CREATE TABLE IF NOT EXISTS public.project_applications (
+              id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+              reference TEXT NOT NULL UNIQUE,
+              name TEXT NOT NULL,
+              email TEXT NOT NULL,
+              phone TEXT NOT NULL,
+              company TEXT NOT NULL,
+              address TEXT,
+              description TEXT NOT NULL,
+              social_links TEXT,
+              website_type TEXT NOT NULL,
+              colors TEXT,
+              extra_requests TEXT,
+              wants_support BOOLEAN NOT NULL DEFAULT false,
+              file_names TEXT[] NOT NULL DEFAULT '{}',
+              status TEXT NOT NULL DEFAULT 'new',
+              preview_url TEXT,
+              created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+              updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+            )
+          `
+        } finally {
+          await sql.end()
         }
 
         const supabase = createClient<any>(supabaseUrl, serviceKey, {
