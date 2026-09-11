@@ -13,10 +13,24 @@ export const Route = createFileRoute('/api/public/application-files')({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL
-        const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SECRET_KEY
+        const supabaseUrl =
+          import.meta.env.VITE_SUPABASE_URL ||
+          import.meta.env.VITE_STORAGE_URL ||
+          process.env.SUPABASE_URL ||
+          process.env.STORAGE_URL
+        const serviceKey =
+          process.env.SUPABASE_SERVICE_ROLE_KEY ||
+          process.env.SUPABASE_SECRET_KEY ||
+          process.env.STORAGE_SERVICE_ROLE_KEY ||
+          process.env.STORAGE_SECRET_KEY
         if (!supabaseUrl || !serviceKey) {
-          return Response.json({ error: 'Server misconfigured' }, { status: 500 })
+          return Response.json({
+            error: 'Server misconfigured',
+            missing: {
+              supabaseUrl: !supabaseUrl,
+              serviceKey: !serviceKey,
+            },
+          }, { status: 500 })
         }
 
         const form = await request.formData()
