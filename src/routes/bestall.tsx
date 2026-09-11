@@ -22,8 +22,8 @@ import { toast } from "sonner";
 export const Route = createFileRoute("/bestall")({
   head: () => ({
     meta: [
-      { title: "Begär offert — Din Webbpartner" },
-      { name: "description", content: "Skicka in en kostnadsfri offertförfrågan — vi kontaktar dig och skickar en offert. Ingen betalning vid förfrågan." },
+      { title: "Starta ditt webbprojekt — Din Webbpartner" },
+      { name: "description", content: "Skicka in ditt projektunderlag, material och önskemål. Vi bygger ett första förslag innan du bestämmer dig." },
     ],
   }),
   component: OrderPage,
@@ -57,7 +57,7 @@ function OrderPage() {
   const [step, setStep] = useState(0);
   const [data, setData] = useState<FormData>(initial);
   const [files, setFiles] = useState<{ name: string; size: number; progress: number }[]>([]);
-  const [submitting, setSubmitting] = useState(false);
+  const [submitting, setSubmitting] = useState(false);\n  const [saved, setSaved] = useState(false);
 
   const set = <K extends keyof FormData>(k: K, v: FormData[K]) => setData((d) => ({ ...d, [k]: v }));
 
@@ -116,7 +116,32 @@ function OrderPage() {
       datum: new Date().toISOString(),
     };
     try {
-      const res = await fetch("/api/public/contact", {
+      // Save the application first. Email is deliberately secondary so a mail
+      // outage can never make us lose a customer brief.
+      const saveRes = await fetch("/api/public/application", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          reference: order.id,
+          name: data.namn,
+          email: data.epost,
+          phone: data.telefon,
+          company: data.foretagsnamn,
+          address: data.adress || "",
+          description: data.beskrivning,
+          socialLinks: data.sociala || "",
+          websiteType: data.typ,
+          colors: data.farger || "",
+          extraRequests: data.extra || "",
+          wantsSupport: data.support,
+          fileNames: files.map((f) => f.name),
+        }),
+      });
+      if (!saveRes.ok) throw new Error("save failed");
+      setSaved(true);
+
+      // Best-effort notification. The application is already safely stored.
+      fetch("/api/public/contact", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -125,21 +150,17 @@ function OrderPage() {
           phone: data.telefon,
           company: data.foretagsnamn,
           message: data.beskrivning,
-          source: `Offertförfrågan (${order.id})`,
+          source: `Ny projektansökan (${order.id})`,
           extra: {
             "Typ av hemsida": data.typ,
             "Färger": data.farger || "",
-            "Adress": data.adress || "",
-            "Sociala medier": data.sociala || "",
             "Extra önskemål": data.extra || "",
             "Filer": files.length ? files.map((f) => f.name).join(", ") : "",
-            "Support & Hosting": data.support ? "Ja" : "Nej",
           },
         }),
-      });
-      if (!res.ok) throw new Error("send failed");
+      }).catch(() => undefined);
     } catch {
-      toast.error("Kunde inte skicka — försök igen eller maila dinwebbpartner@hotmail.com");
+      toast.error("Ansökan kunde inte sparas. Försök igen om en stund.");
       setSubmitting(false);
       return;
     }
@@ -148,8 +169,8 @@ function OrderPage() {
       list.push(order);
       localStorage.setItem("dwp-orders", JSON.stringify(list));
     }
-    toast.success("Förfrågan skickad!", {
-      description: "Vi återkommer inom 24 timmar (vardagar).",
+    toast.success("Projektansökan mottagen!", {
+      description: "Ditt underlag är sparat. Vi går igenom det och återkommer med nästa steg.",
     });
     navigate({ to: "/bekraftelse", search: { id: order.id } });
   };
@@ -162,8 +183,8 @@ function OrderPage() {
       <main className="flex-1 bg-gradient-hero">
         <div className="container mx-auto px-4 py-12 md:py-16 max-w-3xl">
           <div className="mb-8 text-center">
-            <h1 className="text-3xl md:text-4xl font-semibold tracking-tight">Begär offert</h1>
-            <p className="text-muted-foreground mt-2">Fyll i steg för steg — kostnadsfritt och utan förpliktelser. Vi hör av oss inom 24 timmar.</p>
+            <h1 className="text-3xl md:text-4xl font-semibold tracking-tight">Starta ditt webbprojekt</h1>
+            <p className="text-muted-foreground mt-2">Berätta om företaget och ladda upp ditt material. Vi använder underlaget för att ta fram ett första förslag.</p>
           </div>
 
           <div className="mb-8">
@@ -321,7 +342,7 @@ function OrderPage() {
                   </Button>
                 ) : (
                   <Button variant="hero" size="lg" onClick={handleSubmit} disabled={submitting}>
-                    {submitting ? "Skickar..." : <>Skicka offertförfrågan <Check /></>}
+                    {submitting ? "Skickar..." : <>Skicka projektansökan <Check /></>}
                   </Button>
                 )}
               </div>
