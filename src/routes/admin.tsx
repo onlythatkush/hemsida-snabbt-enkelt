@@ -111,7 +111,7 @@ function Admin() {
     toast.success("Sparat");
   }
 
-  async function createPreview(reference: string) {
+  async function createPreview(reference: string, action: "create-preview" | "regenerate-design" = "create-preview") {
     setBuildingRef(reference);
     setItems((prev) => prev.map((x) => x.reference === reference ? { ...x, status: "building" } : x));
     try {
@@ -318,10 +318,15 @@ function Admin() {
                         </TableCell>
                         <TableCell className="text-sm text-muted-foreground">{new Date(a.created_at).toLocaleDateString("sv-SE")}</TableCell>
                         <TableCell>
-                          {(a.status === "reviewing" || a.status === "new") && (
+                          {(a.status === "reviewing" || a.status === "new") ? (
                             <Button size="sm" onClick={() => createPreview(a.reference)} disabled={buildingRef === a.reference}>
                               {buildingRef === a.reference ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
                               Skapa hemsida
+                            </Button>
+                          ) : (
+                            <Button size="sm" variant="outline" onClick={() => createPreview(a.reference, "regenerate-design")} disabled={buildingRef === a.reference}>
+                              {buildingRef === a.reference ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+                              Ny design
                             </Button>
                           )}
                         </TableCell>
