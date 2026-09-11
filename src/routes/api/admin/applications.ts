@@ -16,7 +16,7 @@ function authorized(request: Request) {
 
 function client() {
   const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL
-  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SECRET_KEY
   if (!supabaseUrl || !serviceKey) throw new Error('Server misconfigured')
   return createClient<any>(supabaseUrl, serviceKey, { auth: { persistSession: false, autoRefreshToken: false } })
 }
@@ -27,7 +27,24 @@ export const Route = createFileRoute('/api/admin/applications')({
       GET: async ({ request }) => {
         if (!authorized(request)) return Response.json({ error: 'Unauthorized' }, { status: 401 })
         try {
-          const { data, error } = await client()
+          const url = new URL(request.url)
+          const file = url.searchParams.get('file')
+          const supabase = client()
+
+          if (file) {
+            if (!file.startsWith('ORD-') || file.includes('..')) {
+              return Response.json({ error: 'Invalid file path' }, { status: 400 })
+            }
+            const { data, error } = await supabase.storage
+              .from('project-files')
+              .createSignedUrl(file, 60 * 5)
+            if (error || !data?.signedUrl) {
+              return Response.json({ error: 'Failed to open file' }, { status: 404 })
+            }
+            return Response.json({ url: data.signedUrl })
+          }
+
+          const { data, error } = await supabase
             .from('project_applications')
             .select('*')
             .order('created_at', { ascending: false })
