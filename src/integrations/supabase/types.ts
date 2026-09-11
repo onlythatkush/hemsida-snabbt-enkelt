@@ -101,6 +101,81 @@ export type Database = {
         }
         Relationships: []
       }
+      project_applications: {
+        Row: {
+          address: string | null
+          colors: string | null
+          company: string
+          created_at: string
+          description: string
+          design_family: string | null
+          design_locked: boolean
+          design_spec: Json | null
+          email: string
+          extra_requests: string | null
+          file_names: string[]
+          id: string
+          name: string
+          phone: string
+          preview_token: string | null
+          preview_url: string | null
+          reference: string
+          social_links: string | null
+          status: string
+          updated_at: string
+          wants_support: boolean
+          website_type: string
+        }
+        Insert: {
+          address?: string | null
+          colors?: string | null
+          company: string
+          created_at?: string
+          description: string
+          design_family?: string | null
+          design_locked?: boolean
+          design_spec?: Json | null
+          email: string
+          extra_requests?: string | null
+          file_names?: string[]
+          id?: string
+          name: string
+          phone: string
+          preview_token?: string | null
+          preview_url?: string | null
+          reference: string
+          social_links?: string | null
+          status?: string
+          updated_at?: string
+          wants_support?: boolean
+          website_type: string
+        }
+        Update: {
+          address?: string | null
+          colors?: string | null
+          company?: string
+          created_at?: string
+          description?: string
+          design_family?: string | null
+          design_locked?: boolean
+          design_spec?: Json | null
+          email?: string
+          extra_requests?: string | null
+          file_names?: string[]
+          id?: string
+          name?: string
+          phone?: string
+          preview_token?: string | null
+          preview_url?: string | null
+          reference?: string
+          social_links?: string | null
+          status?: string
+          updated_at?: string
+          wants_support?: boolean
+          website_type?: string
+        }
+        Relationships: []
+      }
       suppressed_emails: {
         Row: {
           created_at: string

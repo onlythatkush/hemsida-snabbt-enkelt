@@ -1,9 +1,11 @@
 import { createClient } from '@supabase/supabase-js'
 import { createFileRoute } from '@tanstack/react-router'
 import postgres from 'postgres'
+import { composeDesignSpec } from '@/lib/design/compose'
+import type { DesignSpec } from '@/lib/design/types'
 
 function databaseUrl() {
-  return process.env.POSTGRES_URL || process.env.STORAGE_POSTGRES_URL || process.env.STORAGE_DATABASE_URL || process.env.DATABASE_URL
+  return process.env.POSTGRES_URL || process.env.STORAGE_POSTGRES_URL || process.env.STORAGE_DATABASE_URL || process.env.DATABASE_URL || process.env.SUPABASE_DB_URL
 }
 
 function supabaseClient() {
@@ -25,10 +27,14 @@ export const Route = createFileRoute('/api/public/project-preview/$reference')({
 
         const sql = postgres(db, { max: 1, prepare: false })
         try {
-          await sql`ALTER TABLE public.project_applications ADD COLUMN IF NOT EXISTS preview_token TEXT`
+          // Schema is managed by migrations; ignore failures when the role is not owner.
+          try {
+            await sql`ALTER TABLE public.project_applications ADD COLUMN IF NOT EXISTS preview_token TEXT`
+            await sql`ALTER TABLE public.project_applications ADD COLUMN IF NOT EXISTS design_spec JSONB`
+          } catch { /* columns already exist */ }
           const rows = await sql`
             SELECT reference, company, description, social_links, website_type, colors,
-                   extra_requests, file_names, preview_token
+                   extra_requests, file_names, preview_token, design_spec, address, email, phone
             FROM public.project_applications
             WHERE reference = ${params.reference} AND preview_token = ${token}
             LIMIT 1
@@ -36,31 +42,32 @@ export const Route = createFileRoute('/api/public/project-preview/$reference')({
           if (!rows.length) return Response.json({ error: 'Preview not found' }, { status: 404 })
 
           const item = rows[0] as any
-          const files: { name: string; url: string; type: 'image' | 'file' }[] = []
+          const spec: DesignSpec =
+            item.design_spec && item.design_spec.version
+              ? (item.design_spec as DesignSpec)
+              : composeDesignSpec({
+                  reference: item.reference,
+                  company: item.company,
+                  description: item.description,
+                  website_type: item.website_type,
+                  colors: item.colors,
+                  extra_requests: item.extra_requests,
+                  social_links: item.social_links,
+                  address: item.address,
+                  email: item.email,
+                  phone: item.phone,
+                  file_names: Array.isArray(item.file_names) ? item.file_names : [],
+                })
+
           const supabase = supabaseClient()
-          if (supabase && Array.isArray(item.file_names)) {
-            for (const path of item.file_names.slice(0, 10)) {
-              const { data } = await supabase.storage.from('project-files').createSignedUrl(path, 60 * 60)
-              if (data?.signedUrl) {
-                const name = String(path).split('/').pop() || 'Fil'
-                const image = /\.(jpg|jpeg|png|webp|gif)$/i.test(name)
-                files.push({ name, url: data.signedUrl, type: image ? 'image' : 'file' })
-              }
+          if (supabase) {
+            for (const image of spec.images) {
+              const { data } = await supabase.storage.from('project-files').createSignedUrl(image.path, 60 * 60)
+              if (data?.signedUrl) image.url = data.signedUrl
             }
           }
 
-          return Response.json({
-            project: {
-              reference: item.reference,
-              company: item.company,
-              description: item.description,
-              socialLinks: item.social_links,
-              websiteType: item.website_type,
-              colors: item.colors,
-              extraRequests: item.extra_requests,
-              files,
-            },
-          })
+          return Response.json({ spec })
         } catch (error) {
           console.error(error)
           return Response.json({ error: 'Failed to load preview' }, { status: 500 })
