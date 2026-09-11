@@ -118,7 +118,7 @@ function Admin() {
       const res = await fetch("/api/admin/applications", {
         method: "POST",
         headers: { "Content-Type": "application/json", "x-admin-key": savedKey },
-        body: JSON.stringify({ reference, action: "create-preview" }),
+        body: JSON.stringify({ reference, action }),
       });
       const body = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(body?.error || "Kunde inte skapa preview");
