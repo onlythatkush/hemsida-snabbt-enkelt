@@ -1,4 +1,4 @@
-import { extractColors } from "./color";
+import { contrast, extractColors } from "./color";
 import { ctaPrimary, ctaSecondary, heroSub, heroTitle, tagline } from "./copy";
 import { FAMILIES, buildPalette, toneDistance, tuneShape, tuneTypography } from "./families";
 import { detectIndustry, detectTone, isLocal } from "./keywords";
