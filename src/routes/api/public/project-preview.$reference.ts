@@ -27,8 +27,11 @@ export const Route = createFileRoute('/api/public/project-preview/$reference')({
 
         const sql = postgres(db, { max: 1, prepare: false })
         try {
-          await sql`ALTER TABLE public.project_applications ADD COLUMN IF NOT EXISTS preview_token TEXT`
-          await sql`ALTER TABLE public.project_applications ADD COLUMN IF NOT EXISTS design_spec JSONB`
+          // Schema is managed by migrations; ignore failures when the role is not owner.
+          try {
+            await sql`ALTER TABLE public.project_applications ADD COLUMN IF NOT EXISTS preview_token TEXT`
+            await sql`ALTER TABLE public.project_applications ADD COLUMN IF NOT EXISTS design_spec JSONB`
+          } catch { /* columns already exist */ }
           const rows = await sql`
             SELECT reference, company, description, social_links, website_type, colors,
                    extra_requests, file_names, preview_token, design_spec, address, email, phone

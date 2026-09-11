@@ -76,10 +76,12 @@ export const Route = createFileRoute('/api/admin/applications')({
         const origin = new URL(request.url).origin
         const sql = postgres(databaseUrl, { max: 1, prepare: false })
         try {
-          await sql`ALTER TABLE public.project_applications ADD COLUMN IF NOT EXISTS preview_token TEXT`
-          await sql`ALTER TABLE public.project_applications ADD COLUMN IF NOT EXISTS design_spec JSONB`
-          await sql`ALTER TABLE public.project_applications ADD COLUMN IF NOT EXISTS design_family TEXT`
-          await sql`ALTER TABLE public.project_applications ADD COLUMN IF NOT EXISTS design_locked BOOLEAN NOT NULL DEFAULT false`
+          try {
+            await sql`ALTER TABLE public.project_applications ADD COLUMN IF NOT EXISTS preview_token TEXT`
+            await sql`ALTER TABLE public.project_applications ADD COLUMN IF NOT EXISTS design_spec JSONB`
+            await sql`ALTER TABLE public.project_applications ADD COLUMN IF NOT EXISTS design_family TEXT`
+            await sql`ALTER TABLE public.project_applications ADD COLUMN IF NOT EXISTS design_locked BOOLEAN NOT NULL DEFAULT false`
+          } catch { /* schema managed by migrations */ }
 
           const found = await sql`
             SELECT * FROM public.project_applications WHERE reference = ${input.reference} LIMIT 1
