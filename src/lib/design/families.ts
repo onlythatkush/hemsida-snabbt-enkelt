@@ -130,11 +130,12 @@ function finishPalette(family: FamilyDef, primary: string, accent: string, dark:
   }
 
   const warmth = tone.warmth;
-  const bgSat = 6 + warmth * 16;
-  const bgLight = 97 - tone.density * 2;
-  const bg = hslToHex({ h: primaryHsl.h, s: Math.min(bgSat, 22), l: bgLight });
-  const surface = "#ffffff";
-  const ink = hslToHex({ h: primaryHsl.h, s: 12, l: 13 + (1 - warmth) * 3 });
+  // Near-white lightness kills saturation, so tinted backgrounds need a high S value.
+  const bgSat = Math.min(14 + warmth * 46, 62);
+  const bgLight = 96.5 - tone.density * 2;
+  const bg = hslToHex({ h: primaryHsl.h, s: bgSat, l: bgLight });
+  const surface = warmth > 0.7 ? hslToHex({ h: primaryHsl.h, s: Math.min(bgSat * 0.6, 40), l: 99 }) : "#ffffff";
+  const ink = hslToHex({ h: primaryHsl.h, s: 12 + warmth * 6, l: 13 + (1 - warmth) * 3 });
   const safePrimary = ensureContrast(primary, bg, 3.4);
   return {
     mode: "light",
