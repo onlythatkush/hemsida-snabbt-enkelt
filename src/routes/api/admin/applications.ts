@@ -1,6 +1,12 @@
 import { createClient } from '@supabase/supabase-js'
 import { createFileRoute } from '@tanstack/react-router'
 import { z } from 'zod'
+import postgres from 'postgres'
+
+const createPreviewSchema = z.object({
+  reference: z.string().min(4).max(40),
+  action: z.literal('create-preview'),
+})
 
 const updateSchema = z.object({
   reference: z.string().min(4).max(40),
@@ -54,6 +60,36 @@ export const Route = createFileRoute('/api/admin/applications')({
         } catch (error) {
           console.error(error)
           return Response.json({ error: 'Failed to load applications' }, { status: 500 })
+        }
+      },
+      POST: async ({ request }) => {
+        if (!authorized(request)) return Response.json({ error: 'Unauthorized' }, { status: 401 })
+        let input
+        try { input = createPreviewSchema.parse(await request.json()) }
+        catch { return Response.json({ error: 'Invalid input' }, { status: 400 }) }
+
+        const databaseUrl = process.env.POSTGRES_URL || process.env.STORAGE_POSTGRES_URL || process.env.STORAGE_DATABASE_URL || process.env.DATABASE_URL
+        if (!databaseUrl) return Response.json({ error: 'Database not configured' }, { status: 500 })
+
+        const token = crypto.randomUUID().replaceAll('-', '') + crypto.randomUUID().replaceAll('-', '')
+        const origin = new URL(request.url).origin
+        const previewUrl = origin + '/kund-preview/' + encodeURIComponent(input.reference) + '?token=' + token
+        const sql = postgres(databaseUrl, { max: 1, prepare: false })
+        try {
+          await sql`ALTER TABLE public.project_applications ADD COLUMN IF NOT EXISTS preview_token TEXT`
+          const rows = await sql`
+            UPDATE public.project_applications
+            SET preview_token = ${token}, preview_url = ${previewUrl}, status = 'preview', updated_at = now()
+            WHERE reference = ${input.reference}
+            RETURNING *
+          `
+          if (!rows.length) return Response.json({ error: 'Application not found' }, { status: 404 })
+          return Response.json({ application: rows[0] })
+        } catch (error) {
+          console.error('Failed to create preview', error)
+          return Response.json({ error: 'Failed to create preview' }, { status: 500 })
+        } finally {
+          await sql.end()
         }
       },
       PATCH: async ({ request }) => {

@@ -11,7 +11,7 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import {
-  ChevronDown, ChevronUp, ExternalLink, FileText, Inbox, Loader2, RefreshCw,
+  ChevronDown, ChevronUp, ExternalLink, FileText, Inbox, Loader2, RefreshCw, Sparkles,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -59,6 +59,7 @@ function Admin() {
   const [items, setItems] = useState<Application[]>([]);
   const [loading, setLoading] = useState(false);
   const [openRef, setOpenRef] = useState<string | null>(null);
+  const [buildingRef, setBuildingRef] = useState<string | null>(null);
 
   useEffect(() => {
     const existing = sessionStorage.getItem("dwp-admin-key") || "";
@@ -108,6 +109,28 @@ function Admin() {
     const body = await res.json();
     setItems((prev) => prev.map((x) => x.reference === reference ? body.application : x));
     toast.success("Sparat");
+  }
+
+  async function createPreview(reference: string) {
+    setBuildingRef(reference);
+    setItems((prev) => prev.map((x) => x.reference === reference ? { ...x, status: "building" } : x));
+    try {
+      const res = await fetch("/api/admin/applications", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "x-admin-key": savedKey },
+        body: JSON.stringify({ reference, action: "create-preview" }),
+      });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(body?.error || "Kunde inte skapa preview");
+      setItems((prev) => prev.map((x) => x.reference === reference ? body.application : x));
+      toast.success("Första hemsideförslaget är klart");
+      if (body.application?.preview_url) window.open(body.application.preview_url, "_blank", "noopener,noreferrer");
+    } catch (e: any) {
+      toast.error(e.message || "Kunde inte skapa preview");
+      await load();
+    } finally {
+      setBuildingRef(null);
+    }
   }
 
   async function openFile(path: string) {
@@ -214,6 +237,18 @@ function Admin() {
                         {a.extra_requests && <Info label="Extra önskemål" value={a.extra_requests} />}
                         <Info label="Support & hosting" value={a.wants_support ? "Ja" : "Nej"} />
 
+                        {(a.status === "reviewing" || a.status === "new") && (
+                          <Button className="w-full" onClick={() => createPreview(a.reference)} disabled={buildingRef === a.reference}>
+                            {buildingRef === a.reference ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+                            Skapa hemsida
+                          </Button>
+                        )}
+                        {a.preview_url && (
+                          <Button asChild variant="secondary" className="w-full">
+                            <a href={a.preview_url} target="_blank" rel="noreferrer"><ExternalLink className="h-4 w-4" /> Öppna kundpreview</a>
+                          </Button>
+                        )}
+
                         {!!a.file_names?.length && (
                           <div>
                             <div className="text-xs text-muted-foreground mb-2">Filer</div>
@@ -257,7 +292,7 @@ function Admin() {
                 <Table>
                   <TableHeader><TableRow>
                     <TableHead>Referens</TableHead><TableHead>Företag / kund</TableHead><TableHead>Kontakt</TableHead>
-                    <TableHead>Typ</TableHead><TableHead>Status</TableHead><TableHead>Preview</TableHead><TableHead>Datum</TableHead>
+                    <TableHead>Typ</TableHead><TableHead>Status</TableHead><TableHead>Preview</TableHead><TableHead>Datum</TableHead><TableHead>Åtgärd</TableHead>
                   </TableRow></TableHeader>
                   <TableBody>
                     {items.map((a) => (
@@ -282,9 +317,17 @@ function Admin() {
                           </div>
                         </TableCell>
                         <TableCell className="text-sm text-muted-foreground">{new Date(a.created_at).toLocaleDateString("sv-SE")}</TableCell>
+                        <TableCell>
+                          {(a.status === "reviewing" || a.status === "new") && (
+                            <Button size="sm" onClick={() => createPreview(a.reference)} disabled={buildingRef === a.reference}>
+                              {buildingRef === a.reference ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+                              Skapa hemsida
+                            </Button>
+                          )}
+                        </TableCell>
                       </TableRow>
                     ))}
-                    {!items.length && !loading && <TableRow><TableCell colSpan={7} className="text-center py-10 text-muted-foreground">Inga ansökningar ännu.</TableCell></TableRow>}
+                    {!items.length && !loading && <TableRow><TableCell colSpan={8} className="text-center py-10 text-muted-foreground">Inga ansökningar ännu.</TableCell></TableRow>}
                   </TableBody>
                 </Table>
               </div>
