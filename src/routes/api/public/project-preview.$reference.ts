@@ -1,6 +1,8 @@
 import { createClient } from '@supabase/supabase-js'
 import { createFileRoute } from '@tanstack/react-router'
 import postgres from 'postgres'
+import { composeDesignSpec } from '@/lib/design/compose'
+import type { DesignSpec } from '@/lib/design/types'
 
 function databaseUrl() {
   return process.env.POSTGRES_URL || process.env.STORAGE_POSTGRES_URL || process.env.STORAGE_DATABASE_URL || process.env.DATABASE_URL
@@ -61,7 +63,6 @@ export const Route = createFileRoute('/api/public/project-preview/$reference')({
               if (data?.signedUrl) image.url = data.signedUrl
             }
           }
-          spec.images = spec.images.filter((image) => image.url)
 
           return Response.json({ spec })
         } catch (error) {
