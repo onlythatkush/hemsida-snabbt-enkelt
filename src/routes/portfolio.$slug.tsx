@@ -42,7 +42,7 @@ export const Route = createFileRoute("/portfolio/$slug")({
 });
 
 function ProjectPage() {
-  const { project } = Route.useLoaderData();
+  const { project } = Route.useLoaderData() as { project: (typeof PORTFOLIO_PROJECTS)[number] };
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <SiteHeader />
