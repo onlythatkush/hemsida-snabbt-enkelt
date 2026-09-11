@@ -72,19 +72,58 @@ export const Route = createFileRoute('/api/admin/applications')({
         const databaseUrl = process.env.POSTGRES_URL || process.env.STORAGE_POSTGRES_URL || process.env.STORAGE_DATABASE_URL || process.env.DATABASE_URL
         if (!databaseUrl) return Response.json({ error: 'Database not configured' }, { status: 500 })
 
-        const token = crypto.randomUUID().replaceAll('-', '') + crypto.randomUUID().replaceAll('-', '')
         const origin = new URL(request.url).origin
-        const previewUrl = origin + '/kund-preview/' + encodeURIComponent(input.reference) + '?token=' + token
         const sql = postgres(databaseUrl, { max: 1, prepare: false })
         try {
           await sql`ALTER TABLE public.project_applications ADD COLUMN IF NOT EXISTS preview_token TEXT`
+          await sql`ALTER TABLE public.project_applications ADD COLUMN IF NOT EXISTS design_spec JSONB`
+          await sql`ALTER TABLE public.project_applications ADD COLUMN IF NOT EXISTS design_family TEXT`
+          await sql`ALTER TABLE public.project_applications ADD COLUMN IF NOT EXISTS design_locked BOOLEAN NOT NULL DEFAULT false`
+
+          const found = await sql`
+            SELECT * FROM public.project_applications WHERE reference = ${input.reference} LIMIT 1
+          `
+          if (!found.length) return Response.json({ error: 'Application not found' }, { status: 404 })
+          const app = found[0] as any
+
+          if (input.action === 'regenerate-design' && app.design_locked) {
+            return Response.json({ error: 'Designen är låst för denna kund' }, { status: 409 })
+          }
+
+          const spec = composeDesignSpec(
+            {
+              reference: app.reference,
+              company: app.company,
+              description: app.description,
+              website_type: app.website_type,
+              colors: app.colors,
+              extra_requests: app.extra_requests,
+              social_links: app.social_links,
+              address: app.address,
+              email: app.email,
+              phone: app.phone,
+              file_names: Array.isArray(app.file_names) ? app.file_names : [],
+            },
+            input.family ? { family: input.family as any } : undefined,
+          )
+
+          const token: string =
+            app.preview_token && String(app.preview_token).length >= 32
+              ? String(app.preview_token)
+              : crypto.randomUUID().replaceAll('-', '') + crypto.randomUUID().replaceAll('-', '')
+          const previewUrl = origin + '/kund-preview/' + encodeURIComponent(input.reference) + '?token=' + token
+
           const rows = await sql`
             UPDATE public.project_applications
-            SET preview_token = ${token}, preview_url = ${previewUrl}, status = 'preview', updated_at = now()
+            SET preview_token = ${token},
+                preview_url = ${previewUrl},
+                design_spec = ${sql.json(spec as any)},
+                design_family = ${spec.family},
+                status = 'preview',
+                updated_at = now()
             WHERE reference = ${input.reference}
             RETURNING *
           `
-          if (!rows.length) return Response.json({ error: 'Application not found' }, { status: 404 })
           return Response.json({ application: rows[0] })
         } catch (error) {
           console.error('Failed to create preview', error)
