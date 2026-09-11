@@ -106,7 +106,7 @@ export function buildPalette(family: FamilyDef, customer: string[], tone: Tone):
 }
 
 function finishPalette(family: FamilyDef, primary: string, accent: string, dark: boolean, tone: Tone): Palette {
-  const { adjust, ensureContrast, hexToHsl, hslToHex, readableOn, withLightness } = require("./color") as typeof import("./color");
+  
   const primaryHsl = hexToHsl(primary);
 
   if (dark) {
