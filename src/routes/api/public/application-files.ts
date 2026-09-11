@@ -14,7 +14,7 @@ export const Route = createFileRoute('/api/public/application-files')({
     handlers: {
       POST: async ({ request }) => {
         const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL
-        const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+        const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SECRET_KEY
         if (!supabaseUrl || !serviceKey) {
           return Response.json({ error: 'Server misconfigured' }, { status: 500 })
         }
@@ -40,6 +40,19 @@ export const Route = createFileRoute('/api/public/application-files')({
         const supabase = createClient<any>(supabaseUrl, serviceKey, {
           auth: { persistSession: false, autoRefreshToken: false },
         })
+
+        const { data: bucket } = await supabase.storage.getBucket('project-files')
+        if (!bucket) {
+          const { error: bucketError } = await supabase.storage.createBucket('project-files', {
+            public: false,
+            fileSizeLimit: MAX_SIZE,
+            allowedMimeTypes: Array.from(ALLOWED),
+          })
+          if (bucketError) {
+            console.error('Failed to create project-files bucket', bucketError)
+            return Response.json({ error: 'File storage unavailable' }, { status: 500 })
+          }
+        }
 
         const uploaded: string[] = []
         for (const file of files) {
