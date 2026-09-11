@@ -141,7 +141,7 @@ function finishPalette(family: FamilyDef, primary: string, accent: string, dark:
     mode: "light",
     bg,
     surface,
-    surfaceAlt: hslToHex({ h: primaryHsl.h, s: Math.min(bgSat + 6, 26), l: bgLight - 4 }),
+    surfaceAlt: hslToHex({ h: primaryHsl.h, s: Math.min(bgSat + 8, 66), l: bgLight - 4.5 }),
     ink,
     muted: withLightness(ink, 42),
     border: `rgba(0,0,0,${(0.08 + tone.density * 0.05).toFixed(3)})`,

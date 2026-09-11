@@ -75,7 +75,8 @@ export function composeDesignSpec(app: ApplicationInput, override?: { family?: F
 
   const chosen = override?.family || chooseFamily(industry, tone, seed, photos.length).family;
   const familyDef = FAMILIES[chosen];
-  const customerColors = extractColors(app.colors);
+  // Pale colours make poor primaries; the strongest colour leads, the rest accent.
+  const customerColors = [...extractColors(app.colors)].sort((a, b) => contrast(b, "#ffffff") - contrast(a, "#ffffff"));
 
   const palette = buildPalette(familyDef, customerColors, tone);
   const type = tuneTypography(familyDef.type, tone);
