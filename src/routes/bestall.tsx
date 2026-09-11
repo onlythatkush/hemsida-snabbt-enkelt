@@ -57,7 +57,7 @@ function OrderPage() {
   const [step, setStep] = useState(0);
   const [data, setData] = useState<FormData>(initial);
   const [files, setFiles] = useState<File[]>([]);
-  const [submitting, setSubmitting] = useState(false);\n  const [saved, setSaved] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
   const set = <K extends keyof FormData>(k: K, v: FormData[K]) => setData((d) => ({ ...d, [k]: v }));
 
