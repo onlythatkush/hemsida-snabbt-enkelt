@@ -70,7 +70,7 @@ export const Route = createFileRoute('/api/admin/applications')({
         try { input = createPreviewSchema.parse(await request.json()) }
         catch { return Response.json({ error: 'Invalid input' }, { status: 400 }) }
 
-        const databaseUrl = process.env.POSTGRES_URL || process.env.STORAGE_POSTGRES_URL || process.env.STORAGE_DATABASE_URL || process.env.DATABASE_URL
+        const databaseUrl = process.env.POSTGRES_URL || process.env.STORAGE_POSTGRES_URL || process.env.STORAGE_DATABASE_URL || process.env.DATABASE_URL || process.env.SUPABASE_DB_URL
         if (!databaseUrl) return Response.json({ error: 'Database not configured' }, { status: 500 })
 
         const origin = new URL(request.url).origin

@@ -5,7 +5,7 @@ import { composeDesignSpec } from '@/lib/design/compose'
 import type { DesignSpec } from '@/lib/design/types'
 
 function databaseUrl() {
-  return process.env.POSTGRES_URL || process.env.STORAGE_POSTGRES_URL || process.env.STORAGE_DATABASE_URL || process.env.DATABASE_URL
+  return process.env.POSTGRES_URL || process.env.STORAGE_POSTGRES_URL || process.env.STORAGE_DATABASE_URL || process.env.DATABASE_URL || process.env.SUPABASE_DB_URL
 }
 
 function supabaseClient() {

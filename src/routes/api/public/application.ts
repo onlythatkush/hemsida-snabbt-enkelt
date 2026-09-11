@@ -54,7 +54,7 @@ export const Route = createFileRoute('/api/public/application')({
           process.env.POSTGRES_URL ||
           process.env.STORAGE_POSTGRES_URL ||
           process.env.STORAGE_DATABASE_URL ||
-          process.env.DATABASE_URL
+          process.env.DATABASE_URL || process.env.SUPABASE_DB_URL
         if (!databaseUrl) {
           return Response.json({
             error: 'Database not configured',
