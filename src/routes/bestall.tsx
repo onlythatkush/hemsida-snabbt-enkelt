@@ -131,14 +131,20 @@ function OrderPage() {
           fileNames: [],
         }),
       });
-      if (!saveRes.ok) throw new Error("save failed");
+      if (!saveRes.ok) {
+        const body = await saveRes.json().catch(() => ({} as any));
+        throw new Error(body?.detail || body?.error || "save failed");
+      }
 
       if (files.length) {
         const upload = new FormData();
         upload.append("reference", order.id);
         files.forEach((file) => upload.append("files", file));
         const uploadRes = await fetch("/api/public/application-files", { method: "POST", body: upload });
-        if (!uploadRes.ok) throw new Error("upload failed");
+        if (!uploadRes.ok) {
+          const body = await uploadRes.json().catch(() => ({} as any));
+          throw new Error(body?.detail || body?.error || "upload failed");
+        }
       }
 
       // Best-effort notification. The application is already safely stored.
@@ -160,8 +166,11 @@ function OrderPage() {
           },
         }),
       }).catch(() => undefined);
-    } catch {
-      toast.error("Ansökan kunde inte sparas. Försök igen om en stund.");
+    } catch (error) {
+      console.error(error);
+      toast.error("Ansökan kunde inte sparas.", {
+        description: error instanceof Error ? error.message : "Försök igen om en stund.",
+      });
       setSubmitting(false);
       return;
     }
