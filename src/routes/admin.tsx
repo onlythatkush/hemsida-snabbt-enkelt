@@ -11,7 +11,7 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import {
-  ChevronDown, ChevronUp, ExternalLink, FileText, Inbox, LayoutGrid, Loader2, Mail, RefreshCw, Sparkles,
+  ChevronDown, ChevronUp, Eye, ExternalLink, FileText, Inbox, LayoutGrid, Loader2, Mail, RefreshCw, Sparkles,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -108,6 +108,8 @@ function Admin() {
   const [seeding, setSeeding] = useState(false);
   const [sendingRef, setSendingRef] = useState<string | null>(null);
   const [logVersion, setLogVersion] = useState(0);
+  const [mailPreview, setMailPreview] = useState<{ reference: string; subject: string; html: string } | null>(null);
+  const [previewingRef, setPreviewingRef] = useState<string | null>(null);
   const realItems = items.filter((a) => !isTest(a));
   const testItems = items.filter(isTest);
 
@@ -220,6 +222,22 @@ function Admin() {
     }
   }
 
+  async function openMailPreview(reference: string) {
+    setPreviewingRef(reference);
+    try {
+      const res = await fetch(`/api/admin/send-preview?mode=html&reference=${encodeURIComponent(reference)}`, {
+        headers: { "x-admin-key": savedKey },
+      });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(body?.error || "Kunde inte visa mailet");
+      setMailPreview({ reference, subject: body.subject, html: body.html });
+    } catch (e: any) {
+      toast.error(e.message || "Kunde inte visa mailet");
+    } finally {
+      setPreviewingRef(null);
+    }
+  }
+
   async function seedTestGallery() {
     setSeeding(true);
     try {
@@ -268,7 +286,24 @@ function Admin() {
             </CardContent></Card>
           </div>
         </main>
-        <SiteFooter />
+        {mailPreview && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-3"
+          onClick={() => setMailPreview(null)}
+        >
+          <div className="flex h-[90vh] w-full max-w-[680px] flex-col overflow-hidden rounded-xl bg-background" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-start justify-between gap-3 border-b p-4">
+              <div className="min-w-0">
+                <div className="text-xs text-muted-foreground">Förhandsgranskning · {mailPreview.reference}</div>
+                <div className="truncate text-sm font-medium">{mailPreview.subject}</div>
+              </div>
+              <Button size="sm" variant="outline" onClick={() => setMailPreview(null)}>Stäng</Button>
+            </div>
+            <iframe title="Mailförhandsgranskning" srcDoc={mailPreview.html} className="h-full w-full flex-1 bg-white" />
+          </div>
+        </div>
+      )}
+      <SiteFooter />
       </div>
     );
   }
@@ -420,6 +455,10 @@ function Admin() {
                             <Button asChild variant="secondary" className="w-full">
                               <a href={a.preview_url} target="_blank" rel="noreferrer"><ExternalLink className="h-4 w-4" /> Öppna kundpreview</a>
                             </Button>
+                            <Button variant="outline" className="w-full" onClick={() => openMailPreview(a.reference)} disabled={previewingRef === a.reference}>
+                              {previewingRef === a.reference ? <Loader2 className="h-4 w-4 animate-spin" /> : <Eye className="h-4 w-4" />}
+                              Förhandsgranska mail
+                            </Button>
                             <Button variant="outline" className="w-full" onClick={() => sendPreviewEmail(a)} disabled={sendingRef === a.reference}>
                               {sendingRef === a.reference ? <Loader2 className="h-4 w-4 animate-spin" /> : <Mail className="h-4 w-4" />}
                               Skicka preview
@@ -508,6 +547,12 @@ function Admin() {
                             <Button size="sm" variant="outline" onClick={() => createPreview(a.reference, "regenerate-design")} disabled={buildingRef === a.reference}>
                               {buildingRef === a.reference ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
                               Ny design
+                            </Button>
+                          )}
+                          {a.preview_url && (
+                            <Button size="sm" variant="outline" onClick={() => openMailPreview(a.reference)} disabled={previewingRef === a.reference}>
+                              {previewingRef === a.reference ? <Loader2 className="h-4 w-4 animate-spin" /> : <Eye className="h-4 w-4" />}
+                              Förhandsgranska mail
                             </Button>
                           )}
                           {a.preview_url && (
