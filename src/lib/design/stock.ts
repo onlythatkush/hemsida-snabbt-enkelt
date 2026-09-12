@@ -1,4 +1,5 @@
 import type { IndustryId } from "./types";
+import { type StockSetId, stockSetFor } from "./stock-map";
 
 import sweets1 from "@/assets/stock/sweets-1.jpg";
 import sweets2 from "@/assets/stock/sweets-2.jpg";
@@ -14,8 +15,6 @@ import professional2 from "@/assets/stock/professional-2.jpg";
 import wellness1 from "@/assets/stock/wellness-1.jpg";
 import wellness2 from "@/assets/stock/wellness-2.jpg";
 
-export type StockSetId = "sweets" | "food" | "retail" | "trade" | "professional" | "wellness";
-
 const SETS: Record<StockSetId, string[]> = {
   sweets: [sweets1, sweets2, sweets3],
   food: [food1, food2, retail2],
@@ -25,31 +24,11 @@ const SETS: Record<StockSetId, string[]> = {
   wellness: [wellness1, wellness2, retail1],
 };
 
-const BY_INDUSTRY: Record<IndustryId, StockSetId> = {
-  bakery: "sweets",
-  cafe: "sweets",
-  restaurant: "food",
-  ecommerce: "retail",
-  retail: "retail",
-  legal: "professional",
-  consulting: "professional",
-  beauty: "wellness",
-  health: "wellness",
-  fitness: "wellness",
-  construction: "trade",
-  cleaning: "trade",
-  realestate: "trade",
-  photography: "professional",
-  events: "professional",
-  generic: "professional",
-};
-
-export function stockSetFor(industry: IndustryId): StockSetId {
-  return BY_INDUSTRY[industry] || "professional";
-}
-
 /** Deterministic list of fallback photos so a generated page is never text-only. */
-export function stockImages(set?: StockSetId | null, industry?: IndustryId): string[] {
-  const key = set && SETS[set] ? set : stockSetFor(industry || "generic");
+export function stockImages(set?: string | null, industry?: IndustryId): string[] {
+  const key = (set && (SETS as Record<string, string[]>)[set] ? set : stockSetFor(industry || "generic")) as StockSetId;
   return SETS[key];
 }
+
+export { stockSetFor };
+export type { StockSetId };
