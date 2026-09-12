@@ -3,6 +3,7 @@ import { ctaPrimary, ctaSecondary, heroSub, heroTitle, tagline } from "./copy";
 import { FAMILIES, buildPalette, toneDistance, tuneShape, tuneTypography } from "./families";
 import { detectIndustry, detectTone, isLocal } from "./keywords";
 import { buildSections } from "./sections";
+import { stockSetFor } from "./stock-map";
 import type { ApplicationInput, DesignSpec, FamilyId, SpecImage } from "./types";
 
 export const DESIGN_SPEC_VERSION = 1;
@@ -75,10 +76,15 @@ export function composeDesignSpec(app: ApplicationInput, override?: { family?: F
 
   const chosen = override?.family || chooseFamily(industry, tone, seed, photos.length).family;
   const familyDef = FAMILIES[chosen];
-  // Pale colours make poor primaries; the strongest colour leads, the rest accent.
-  const customerColors = [...extractColors(app.colors)].sort((a, b) => contrast(b, "#ffffff") - contrast(a, "#ffffff"));
+  // Pale colours make poor primaries; the strongest colour leads, pale ones become tints.
+  const allColors = extractColors(app.colors);
+  const strong = allColors.filter((c) => contrast(c, "#ffffff") >= 2.2).sort((a, b) => contrast(b, "#ffffff") - contrast(a, "#ffffff"));
+  const pale = allColors.filter((c) => contrast(c, "#ffffff") < 2.2);
+  // Only strong colours drive primary/accent; pale ones stay soft tints.
+  const customerColors = strong.length ? strong : pale;
 
   const palette = buildPalette(familyDef, customerColors, tone);
+  if (pale.length) palette.tint = pale[0];
   const type = tuneTypography(familyDef.type, tone);
   const shape = tuneShape(familyDef.shape, tone);
 
@@ -120,5 +126,6 @@ export function composeDesignSpec(app: ApplicationInput, override?: { family?: F
     images,
     sections,
     fonts: familyDef.fonts,
+    stockSet: stockSetFor(industry),
   };
 }

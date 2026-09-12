@@ -45,6 +45,8 @@ export type Palette = {
   primarySoft: string;
   onPrimary: string;
   accent: string;
+  /** Optional pale brand colour used for tints, washes and soft highlights. */
+  tint?: string;
 };
 
 export type Typography = {
@@ -128,6 +130,8 @@ export type DesignSpec = {
   images: SpecImage[];
   sections: Section[];
   fonts: string[];
+  /** Which curated photo set to fall back on when the customer has no own photos. */
+  stockSet?: string;
 };
 
 export type ApplicationInput = {

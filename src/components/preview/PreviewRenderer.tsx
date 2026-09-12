@@ -1,441 +1,663 @@
 import type { CSSProperties } from "react";
-import type { DesignSpec, Section, SpecImage } from "@/lib/design/types";
+import { ArrowRight, Check, Mail, MapPin, Phone } from "lucide-react";
+import type { DesignSpec, Section } from "@/lib/design/types";
+import { stockImages } from "@/lib/design/stock";
 
-type Props = { spec: DesignSpec };
+function rgba(hex: string, alpha: number) {
+  let h = (hex || "#000000").replace("#", "");
+  if (h.length === 3) h = h.split("").map((c) => c + c).join("");
+  const r = parseInt(h.slice(0, 2), 16) || 0;
+  const g = parseInt(h.slice(2, 4), 16) || 0;
+  const b = parseInt(h.slice(4, 6), 16) || 0;
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
 
-function styleVars(spec: DesignSpec): CSSProperties {
+type Ctx = {
+  spec: DesignSpec;
+  stock: string[];
+  imagesFor: (section: Section, index: number, count: number) => string[];
+};
+
+function buildCtx(spec: DesignSpec): Ctx {
+  const stock = stockImages(spec.stockSet, spec.industry);
+  const imagesFor = (section: Section, index: number, count: number) => {
+    const own = (section.images || [])
+      .map((i) => spec.images[i]?.url)
+      .filter((u): u is string => Boolean(u));
+    const out = own.slice(0, count);
+    for (let k = 0; out.length < count; k++) {
+      const start = index === 0 ? 0 : 1;
+      out.push(stock[(start + index + k + out.length) % stock.length]);
+      if (k > 8) break;
+    }
+    return out;
+  };
+  return { spec, stock, imagesFor };
+}
+
+export function PreviewRenderer({ spec }: { spec: DesignSpec }) {
+  const ctx = buildCtx(spec);
   const p = spec.palette;
-  return {
-    "--dw-bg": p.bg,
-    "--dw-surface": p.surface,
-    "--dw-surface-alt": p.surfaceAlt,
-    "--dw-ink": p.ink,
-    "--dw-muted": p.muted,
-    "--dw-border": p.border,
-    "--dw-primary": p.primary,
-    "--dw-primary-soft": p.primarySoft,
-    "--dw-on-primary": p.onPrimary,
-    "--dw-accent": p.accent,
-    "--dw-radius": `${spec.shape.radius}px`,
-    "--dw-radius-sm": `${spec.shape.radiusSm}px`,
-    "--dw-image-radius": `${spec.shape.imageRadius}px`,
-    "--dw-shadow": spec.shape.shadow,
-    "--dw-heading": spec.type.headingFamily,
-    "--dw-body": spec.type.bodyFamily,
-    "--dw-heading-weight": String(spec.type.headingWeight),
-    "--dw-tracking": spec.type.headingTracking,
-    "--dw-eyebrow-tracking": spec.type.eyebrowTracking,
-    "--dw-pad": `${spec.shape.sectionPadding}px`,
-    backgroundColor: "var(--dw-bg)",
-    color: "var(--dw-ink)",
-    fontFamily: "var(--dw-body)",
+  const t = spec.type;
+  const s = spec.shape;
+
+  const vars = {
+    "--p-bg": p.bg,
+    "--p-surface": p.surface,
+    "--p-surface-alt": p.surfaceAlt,
+    "--p-ink": p.ink,
+    "--p-muted": p.muted,
+    "--p-border": p.border,
+    "--p-primary": p.primary,
+    "--p-primary-soft": p.primarySoft,
+    "--p-on-primary": p.onPrimary,
+    "--p-accent": p.accent,
+    "--p-tint": p.tint || p.primarySoft,
+    "--f-head": t.headingFamily,
+    "--f-body": t.bodyFamily,
+    "--r-lg": `${s.radius}px`,
+    "--r-sm": `${s.radiusSm}px`,
+    "--r-img": `${s.imageRadius}px`,
+    "--shadow": s.shadow,
+    "--pad": `${s.sectionPadding}px`,
   } as CSSProperties;
-}
 
-function imagesFor(spec: DesignSpec, section: Section): SpecImage[] {
-  return (section.images || [])
-    .map((index) => spec.images[index])
-    .filter((image): image is SpecImage => Boolean(image?.url));
-}
-
-function sectionBackground(tone: Section["tone"]) {
-  if (tone === "alt") return "var(--dw-surface-alt)";
-  if (tone === "contrast") return "var(--dw-primary)";
-  return "transparent";
-}
-
-function Heading({ children, level = 2 }: { children: React.ReactNode; level?: 1 | 2 | 3 }) {
-  const Tag = (level === 1 ? "h1" : level === 2 ? "h2" : "h3") as "h1";
-  const size = level === 1 ? "clamp(2.3rem, 8vw, 4.4rem)" : level === 2 ? "clamp(1.65rem, 5vw, 2.6rem)" : "1.15rem";
-  return (
-    <Tag
-      style={{
-        fontFamily: "var(--dw-heading)",
-        fontWeight: "var(--dw-heading-weight)" as unknown as number,
-        letterSpacing: "var(--dw-tracking)",
-        lineHeight: level === 1 ? 1.03 : 1.15,
-        fontSize: size,
-        margin: 0,
-      }}
-    >
-      {children}
-    </Tag>
-  );
-}
-
-function Eyebrow({ children, muted }: { children: React.ReactNode; muted?: boolean }) {
-  if (!children) return null;
   return (
     <div
-      style={{
-        textTransform: "uppercase",
-        letterSpacing: "var(--dw-eyebrow-tracking)",
-        fontSize: "0.7rem",
-        fontWeight: 600,
-        marginBottom: 14,
-        color: muted ? "currentColor" : "var(--dw-primary)",
-        opacity: muted ? 0.7 : 1,
-      }}
+      style={vars}
+      className="w-full overflow-x-hidden"
     >
-      {children}
+      <div style={{ background: p.bg, color: p.ink, fontFamily: "var(--f-body)" }}>
+        <Hero ctx={ctx} />
+        {spec.sections.slice(1).map((section, i) => (
+          <SectionBlock key={section.id + i} ctx={ctx} section={section} index={i + 1} />
+        ))}
+        <Footer ctx={ctx} />
+      </div>
     </div>
   );
 }
 
-function Cta({ label, variant = "solid" }: { label: string; variant?: "solid" | "ghost" }) {
-  const solid = variant === "solid";
-  return (
-    <span
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: "14px 26px",
-        borderRadius: "var(--dw-radius-sm)",
-        fontWeight: 600,
-        fontSize: "0.98rem",
-        background: solid ? "var(--dw-primary)" : "transparent",
-        color: solid ? "var(--dw-on-primary)" : "currentColor",
-        border: solid ? "1px solid transparent" : "1px solid currentColor",
-      }}
-    >
-      {label}
-    </span>
-  );
-}
+/* ------------------------------------------------------------------ hero */
 
-function SectionShell({ section, children }: { section: Section; children: React.ReactNode }) {
-  const contrast = section.tone === "contrast";
-  return (
-    <section
-      style={{
-        background: sectionBackground(section.tone),
-        color: contrast ? "var(--dw-on-primary)" : "var(--dw-ink)",
-        paddingTop: "var(--dw-pad)",
-        paddingBottom: "var(--dw-pad)",
-      }}
-    >
-      <div style={{ maxWidth: 1120, margin: "0 auto", padding: "0 20px" }}>{children}</div>
-    </section>
-  );
-}
+function Hero({ ctx }: { ctx: Ctx }) {
+  const { spec } = ctx;
+  const p = spec.palette;
+  const b = spec.brand;
+  const hero = ctx.imagesFor(spec.sections[0] || { id: "hero", type: "hero" }, 0, 1)[0];
+  const upper = spec.type.headingCase === "upper";
 
-function Hero({ spec, section }: { spec: DesignSpec; section: Section }) {
-  const [image] = imagesFor(spec, section);
-  const dark = spec.palette.mode === "dark";
   return (
-    <section style={{ position: "relative", overflow: "hidden", background: image ? "#000" : "var(--dw-surface-alt)" }}>
-      {image && (
-        <img
-          src={image.url}
-          alt=""
-          style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", opacity: dark ? 0.5 : 0.62 }}
-        />
-      )}
+    <>
+    <header className="relative isolate overflow-hidden" style={{ background: p.ink }}>
+      <img
+        src={hero}
+        alt={b.company}
+        className="absolute inset-0 h-full w-full object-cover"
+        style={{ transform: "scale(1.04)" }}
+      />
       <div
+        className="absolute inset-0"
         style={{
-          position: "absolute",
-          inset: 0,
-          background: image
-            ? `linear-gradient(180deg, rgba(0,0,0,0.28), rgba(0,0,0,0.66))`
-            : `linear-gradient(160deg, var(--dw-primary-soft), var(--dw-bg))`,
+          background: `linear-gradient(180deg, ${rgba(p.ink, 0.62)} 0%, ${rgba(p.ink, 0.38)} 38%, ${rgba(p.ink, 0.88)} 100%)`,
         }}
       />
       <div
+        className="absolute inset-0"
+        style={{ background: `radial-gradient(120% 80% at 15% 15%, ${rgba(p.primary, 0.32)} 0%, transparent 60%)` }}
+      />
+
+      <div className="relative mx-auto w-full max-w-6xl px-5 pb-28 pt-24 sm:px-8 sm:pb-36 sm:pt-32">
+        <div
+          className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-[0.68rem] font-semibold backdrop-blur"
+          style={{
+            background: rgba(p.tint || "#ffffff", 0.22),
+            border: `1px solid ${rgba("#ffffff", 0.28)}`,
+            color: "#ffffff",
+            letterSpacing: spec.type.eyebrowTracking,
+            textTransform: "uppercase",
+          }}
+        >
+          <span className="inline-block h-1.5 w-1.5 rounded-full" style={{ background: p.tint || p.accent }} />
+          {b.tagline}
+        </div>
+
+        <h1
+          className="mt-6 max-w-3xl text-[2.4rem] leading-[1.03] sm:text-6xl"
+          style={{
+            fontFamily: "var(--f-head)",
+            fontWeight: spec.type.headingWeight,
+            letterSpacing: spec.type.headingTracking,
+            textTransform: upper ? "uppercase" : "none",
+            color: "#ffffff",
+            textShadow: `0 2px 30px ${rgba(p.ink, 0.55)}`,
+          }}
+        >
+          {b.heroTitle}
+        </h1>
+
+        <p className="mt-5 max-w-xl text-base leading-relaxed sm:text-lg" style={{ color: rgba("#ffffff", 0.86) }}>
+          {b.heroSub}
+        </p>
+
+        <div className="mt-8 flex flex-wrap items-center gap-3">
+          <a
+            href="#kontakt"
+            className="inline-flex items-center gap-2 px-6 py-3.5 text-sm font-semibold transition-transform hover:-translate-y-0.5"
+            style={{
+              background: `linear-gradient(135deg, ${p.primary}, ${p.accent})`,
+              color: p.onPrimary,
+              borderRadius: "var(--r-sm)",
+              boxShadow: `0 18px 40px -18px ${rgba(p.primary, 0.9)}`,
+            }}
+          >
+            {b.ctaPrimary} <ArrowRight className="h-4 w-4" />
+          </a>
+          {b.ctaSecondary ? (
+            <a
+              href="#om"
+              className="inline-flex items-center gap-2 px-6 py-3.5 text-sm font-semibold backdrop-blur"
+              style={{
+                background: rgba("#ffffff", 0.12),
+                border: `1px solid ${rgba("#ffffff", 0.3)}`,
+                color: "#ffffff",
+                borderRadius: "var(--r-sm)",
+              }}
+            >
+              {b.ctaSecondary}
+            </a>
+          ) : null}
+        </div>
+      </div>
+
+    </header>
+    <HeroStrip ctx={ctx} />
+    </>
+  );
+}
+
+function HeroStrip({ ctx }: { ctx: Ctx }) {
+  const p = ctx.spec.palette;
+  const points = [
+    ctx.spec.brand.address ? { label: "Hos oss", value: ctx.spec.brand.address } : null,
+    ctx.spec.brand.phone ? { label: "Ring oss", value: ctx.spec.brand.phone } : null,
+    ctx.spec.brand.email ? { label: "Mejla oss", value: ctx.spec.brand.email } : null,
+  ].filter(Boolean) as { label: string; value: string }[];
+
+  if (!points.length) return null;
+
+  return (
+    <div className="relative z-20 mx-auto -mb-16 -mt-16 w-full max-w-5xl px-5 sm:px-8">
+      <div
+        className="grid gap-px overflow-hidden sm:grid-cols-3"
         style={{
-          position: "relative",
-          maxWidth: 1120,
-          margin: "0 auto",
-          padding: "clamp(84px, 18vw, 168px) 20px clamp(64px, 12vw, 132px)",
-          color: image ? "#fff" : "var(--dw-ink)",
+          background: p.border,
+          borderRadius: "var(--r-lg)",
+          boxShadow: "var(--shadow)",
         }}
       >
-        <div style={{ maxWidth: 680 }}>
-          <Eyebrow muted={Boolean(image)}>{spec.brand.tagline}</Eyebrow>
-          <Heading level={1}>{spec.brand.heroTitle}</Heading>
-          <p style={{ marginTop: 20, fontSize: "clamp(1.02rem, 2.6vw, 1.2rem)", lineHeight: 1.65, opacity: 0.92 }}>
-            {spec.brand.heroSub}
-          </p>
-          <div style={{ marginTop: 30, display: "flex", flexWrap: "wrap", gap: 12 }}>
-            <Cta label={spec.brand.ctaPrimary} />
-            {spec.brand.ctaSecondary && <Cta label={spec.brand.ctaSecondary} variant="ghost" />}
+        {points.map((point) => (
+          <div key={point.label} className="px-5 py-4" style={{ background: p.surface }}>
+            <div className="text-[0.64rem] font-semibold uppercase tracking-[0.2em]" style={{ color: p.primary }}>
+              {point.label}
+            </div>
+            <div className="mt-1 text-sm font-medium break-words" style={{ color: p.ink }}>
+              {point.value}
+            </div>
           </div>
-        </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* -------------------------------------------------------------- sections */
+
+function sectionBackground(section: Section, spec: DesignSpec) {
+  const p = spec.palette;
+  if (section.tone === "contrast") {
+    return {
+      background: `linear-gradient(145deg, ${p.primary} 0%, ${p.primary} 32%, ${p.accent} 135%)`,
+      color: p.onPrimary,
+    };
+  }
+  if (section.tone === "alt") {
+    return {
+      background: `linear-gradient(180deg, ${p.surfaceAlt} 0%, ${p.bg} 100%)`,
+      color: p.ink,
+    };
+  }
+  return { background: p.bg, color: p.ink };
+}
+
+function SectionBlock({ ctx, section, index }: { ctx: Ctx; section: Section; index: number }) {
+  const { spec } = ctx;
+  const style = sectionBackground(section, spec);
+  const contrast = section.tone === "contrast";
+  const extraTop = index === 1 ? 84 : 0;
+
+  return (
+    <section
+      id={section.type === "contact" ? "kontakt" : section.id}
+      className="relative"
+      style={{
+        ...style,
+        paddingTop: `calc(var(--pad) + ${extraTop}px)`,
+        paddingBottom: "var(--pad)",
+      }}
+    >
+      {section.tone !== "contrast" ? (
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 top-0 h-px"
+          style={{ background: `linear-gradient(90deg, transparent, ${spec.palette.border}, transparent)` }}
+        />
+      ) : null}
+      <div className="mx-auto w-full max-w-6xl px-5 sm:px-8">
+        <SectionBody ctx={ctx} section={section} index={index} contrast={contrast} />
       </div>
     </section>
   );
 }
 
-function About({ spec, section }: { spec: DesignSpec; section: Section }) {
-  const [image] = imagesFor(spec, section);
+function Heading({
+  ctx,
+  section,
+  contrast,
+  center,
+}: {
+  ctx: Ctx;
+  section: Section;
+  contrast: boolean;
+  center?: boolean;
+}) {
+  const spec = ctx.spec;
+  const p = spec.palette;
+  const upper = spec.type.headingCase === "upper";
   return (
-    <SectionShell section={section}>
-      <div
-        style={{
-          display: "grid",
-          gap: 32,
-          gridTemplateColumns: image ? "repeat(auto-fit, minmax(280px, 1fr))" : "1fr",
-          alignItems: "center",
-        }}
-      >
-        <div style={{ maxWidth: 620 }}>
-          <Eyebrow>{section.eyebrow}</Eyebrow>
-          <Heading>{section.title}</Heading>
-          <p style={{ marginTop: 18, lineHeight: 1.75, color: "var(--dw-muted)", fontSize: "1.03rem" }}>{section.body}</p>
+    <div className={center ? "mx-auto max-w-2xl text-center" : "max-w-2xl"}>
+      {section.eyebrow ? (
+        <div
+          className="text-[0.66rem] font-semibold uppercase"
+          style={{ letterSpacing: spec.type.eyebrowTracking, color: contrast ? rgba(p.onPrimary, 0.8) : p.primary }}
+        >
+          {section.eyebrow}
         </div>
-        {image && (
-          <img
-            src={image.url}
-            alt=""
-            loading="lazy"
-            style={{ width: "100%", aspectRatio: "4 / 3", objectFit: "cover", borderRadius: "var(--dw-image-radius)", boxShadow: "var(--dw-shadow)" }}
-          />
-        )}
-      </div>
-    </SectionShell>
-  );
-}
-
-function Cards({ spec, section }: { spec: DesignSpec; section: Section }) {
-  const images = imagesFor(spec, section);
-  return (
-    <SectionShell section={section}>
-      <div style={{ maxWidth: 620, marginBottom: 34 }}>
-        <Eyebrow>{section.eyebrow}</Eyebrow>
-        <Heading>{section.title}</Heading>
-        {section.body && <p style={{ marginTop: 14, lineHeight: 1.7, color: "var(--dw-muted)" }}>{section.body}</p>}
-      </div>
-      <div style={{ display: "grid", gap: 18, gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))" }}>
-        {(section.items || []).map((item, index) => {
-          const image = images[index];
-          return (
-            <article
-              key={item.title}
-              style={{
-                background: "var(--dw-surface)",
-                borderRadius: "var(--dw-radius)",
-                border: "1px solid var(--dw-border)",
-                boxShadow: "var(--dw-shadow)",
-                overflow: "hidden",
-                color: "var(--dw-ink)",
-              }}
-            >
-              {image && (
-                <img src={image.url} alt="" loading="lazy" style={{ width: "100%", aspectRatio: "3 / 2", objectFit: "cover" }} />
-              )}
-              <div style={{ padding: 22 }}>
-                <Heading level={3}>{item.title}</Heading>
-                {item.body && <p style={{ marginTop: 10, lineHeight: 1.65, color: "var(--dw-muted)", fontSize: "0.96rem" }}>{item.body}</p>}
-              </div>
-            </article>
-          );
-        })}
-      </div>
-    </SectionShell>
-  );
-}
-
-function Highlight({ spec, section }: { spec: DesignSpec; section: Section }) {
-  const images = imagesFor(spec, section);
-  return (
-    <SectionShell section={section}>
-      <div style={{ display: "grid", gap: 32, gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", alignItems: "center" }}>
-        <div style={{ display: "grid", gap: 14, order: section.layout === "split-reverse" ? 1 : 0 }}>
-          {images.slice(0, 2).map((image) => (
-            <img
-              key={image.path}
-              src={image.url}
-              alt=""
-              loading="lazy"
-              style={{ width: "100%", aspectRatio: "16 / 10", objectFit: "cover", borderRadius: "var(--dw-image-radius)", boxShadow: "var(--dw-shadow)" }}
-            />
-          ))}
-        </div>
-        <div style={{ maxWidth: 560 }}>
-          <Eyebrow>{section.eyebrow}</Eyebrow>
-          <Heading>{section.title}</Heading>
-          <p style={{ marginTop: 18, lineHeight: 1.75, color: "var(--dw-muted)" }}>{section.body}</p>
-        </div>
-      </div>
-    </SectionShell>
-  );
-}
-
-function Steps({ section }: { section: Section }) {
-  return (
-    <SectionShell section={section}>
-      <div style={{ maxWidth: 620, marginBottom: 32 }}>
-        <Eyebrow>{section.eyebrow}</Eyebrow>
-        <Heading>{section.title}</Heading>
-      </div>
-      <ol style={{ listStyle: "none", margin: 0, padding: 0, display: "grid", gap: 16, gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))" }}>
-        {(section.items || []).map((item, index) => (
-          <li key={item.title} style={{ padding: 22, background: "var(--dw-surface)", border: "1px solid var(--dw-border)", borderRadius: "var(--dw-radius)" }}>
-            <div style={{ fontFamily: "var(--dw-heading)", fontSize: "1.7rem", color: "var(--dw-primary)", lineHeight: 1 }}>{index + 1}</div>
-            <div style={{ marginTop: 12, fontWeight: 600 }}>{item.title}</div>
-            {item.body && <p style={{ marginTop: 8, lineHeight: 1.6, color: "var(--dw-muted)", fontSize: "0.94rem" }}>{item.body}</p>}
-          </li>
-        ))}
-      </ol>
-    </SectionShell>
-  );
-}
-
-function Statement({ section }: { section: Section }) {
-  return (
-    <SectionShell section={section}>
-      <div style={{ maxWidth: 720 }}>
-        <Eyebrow muted>{section.eyebrow}</Eyebrow>
-        <Heading>{section.title}</Heading>
-        {section.body && (
-          <p style={{ marginTop: 18, lineHeight: 1.75, fontSize: "1.05rem", opacity: 0.92, whiteSpace: "pre-wrap" }}>{section.body}</p>
-        )}
-      </div>
-    </SectionShell>
-  );
-}
-
-function Gallery({ spec, section }: { spec: DesignSpec; section: Section }) {
-  const images = imagesFor(spec, section);
-  if (!images.length) return null;
-  return (
-    <SectionShell section={section}>
-      <div style={{ maxWidth: 620, marginBottom: 26 }}>
-        <Eyebrow>{section.eyebrow}</Eyebrow>
-        <Heading>{section.title}</Heading>
-      </div>
-      <div style={{ display: "grid", gap: 14, gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))" }}>
-        {images.map((image, index) => (
-          <img
-            key={image.path}
-            src={image.url}
-            alt=""
-            loading="lazy"
-            style={{
-              width: "100%",
-              aspectRatio: index % 5 === 0 ? "4 / 5" : "1 / 1",
-              objectFit: "cover",
-              borderRadius: "var(--dw-image-radius)",
-            }}
-          />
-        ))}
-      </div>
-    </SectionShell>
-  );
-}
-
-function Documents({ spec, section }: { spec: DesignSpec; section: Section }) {
-  const docs = spec.images.filter((image) => image.role === "doc" && image.url);
-  if (!docs.length) return null;
-  return (
-    <SectionShell section={section}>
-      <Eyebrow>{section.eyebrow}</Eyebrow>
-      <Heading>{section.title}</Heading>
-      <div style={{ marginTop: 20, display: "grid", gap: 12, gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))" }}>
-        {docs.map((doc) => (
-          <a
-            key={doc.path}
-            href={doc.url}
-            target="_blank"
-            rel="noreferrer"
-            style={{
-              display: "block",
-              padding: 16,
-              borderRadius: "var(--dw-radius-sm)",
-              border: "1px solid var(--dw-border)",
-              background: "var(--dw-surface)",
-              color: "var(--dw-ink)",
-              textDecoration: "none",
-              fontSize: "0.95rem",
-            }}
-          >
-            {doc.name}
-          </a>
-        ))}
-      </div>
-    </SectionShell>
-  );
-}
-
-function Contact({ spec, section }: { spec: DesignSpec; section: Section }) {
-  const rows = [
-    spec.brand.email && { label: "E-post", value: spec.brand.email },
-    spec.brand.phone && { label: "Telefon", value: spec.brand.phone },
-    spec.brand.address && { label: "Adress", value: spec.brand.address },
-    spec.brand.socialLinks && { label: "Sociala medier", value: spec.brand.socialLinks },
-  ].filter(Boolean) as { label: string; value: string }[];
-
-  return (
-    <SectionShell section={section}>
-      <div style={{ display: "grid", gap: 30, gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))" }}>
-        <div>
-          <Eyebrow muted>{section.eyebrow}</Eyebrow>
-          <Heading>{section.title}</Heading>
-          <p style={{ marginTop: 16, lineHeight: 1.7, opacity: 0.9 }}>
-            Skriv eller ring så återkommer vi så snart vi kan.
-          </p>
-          <div style={{ marginTop: 22 }}>
-            <span
-              style={{
-                display: "inline-flex",
-                padding: "14px 26px",
-                borderRadius: "var(--dw-radius-sm)",
-                background: "var(--dw-on-primary)",
-                color: "var(--dw-primary)",
-                fontWeight: 600,
-              }}
-            >
-              {spec.brand.ctaPrimary}
-            </span>
-          </div>
-        </div>
-        <dl style={{ margin: 0, display: "grid", gap: 14, alignContent: "start" }}>
-          {rows.map((row) => (
-            <div key={row.label} style={{ borderTop: "1px solid rgba(255,255,255,0.25)", paddingTop: 12 }}>
-              <dt style={{ fontSize: "0.72rem", textTransform: "uppercase", letterSpacing: "0.16em", opacity: 0.7 }}>{row.label}</dt>
-              <dd style={{ margin: "6px 0 0", wordBreak: "break-word" }}>{row.value}</dd>
-            </div>
-          ))}
-        </dl>
-      </div>
-    </SectionShell>
-  );
-}
-
-export function PreviewRenderer({ spec }: Props) {
-  return (
-    <div style={styleVars(spec)}>
-      {spec.sections.map((section) => {
-        switch (section.type) {
-          case "hero":
-            return <Hero key={section.id} spec={spec} section={section} />;
-          case "about":
-            return <About key={section.id} spec={spec} section={section} />;
-          case "services":
-          case "why":
-            return <Cards key={section.id} spec={spec} section={section} />;
-          case "highlight":
-            return <Highlight key={section.id} spec={spec} section={section} />;
-          case "process":
-            return <Steps key={section.id} section={section} />;
-          case "local":
-          case "wishes":
-            return <Statement key={section.id} section={section} />;
-          case "gallery":
-            return <Gallery key={section.id} spec={spec} section={section} />;
-          case "documents":
-            return <Documents key={section.id} spec={spec} section={section} />;
-          case "contact":
-            return <Contact key={section.id} spec={spec} section={section} />;
-          default:
-            return null;
-        }
-      })}
-      <footer style={{ background: "var(--dw-surface-alt)", color: "var(--dw-muted)", padding: "28px 20px", textAlign: "center", fontSize: "0.85rem" }}>
-        {spec.brand.company} — förslag framtaget av Din Webbpartner.
-      </footer>
+      ) : null}
+      {section.title ? (
+        <h2
+          className="mt-3 text-[1.75rem] leading-tight sm:text-4xl"
+          style={{
+            fontFamily: "var(--f-head)",
+            fontWeight: spec.type.headingWeight,
+            letterSpacing: spec.type.headingTracking,
+            textTransform: upper ? "uppercase" : "none",
+            color: contrast ? p.onPrimary : p.ink,
+          }}
+        >
+          {section.title}
+        </h2>
+      ) : null}
+      {section.body ? (
+        <p
+          className="mt-4 text-[0.98rem] leading-relaxed sm:text-lg"
+          style={{ color: contrast ? rgba(p.onPrimary, 0.86) : p.muted }}
+        >
+          {section.body}
+        </p>
+      ) : null}
     </div>
   );
 }
 
-export default PreviewRenderer;
+function SectionBody({ ctx, section, index, contrast }: { ctx: Ctx; section: Section; index: number; contrast: boolean }) {
+  switch (section.type) {
+    case "about":
+      return <SplitBlock ctx={ctx} section={section} index={index} reverse={false} />;
+    case "highlight":
+      return <HighlightBlock ctx={ctx} section={section} index={index} />;
+    case "services":
+      return <CardsBlock ctx={ctx} section={section} index={index} withImages />;
+    case "why":
+      return <CardsBlock ctx={ctx} section={section} index={index} />;
+    case "process":
+      return <StepsBlock ctx={ctx} section={section} />;
+    case "gallery":
+      return <GalleryBlock ctx={ctx} section={section} index={index} />;
+    case "local":
+    case "wishes":
+      return <StatementBlock ctx={ctx} section={section} contrast={contrast} />;
+    case "documents":
+      return <DocumentsBlock ctx={ctx} section={section} />;
+    case "contact":
+      return <ContactBlock ctx={ctx} section={section} />;
+    default:
+      return <Heading ctx={ctx} section={section} contrast={contrast} />;
+  }
+}
+
+/* ------------------------------------------------------------- building blocks */
+
+function SplitBlock({ ctx, section, index, reverse }: { ctx: Ctx; section: Section; index: number; reverse: boolean }) {
+  const p = ctx.spec.palette;
+  const img = ctx.imagesFor(section, index, 1)[0];
+  return (
+    <div className={`grid items-center gap-10 lg:grid-cols-2 ${reverse ? "lg:[direction:rtl]" : ""}`}>
+      <div className="lg:[direction:ltr]">
+        <Heading ctx={ctx} section={section} contrast={false} />
+        <ul className="mt-7 space-y-3">
+          {["Personlig kontakt", "Genuint hantverk", "Trygga leveranser"].map((line) => (
+            <li key={line} className="flex items-start gap-3 text-sm" style={{ color: p.ink }}>
+              <span
+                className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full"
+                style={{ background: p.primarySoft, color: p.primary }}
+              >
+                <Check className="h-3 w-3" />
+              </span>
+              {line}
+            </li>
+          ))}
+        </ul>
+      </div>
+      <div className="relative lg:[direction:ltr]">
+        <div
+          aria-hidden
+          className="absolute -inset-3 -z-10 hidden sm:block"
+          style={{ background: p.tint || p.primarySoft, borderRadius: "var(--r-img)", transform: "rotate(-2deg)" }}
+        />
+        <img
+          src={img}
+          alt={section.title || ctx.spec.brand.company}
+          loading="lazy"
+          className="h-[280px] w-full object-cover sm:h-[420px]"
+          style={{ borderRadius: "var(--r-img)", boxShadow: "var(--shadow)" }}
+        />
+      </div>
+    </div>
+  );
+}
+
+function HighlightBlock({ ctx, section, index }: { ctx: Ctx; section: Section; index: number }) {
+  const p = ctx.spec.palette;
+  const imgs = ctx.imagesFor(section, index, 2);
+  return (
+    <div className="relative">
+      <div className="relative overflow-hidden" style={{ borderRadius: "var(--r-lg)", boxShadow: "var(--shadow)" }}>
+        <img src={imgs[0]} alt={section.title || ""} loading="lazy" className="h-[360px] w-full object-cover sm:h-[520px]" />
+        <div
+          className="absolute inset-0"
+          style={{ background: `linear-gradient(120deg, ${rgba(p.ink, 0.82)} 0%, ${rgba(p.ink, 0.25)} 70%)` }}
+        />
+        <div className="absolute inset-0 flex items-end p-6 sm:items-center sm:p-12">
+          <div className="max-w-md">
+            <div
+              className="text-[0.66rem] font-semibold uppercase"
+              style={{ letterSpacing: ctx.spec.type.eyebrowTracking, color: p.tint || "#ffffff" }}
+            >
+              {section.eyebrow}
+            </div>
+            <h2
+              className="mt-3 text-2xl leading-tight sm:text-4xl"
+              style={{ fontFamily: "var(--f-head)", fontWeight: ctx.spec.type.headingWeight, color: "#ffffff" }}
+            >
+              {section.title}
+            </h2>
+            <p className="mt-4 text-sm leading-relaxed sm:text-base" style={{ color: rgba("#ffffff", 0.86) }}>
+              {section.body}
+            </p>
+          </div>
+        </div>
+      </div>
+      <img
+        src={imgs[1]}
+        alt=""
+        loading="lazy"
+        className="absolute -bottom-10 right-4 hidden h-40 w-40 object-cover lg:block"
+        style={{ borderRadius: "var(--r-img)", boxShadow: "var(--shadow)", border: `6px solid ${p.bg}` }}
+      />
+    </div>
+  );
+}
+
+function CardsBlock({
+  ctx,
+  section,
+  index,
+  withImages,
+}: {
+  ctx: Ctx;
+  section: Section;
+  index: number;
+  withImages?: boolean;
+}) {
+  const p = ctx.spec.palette;
+  const items = section.items || [];
+  const imgs = withImages ? ctx.imagesFor(section, index, Math.max(items.length, 1)) : [];
+  return (
+    <div>
+      <Heading ctx={ctx} section={section} contrast={false} center />
+      <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        {items.map((item, i) => (
+          <article
+            key={item.title + i}
+            className="group flex flex-col overflow-hidden transition-transform hover:-translate-y-1"
+            style={{
+              background: p.surface,
+              border: `1px solid ${p.border}`,
+              borderRadius: "var(--r-lg)",
+              boxShadow: "var(--shadow)",
+            }}
+          >
+            {withImages ? (
+              <div className="relative h-40 overflow-hidden">
+                <img src={imgs[i % imgs.length]} alt={item.title} loading="lazy" className="h-full w-full object-cover" />
+                <div className="absolute inset-0" style={{ background: `linear-gradient(180deg, transparent, ${rgba(p.ink, 0.25)})` }} />
+              </div>
+            ) : null}
+            <div className="flex flex-1 flex-col p-6">
+              {!withImages ? (
+                <span
+                  className="mb-4 grid h-9 w-9 place-items-center text-xs font-bold"
+                  style={{ background: p.primarySoft, color: p.primary, borderRadius: "var(--r-sm)" }}
+                >
+                  {String(i + 1).padStart(2, "0")}
+                </span>
+              ) : null}
+              <h3
+                className="text-lg"
+                style={{ fontFamily: "var(--f-head)", fontWeight: ctx.spec.type.headingWeight, color: p.ink }}
+              >
+                {item.title}
+              </h3>
+              {item.body ? (
+                <p className="mt-2 text-sm leading-relaxed" style={{ color: p.muted }}>
+                  {item.body}
+                </p>
+              ) : null}
+            </div>
+          </article>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function StepsBlock({ ctx, section }: { ctx: Ctx; section: Section }) {
+  const p = ctx.spec.palette;
+  const items = section.items || [];
+  return (
+    <div>
+      <Heading ctx={ctx} section={section} contrast={false} />
+      <ol className="relative mt-10 space-y-6 sm:space-y-0 sm:grid sm:grid-cols-3 sm:gap-6">
+        <div
+          aria-hidden
+          className="absolute left-[19px] top-2 hidden h-px w-full sm:block"
+          style={{ background: `linear-gradient(90deg, ${p.primary}, ${rgba(p.primary, 0)})`, top: 20 }}
+        />
+        {items.map((item, i) => (
+          <li key={item.title} className="relative flex gap-4 sm:block">
+            <span
+              className="z-10 grid h-10 w-10 shrink-0 place-items-center text-sm font-bold"
+              style={{
+                background: p.primary,
+                color: p.onPrimary,
+                borderRadius: "999px",
+                boxShadow: `0 0 0 6px ${p.bg}`,
+              }}
+            >
+              {i + 1}
+            </span>
+            <div className="sm:mt-5">
+              <h3 className="text-base font-semibold" style={{ fontFamily: "var(--f-head)", color: p.ink }}>
+                {item.title}
+              </h3>
+              {item.body ? (
+                <p className="mt-1.5 text-sm leading-relaxed" style={{ color: p.muted }}>
+                  {item.body}
+                </p>
+              ) : null}
+            </div>
+          </li>
+        ))}
+      </ol>
+    </div>
+  );
+}
+
+function GalleryBlock({ ctx, section, index }: { ctx: Ctx; section: Section; index: number }) {
+  const p = ctx.spec.palette;
+  const own = (section.images || []).map((i) => ctx.spec.images[i]?.url).filter((u): u is string => Boolean(u));
+  const imgs = own.length >= 3 ? own : ctx.imagesFor(section, index, Math.max(3, own.length));
+  const big = imgs.length >= 5;
+  return (
+    <div>
+      <Heading ctx={ctx} section={section} contrast={false} />
+      <div className={`mt-9 grid grid-cols-2 gap-3 sm:gap-4 ${big ? "sm:grid-cols-4" : "sm:grid-cols-3"}`}>
+        {imgs.slice(0, 8).map((src, i) => (
+          <figure
+            key={src + i}
+            className={`overflow-hidden ${big && i % 5 === 0 ? "col-span-2 row-span-2" : ""}`}
+            style={{ borderRadius: "var(--r-img)", boxShadow: "var(--shadow)", background: p.surfaceAlt }}
+          >
+            <img
+              src={src}
+              alt={ctx.spec.brand.company}
+              loading="lazy"
+              className={`w-full object-cover ${big && i % 5 === 0 ? "h-56 sm:h-[26rem]" : "h-40 sm:h-[13rem]"}`}
+            />
+          </figure>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function StatementBlock({ ctx, section, contrast }: { ctx: Ctx; section: Section; contrast: boolean }) {
+  const p = ctx.spec.palette;
+  return (
+    <div
+      className="relative overflow-hidden px-6 py-10 sm:px-12 sm:py-14"
+      style={{
+        background: contrast ? rgba("#ffffff", 0.1) : p.surface,
+        border: `1px solid ${contrast ? rgba("#ffffff", 0.2) : p.border}`,
+        borderRadius: "var(--r-lg)",
+        boxShadow: contrast ? "none" : "var(--shadow)",
+      }}
+    >
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full"
+        style={{ background: contrast ? rgba("#ffffff", 0.1) : rgba(p.tint || p.primarySoft, 0.55), filter: "blur(38px)" }}
+      />
+      <div className="relative">
+        <Heading ctx={ctx} section={section} contrast={contrast} />
+      </div>
+    </div>
+  );
+}
+
+function DocumentsBlock({ ctx, section }: { ctx: Ctx; section: Section }) {
+  const p = ctx.spec.palette;
+  const docs = ctx.spec.images.filter((i) => i.role === "doc");
+  return (
+    <div>
+      <Heading ctx={ctx} section={section} contrast={false} />
+      <div className="mt-7 grid gap-3 sm:grid-cols-2">
+        {docs.map((doc) => (
+          <div
+            key={doc.path}
+            className="flex items-center gap-3 px-4 py-3 text-sm"
+            style={{ background: p.surface, border: `1px solid ${p.border}`, borderRadius: "var(--r-sm)", color: p.ink }}
+          >
+            <span className="h-2 w-2 rounded-full" style={{ background: p.accent }} />
+            <span className="truncate">{doc.name}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function ContactBlock({ ctx, section }: { ctx: Ctx; section: Section }) {
+  const p = ctx.spec.palette;
+  const b = ctx.spec.brand;
+  const rows = [
+    b.email ? { icon: Mail, value: b.email } : null,
+    b.phone ? { icon: Phone, value: b.phone } : null,
+    b.address ? { icon: MapPin, value: b.address } : null,
+  ].filter(Boolean) as { icon: typeof Mail; value: string }[];
+
+  return (
+    <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
+      <div>
+        <Heading ctx={ctx} section={section} contrast />
+        <p className="mt-4 max-w-md text-sm leading-relaxed sm:text-base" style={{ color: rgba(p.onPrimary, 0.85) }}>
+          Skriv några rader om vad du behöver så hör vi av oss. Vi svarar oftast samma dag.
+        </p>
+        <a
+          href={b.email ? `mailto:${b.email}` : "#"}
+          className="mt-7 inline-flex items-center gap-2 px-6 py-3.5 text-sm font-semibold"
+          style={{ background: p.onPrimary, color: p.primary, borderRadius: "var(--r-sm)" }}
+        >
+          {b.ctaPrimary} <ArrowRight className="h-4 w-4" />
+        </a>
+      </div>
+      <div
+        className="space-y-3 p-6"
+        style={{ background: rgba("#ffffff", 0.12), border: `1px solid ${rgba("#ffffff", 0.24)}`, borderRadius: "var(--r-lg)" }}
+      >
+        {rows.map((row) => (
+          <div key={row.value} className="flex items-center gap-3 text-sm" style={{ color: p.onPrimary }}>
+            <span
+              className="grid h-9 w-9 shrink-0 place-items-center rounded-full"
+              style={{ background: rgba("#ffffff", 0.18) }}
+            >
+              <row.icon className="h-4 w-4" />
+            </span>
+            <span className="break-all">{row.value}</span>
+          </div>
+        ))}
+        {b.socialLinks ? (
+          <div className="pt-2 text-xs break-words" style={{ color: rgba(p.onPrimary, 0.75) }}>
+            {b.socialLinks}
+          </div>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
+function Footer({ ctx }: { ctx: Ctx }) {
+  const p = ctx.spec.palette;
+  const b = ctx.spec.brand;
+  return (
+    <footer style={{ background: p.ink, color: rgba("#ffffff", 0.72) }} className="px-5 py-10 sm:px-8">
+      <div className="mx-auto flex max-w-6xl flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <div style={{ fontFamily: "var(--f-head)", color: "#ffffff" }} className="text-lg">
+          {b.company}
+        </div>
+        <div className="text-xs">{b.tagline}</div>
+      </div>
+    </footer>
+  );
+}
