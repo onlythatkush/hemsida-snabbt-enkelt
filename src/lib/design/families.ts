@@ -27,7 +27,7 @@ export const FAMILIES: Record<FamilyId, FamilyDef> = {
     type: { headingFamily: SERIF, bodyFamily: GROTESK, headingWeight: 600, headingTracking: "-0.015em", headingCase: "none", scale: 1.02, eyebrowTracking: "0.16em" },
     shape: { radius: 22, radiusSm: 14, shadow: "0 18px 40px -24px rgba(74,48,28,0.45)", imageRadius: 24, border: "1px solid rgba(74,48,28,0.12)", sectionPadding: 72 },
     fonts: ["Fraunces:wght@400;600;700", "Inter:wght@400;500;600"],
-    industries: { bakery: 6, cafe: 5, restaurant: 3, retail: 3, photography: 2, events: 2, health: 1 },
+    industries: { bakery: 6, cafe: 5, restaurant: 3, retail: 3, photography: 2, events: 2, health: 1, hospitality: 4 },
     toneTarget: { warmth: 0.95, formality: 0.35, playfulness: 0.5, density: 0.5, craft: 0.9 },
   },
   "clean-nordic": {
@@ -57,7 +57,7 @@ export const FAMILIES: Record<FamilyId, FamilyDef> = {
     type: { headingFamily: DISPLAY, bodyFamily: GROTESK, headingWeight: 700, headingTracking: "-0.035em", headingCase: "none", scale: 1.08, eyebrowTracking: "0.22em" },
     shape: { radius: 4, radiusSm: 3, shadow: "0 20px 40px -30px rgba(0,0,0,0.6)", imageRadius: 4, border: "1.5px solid rgba(13,15,18,0.14)", sectionPadding: 80 },
     fonts: ["Space Grotesk:wght@500;700", "Inter:wght@400;500;600"],
-    industries: { construction: 6, fitness: 5, consulting: 2, ecommerce: 2, events: 2 },
+    industries: { construction: 6, fitness: 5, consulting: 2, ecommerce: 2, events: 2, automotive: 6 },
     toneTarget: { warmth: 0.4, formality: 0.5, playfulness: 0.5, density: 0.85, craft: 0.35 },
   },
   "soft-wellness": {
@@ -87,7 +87,7 @@ export const FAMILIES: Record<FamilyId, FamilyDef> = {
     type: { headingFamily: SERIF_ELEGANT, bodyFamily: GROTESK, headingWeight: 600, headingTracking: "-0.01em", headingCase: "none", scale: 1.06, eyebrowTracking: "0.26em" },
     shape: { radius: 14, radiusSm: 10, shadow: "0 24px 60px -30px rgba(0,0,0,0.8)", imageRadius: 16, border: "1px solid rgba(255,255,255,0.1)", sectionPadding: 88 },
     fonts: ["Playfair Display:wght@500;600;700", "Inter:wght@400;500;600"],
-    industries: { restaurant: 5, events: 5, photography: 3, realestate: 2, fitness: 2 },
+    industries: { restaurant: 5, events: 5, photography: 3, realestate: 2, fitness: 2, automotive: 3, hospitality: 3 },
     toneTarget: { warmth: 0.2, formality: 0.9, playfulness: 0.2, density: 0.7, craft: 0.4 },
   },
 };

@@ -18,6 +18,8 @@ const BY_INDUSTRY: Record<IndustryId, StockSetId> = {
   realestate: "trade",
   photography: "professional",
   events: "professional",
+  automotive: "trade",
+  hospitality: "wellness",
   generic: "professional",
 };
 

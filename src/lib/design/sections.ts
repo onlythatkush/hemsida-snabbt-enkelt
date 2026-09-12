@@ -149,6 +149,24 @@ const OFFER_LABELS: Record<IndustryId, { eyebrow: string; title: string; items: 
       { title: "Helhet", body: "Mat, teknik och dekor på ett ställe." },
     ],
   },
+  automotive: {
+    eyebrow: "Verkstaden",
+    title: "Det vi utför",
+    items: [
+      { title: "Service & reparation", body: "Alla märken, med originaldelar eller likvärdigt." },
+      { title: "Däck & hjulskifte", body: "Snabbt byte och förvaring över säsongen." },
+      { title: "Felsökning", body: "Vi läser av felkoder och förklarar vad som gäller." },
+    ],
+  },
+  hospitality: {
+    eyebrow: "Ditt boende",
+    title: "Hos oss",
+    items: [
+      { title: "Rummen", body: "Personligt inredda rum med lugn utsikt." },
+      { title: "Frukost", body: "Hemlagat på råvaror från trakten." },
+      { title: "Runt knuten", body: "Tips på det bästa i närområdet." },
+    ],
+  },
   generic: {
     eyebrow: "Tjänster",
     title: "Det vi erbjuder",
