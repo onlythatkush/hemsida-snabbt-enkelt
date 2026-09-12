@@ -151,7 +151,7 @@ async function handlePost(request: Request): Promise<Response> {
         }
 
         return Response.json({ success: true, reference: parsed.reference })
-      },
-    },
-  },
-})
+      }
+    }
+  }
+}
