@@ -236,7 +236,7 @@ export function buildSections(ctx: SectionContext): Section[] {
     tone: "alt",
   });
 
-  if (featureImages.length > 1) {
+  {
     sections.push({
       id: "highlight",
       type: "highlight",
@@ -286,7 +286,7 @@ export function buildSections(ctx: SectionContext): Section[] {
     tone: processItems ? "alt" : "base",
   });
 
-  if (galleryImages.length) {
+  {
     sections.push({
       id: "gallery",
       type: "gallery",
