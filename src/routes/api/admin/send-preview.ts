@@ -260,6 +260,17 @@ export const Route = createFileRoute('/api/admin/send-preview')({
           )
         }
 
+        const queueLogId = await logSend(provider.client, {
+          reference: app.reference,
+          company: app.company ?? null,
+          recipient,
+          preview_url: app.preview_url ?? null,
+          sender: `${SITE_NAME} <noreply@${FROM_DOMAIN}>`,
+          provider: 'lovable-email',
+          provider_message_id: messageId,
+          status: 'queued',
+        })
+
         try {
           await provider.client.from('email_send_log').insert({
             message_id: messageId,
