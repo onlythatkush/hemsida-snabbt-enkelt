@@ -45,6 +45,8 @@ export type Palette = {
   primarySoft: string;
   onPrimary: string;
   accent: string;
+  /** Optional pale brand colour used for tints, washes and soft highlights. */
+  tint?: string;
 };
 
 export type Typography = {
