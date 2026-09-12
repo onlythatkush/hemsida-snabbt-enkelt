@@ -13,3 +13,9 @@
 - [x] Djup: lager, gradients, överlappande kort, varierade sektionstoner
 - [x] Bleka kundfärger blir tint i stället för primärfärg (#cbf0ff)
 - [x] Ny Isolasweets-preview (ORD-MCG8J7) genererad och testad mobil + desktop
+
+## QA-testbatteri (designmotor)
+- [x] 20 [TEST]-ansökningar (TEST-001..020) seedade med status archived + design_spec
+- [x] Skript: scripts/generate-test-applications.ts (bun scripts/generate-test-applications.ts)
+- [x] Nya branscher: automotive, hospitality. Bättre svensk färgtolkning (längsta ordet vinner, fler färgord)
+- [x] Alla 20 previews renderade mobilt utan fel, 0 trasiga bilder, build OK
