@@ -63,9 +63,9 @@ export const Route = createFileRoute('/api/admin/seed-test-gallery')({
                  website_type, colors, extra_requests, wants_support, file_names,
                  status, preview_url, preview_token, design_spec, design_family, design_locked, updated_at)
               VALUES (
-                ${testCase.reference}, ${testCase.company}, ${testCase.company}, ${testCase.email},
-                ${testCase.phone}, ${testCase.address || null}, ${testCase.description},
-                ${testCase.social_links || null}, ${testCase.website_type}, ${testCase.colors || null},
+                ${testCase.reference}, ${testCase.company}, ${testCase.company}, ${testCase.email ?? ''},
+                ${testCase.phone ?? ''}, ${testCase.address || null}, ${testCase.description},
+                ${testCase.social_links || null}, ${testCase.website_type ?? ''}, ${testCase.colors || null},
                 ${testCase.extra_requests || null}, false, '{}'::text[],
                 'archived', ${previewUrl}, ${token}, ${sql.json(spec as any)}, ${spec.family}, false, now()
               )
