@@ -80,7 +80,8 @@ export function composeDesignSpec(app: ApplicationInput, override?: { family?: F
   const allColors = extractColors(app.colors);
   const strong = allColors.filter((c) => contrast(c, "#ffffff") >= 2.2).sort((a, b) => contrast(b, "#ffffff") - contrast(a, "#ffffff"));
   const pale = allColors.filter((c) => contrast(c, "#ffffff") < 2.2);
-  const customerColors = [...strong, ...pale];
+  // Only strong colours drive primary/accent; pale ones stay soft tints.
+  const customerColors = strong.length ? strong : pale;
 
   const palette = buildPalette(familyDef, customerColors, tone);
   if (pale.length) palette.tint = pale[0];
