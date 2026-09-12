@@ -11,7 +11,7 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import {
-  ChevronDown, ChevronUp, ExternalLink, FileText, Inbox, LayoutGrid, Loader2, RefreshCw, Sparkles,
+  ChevronDown, ChevronUp, ExternalLink, FileText, Inbox, LayoutGrid, Loader2, Mail, RefreshCw, Sparkles,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -325,6 +325,12 @@ function Admin() {
                               <ExternalLink className="h-4 w-4" /> Öppna preview
                             </a>
                           </Button>
+                          {a.preview_url && (
+                            <Button size="sm" variant="outline" className="w-full" onClick={() => sendPreviewEmail(a)} disabled={sendingRef === a.reference}>
+                              {sendingRef === a.reference ? <Loader2 className="h-4 w-4 animate-spin" /> : <Mail className="h-4 w-4" />}
+                              Skicka preview
+                            </Button>
+                          )}
                         </div>
                       </div>
                     );
@@ -388,9 +394,15 @@ function Admin() {
                           </Button>
                         )}
                         {a.preview_url && (
-                          <Button asChild variant="secondary" className="w-full">
-                            <a href={a.preview_url} target="_blank" rel="noreferrer"><ExternalLink className="h-4 w-4" /> Öppna kundpreview</a>
-                          </Button>
+                          <>
+                            <Button asChild variant="secondary" className="w-full">
+                              <a href={a.preview_url} target="_blank" rel="noreferrer"><ExternalLink className="h-4 w-4" /> Öppna kundpreview</a>
+                            </Button>
+                            <Button variant="outline" className="w-full" onClick={() => sendPreviewEmail(a)} disabled={sendingRef === a.reference}>
+                              {sendingRef === a.reference ? <Loader2 className="h-4 w-4 animate-spin" /> : <Mail className="h-4 w-4" />}
+                              Skicka preview
+                            </Button>
+                          </>
                         )}
 
                         {!!a.file_names?.length && (
@@ -462,6 +474,7 @@ function Admin() {
                         </TableCell>
                         <TableCell className="text-sm text-muted-foreground">{new Date(a.created_at).toLocaleDateString("sv-SE")}</TableCell>
                         <TableCell>
+                          <div className="flex flex-col gap-2">
                           {(a.status === "reviewing" || a.status === "new") ? (
                             <Button size="sm" onClick={() => createPreview(a.reference)} disabled={buildingRef === a.reference}>
                               {buildingRef === a.reference ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
@@ -473,6 +486,13 @@ function Admin() {
                               Ny design
                             </Button>
                           )}
+                          {a.preview_url && (
+                            <Button size="sm" variant="secondary" onClick={() => sendPreviewEmail(a)} disabled={sendingRef === a.reference}>
+                              {sendingRef === a.reference ? <Loader2 className="h-4 w-4 animate-spin" /> : <Mail className="h-4 w-4" />}
+                              Skicka preview
+                            </Button>
+                          )}
+                          </div>
                         </TableCell>
                       </TableRow>
                     ))}
