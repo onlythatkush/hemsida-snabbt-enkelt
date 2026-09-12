@@ -200,12 +200,12 @@ function Admin() {
       <SiteHeader />
       <main className="flex-1">
         <div className="container mx-auto px-4 py-8 md:py-12 max-w-7xl">
-          <div className="flex items-start justify-between gap-3 mb-6 md:mb-8">
-            <div>
-              <h1 className="text-3xl font-semibold tracking-tight">Projektansökningar</h1>
-              <p className="text-muted-foreground mt-1">Hantera kundens väg från ansökan till leverans.</p>
+          <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3 mb-6 md:mb-8">
+            <div className="min-w-0">
+              <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight truncate">Projektansökningar</h1>
+              <p className="text-muted-foreground mt-1 text-sm sm:text-base">Hantera kundens väg från ansökan till leverans.</p>
             </div>
-            <Button variant="outline" size="sm" onClick={() => load()} disabled={loading}>
+            <Button variant="outline" size="sm" className="shrink-0" onClick={() => load()} disabled={loading}>
               {loading ? <Loader2 className="animate-spin" /> : <RefreshCw />} Uppdatera
             </Button>
           </div>
