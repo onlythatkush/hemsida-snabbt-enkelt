@@ -11,7 +11,7 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import {
-  ChevronDown, ChevronUp, ExternalLink, FileText, Inbox, LayoutGrid, Loader2, RefreshCw, Sparkles,
+  ChevronDown, ChevronUp, ExternalLink, FileText, Inbox, LayoutGrid, Loader2, Mail, RefreshCw, Sparkles,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -86,6 +86,7 @@ function Admin() {
   const [buildingRef, setBuildingRef] = useState<string | null>(null);
   const [showGallery, setShowGallery] = useState(false);
   const [seeding, setSeeding] = useState(false);
+  const [sendingRef, setSendingRef] = useState<string | null>(null);
   const realItems = items.filter((a) => !isTest(a));
   const testItems = items.filter(isTest);
 
@@ -158,6 +159,42 @@ function Admin() {
       await load();
     } finally {
       setBuildingRef(null);
+    }
+  }
+
+  async function sendPreviewEmail(a: Application) {
+    if (!a.preview_url) return;
+    let recipient: string | undefined;
+    if (isTest(a)) {
+      const input = window.prompt(
+        "Testansökan: ange en säker mottagaradress (aldrig testfallets fejkadress)",
+        "",
+      );
+      if (!input) return;
+      recipient = input.trim();
+    } else if (!window.confirm(`Skicka previewmail till ${a.email}?`)) {
+      return;
+    }
+    setSendingRef(a.reference);
+    try {
+      const res = await fetch("/api/admin/send-preview", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "x-admin-key": savedKey },
+        body: JSON.stringify({ reference: a.reference, recipient }),
+      });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(
+          body?.missingEnv
+            ? `${body.error} Saknad konfiguration: ${body.missingEnv}`
+            : body?.error || "Kunde inte skicka previewmailet",
+        );
+      }
+      toast.success(`Previewmail skickat till ${body.recipient}`);
+    } catch (e: any) {
+      toast.error(e.message || "Kunde inte skicka previewmailet");
+    } finally {
+      setSendingRef(null);
     }
   }
 
@@ -288,6 +325,12 @@ function Admin() {
                               <ExternalLink className="h-4 w-4" /> Öppna preview
                             </a>
                           </Button>
+                          {a.preview_url && (
+                            <Button size="sm" variant="outline" className="w-full" onClick={() => sendPreviewEmail(a)} disabled={sendingRef === a.reference}>
+                              {sendingRef === a.reference ? <Loader2 className="h-4 w-4 animate-spin" /> : <Mail className="h-4 w-4" />}
+                              Skicka preview
+                            </Button>
+                          )}
                         </div>
                       </div>
                     );
@@ -351,9 +394,15 @@ function Admin() {
                           </Button>
                         )}
                         {a.preview_url && (
-                          <Button asChild variant="secondary" className="w-full">
-                            <a href={a.preview_url} target="_blank" rel="noreferrer"><ExternalLink className="h-4 w-4" /> Öppna kundpreview</a>
-                          </Button>
+                          <>
+                            <Button asChild variant="secondary" className="w-full">
+                              <a href={a.preview_url} target="_blank" rel="noreferrer"><ExternalLink className="h-4 w-4" /> Öppna kundpreview</a>
+                            </Button>
+                            <Button variant="outline" className="w-full" onClick={() => sendPreviewEmail(a)} disabled={sendingRef === a.reference}>
+                              {sendingRef === a.reference ? <Loader2 className="h-4 w-4 animate-spin" /> : <Mail className="h-4 w-4" />}
+                              Skicka preview
+                            </Button>
+                          </>
                         )}
 
                         {!!a.file_names?.length && (
@@ -425,6 +474,7 @@ function Admin() {
                         </TableCell>
                         <TableCell className="text-sm text-muted-foreground">{new Date(a.created_at).toLocaleDateString("sv-SE")}</TableCell>
                         <TableCell>
+                          <div className="flex flex-col gap-2">
                           {(a.status === "reviewing" || a.status === "new") ? (
                             <Button size="sm" onClick={() => createPreview(a.reference)} disabled={buildingRef === a.reference}>
                               {buildingRef === a.reference ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
@@ -436,6 +486,13 @@ function Admin() {
                               Ny design
                             </Button>
                           )}
+                          {a.preview_url && (
+                            <Button size="sm" variant="secondary" onClick={() => sendPreviewEmail(a)} disabled={sendingRef === a.reference}>
+                              {sendingRef === a.reference ? <Loader2 className="h-4 w-4 animate-spin" /> : <Mail className="h-4 w-4" />}
+                              Skicka preview
+                            </Button>
+                          )}
+                          </div>
                         </TableCell>
                       </TableRow>
                     ))}
