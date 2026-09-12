@@ -19,3 +19,5 @@
 - [x] Skript: scripts/generate-test-applications.ts (bun scripts/generate-test-applications.ts)
 - [x] Nya branscher: automotive, hospitality. Bättre svensk färgtolkning (längsta ordet vinner, fler färgord)
 - [x] Alla 20 previews renderade mobilt utan fel, 0 trasiga bilder, build OK
+
+<!-- production redeploy trigger: testgalleri -->
