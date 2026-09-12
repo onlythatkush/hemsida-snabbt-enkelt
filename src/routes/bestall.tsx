@@ -105,7 +105,8 @@ function OrderPage() {
     }
     setSubmitting(true);
     const order = {
-      id: "ORD-" + Math.random().toString(36).slice(2, 8).toUpperCase(),
+      // The backend is the single source of truth for the reference.
+      id: "",
       ...data,
       files: files.map((f) => f.name),
       total: 499 + (data.support ? 39.9 : 0),
@@ -118,7 +119,6 @@ function OrderPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          reference: order.id,
           name: data.namn,
           email: data.epost,
           phone: data.telefon,
@@ -133,10 +133,11 @@ function OrderPage() {
           fileNames: [],
         }),
       });
-      if (!saveRes.ok) {
-        const body = await saveRes.json().catch(() => ({} as any));
-        throw new Error(body?.detail || body?.error || "save failed");
+      const saveBody = await saveRes.json().catch(() => ({} as any));
+      if (!saveRes.ok || saveBody?.success !== true || typeof saveBody?.reference !== "string") {
+        throw new Error(saveBody?.detail || saveBody?.error || "Ansökan kunde inte sparas");
       }
+      order.id = saveBody.reference;
 
       if (files.length) {
         const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
