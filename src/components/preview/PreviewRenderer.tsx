@@ -87,6 +87,7 @@ function Hero({ ctx }: { ctx: Ctx }) {
   const upper = spec.type.headingCase === "upper";
 
   return (
+    <>
     <header className="relative isolate overflow-hidden" style={{ background: p.ink }}>
       <img
         src={hero}
@@ -168,8 +169,9 @@ function Hero({ ctx }: { ctx: Ctx }) {
         </div>
       </div>
 
-      <HeroStrip ctx={ctx} />
     </header>
+    <HeroStrip ctx={ctx} />
+    </>
   );
 }
 
@@ -184,7 +186,7 @@ function HeroStrip({ ctx }: { ctx: Ctx }) {
   if (!points.length) return null;
 
   return (
-    <div className="relative mx-auto -mb-14 w-full max-w-5xl px-5 sm:px-8">
+    <div className="relative z-20 mx-auto -mb-16 -mt-16 w-full max-w-5xl px-5 sm:px-8">
       <div
         className="grid gap-px overflow-hidden sm:grid-cols-3"
         style={{
