@@ -101,6 +101,60 @@ export type Database = {
         }
         Relationships: []
       }
+      preview_email_log: {
+        Row: {
+          company: string | null
+          created_at: string
+          delivered_at: string | null
+          error_message: string | null
+          id: string
+          metadata: Json | null
+          preview_url: string | null
+          provider: string
+          provider_message_id: string | null
+          recipient: string
+          reference: string
+          sender: string | null
+          sent_at: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          company?: string | null
+          created_at?: string
+          delivered_at?: string | null
+          error_message?: string | null
+          id?: string
+          metadata?: Json | null
+          preview_url?: string | null
+          provider: string
+          provider_message_id?: string | null
+          recipient: string
+          reference: string
+          sender?: string | null
+          sent_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          company?: string | null
+          created_at?: string
+          delivered_at?: string | null
+          error_message?: string | null
+          id?: string
+          metadata?: Json | null
+          preview_url?: string | null
+          provider?: string
+          provider_message_id?: string | null
+          recipient?: string
+          reference?: string
+          sender?: string | null
+          sent_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       project_applications: {
         Row: {
           address: string | null

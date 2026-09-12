@@ -35,6 +35,20 @@ function getRetryAfterSeconds(error: unknown): number {
   return 60
 }
 
+// Mirror queue outcomes onto the admin-facing preview email log (best effort).
+async function syncPreviewLog(
+  supabase: any,
+  messageId: unknown,
+  patch: Record<string, unknown>
+): Promise<void> {
+  if (!messageId || typeof messageId !== 'string') return
+  try {
+    await supabase.from('preview_email_log').update(patch).eq('provider_message_id', messageId)
+  } catch (error) {
+    console.warn('Failed to sync preview_email_log', { messageId, error })
+  }
+}
+
 // Move a message to the dead letter queue and log the reason.
 async function moveToDlq(
   supabase: any,
@@ -49,6 +63,10 @@ async function moveToDlq(
     recipient_email: payload.to,
     status: 'dlq',
     error_message: reason,
+  })
+  await syncPreviewLog(supabase, payload.message_id, {
+    status: 'failed',
+    error_message: reason.slice(0, 500),
   })
   const { error } = await supabase.rpc('move_to_dlq', {
     source_queue: queue,
@@ -247,6 +265,10 @@ export const Route = createFileRoute("/lovable/email/queue/process")({
                 recipient_email: payload.to,
                 status: 'sent',
               })
+              await syncPreviewLog(supabase, payload.message_id, {
+                status: 'delivered',
+                delivered_at: new Date().toISOString(),
+              })
 
               // Delete from queue
               const { error: delError } = await supabase.rpc('delete_email', {
@@ -305,6 +327,10 @@ export const Route = createFileRoute("/lovable/email/queue/process")({
                 recipient_email: payload.to,
                 status: 'failed',
                 error_message: errorMsg.slice(0, 1000),
+              })
+              await syncPreviewLog(supabase, payload.message_id, {
+                status: 'failed',
+                error_message: errorMsg.slice(0, 500),
               })
               if (payload?.message_id && typeof payload.message_id === 'string') {
                 failedAttemptsByMessageId.set(payload.message_id, failedAttempts + 1)

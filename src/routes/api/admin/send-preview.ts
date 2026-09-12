@@ -47,9 +47,75 @@ function emailProvider() {
   return { ok: true as const, client: createClient<any>(url, key, { auth: { persistSession: false, autoRefreshToken: false } }) }
 }
 
+function maskEmail(email: string) {
+  const [local = '', domain = ''] = email.split('@')
+  const head = local.slice(0, 1)
+  return `${head}${'*'.repeat(Math.max(local.length - 1, 1))}@${domain}`
+}
+
+type LogRow = {
+  id?: string
+  reference: string
+  company?: string | null
+  recipient: string
+  preview_url?: string | null
+  sender?: string | null
+  provider: string
+  provider_message_id?: string | null
+  status: string
+  error_message?: string | null
+  sent_at?: string | null
+}
+
+/** Never store secrets here — only routing metadata and provider ids. */
+async function logSend(client: any, row: LogRow): Promise<string | null> {
+  try {
+    const { data, error } = await client.from('preview_email_log').insert(row).select('id').single()
+    if (error) throw error
+    return (data?.id as string) ?? null
+  } catch (e) {
+    console.error('send-preview: log insert failed', e)
+    return null
+  }
+}
+
+async function updateLog(client: any, id: string | null, patch: Partial<LogRow>) {
+  if (!id) return
+  try {
+    await client.from('preview_email_log').update(patch).eq('id', id)
+  } catch (e) {
+    console.error('send-preview: log update failed', e)
+  }
+}
+
 export const Route = createFileRoute('/api/admin/send-preview')({
   server: {
     handlers: {
+      GET: async ({ request }) => {
+        if (!authorized(request)) return Response.json({ error: 'Unauthorized' }, { status: 401 })
+        const url = new URL(request.url)
+        const reference = (url.searchParams.get('reference') || '').trim().toUpperCase()
+        const provider = emailProvider()
+        if (!provider.ok) return Response.json({ error: 'Database not configured' }, { status: 500 })
+
+        let query = provider.client
+          .from('preview_email_log')
+          .select('id, reference, company, recipient, preview_url, sender, provider, provider_message_id, status, error_message, sent_at, delivered_at, created_at, updated_at')
+          .order('created_at', { ascending: false })
+          .limit(reference ? 20 : 100)
+        if (reference) query = query.eq('reference', reference)
+
+        const { data, error } = await query
+        if (error) {
+          console.error('send-preview: history read failed', error)
+          return Response.json({ error: 'Kunde inte läsa mailhistorik' }, { status: 500 })
+        }
+        const logs = (data || []).map((row: any) => ({
+          ...row,
+          recipient_masked: maskEmail(String(row.recipient || '')),
+        }))
+        return Response.json({ logs })
+      },
       POST: async ({ request }) => {
         if (!authorized(request)) return Response.json({ error: 'Unauthorized' }, { status: 401 })
 
@@ -144,8 +210,20 @@ export const Route = createFileRoute('/api/admin/send-preview')({
 
         // Fallback provider: Resend (used when the Lovable sender domain is not verified).
         const resendKey = process.env.RESEND_API_KEY
+        const logClient = provider.ok ? provider.client : null
         if (resendKey) {
           const from = process.env.RESEND_FROM || 'Din Webbpartner <onboarding@resend.dev>'
+          const logId = logClient
+            ? await logSend(logClient, {
+                reference: app.reference,
+                company: app.company ?? null,
+                recipient,
+                preview_url: app.preview_url ?? null,
+                sender: from,
+                provider: 'resend',
+                status: 'queued',
+              })
+            : null
           try {
             const res = await fetch('https://api.resend.com/emails', {
               method: 'POST',
@@ -158,12 +236,19 @@ export const Route = createFileRoute('/api/admin/send-preview')({
             if (!res.ok) {
               const body = await res.text()
               console.error(`send-preview: resend failed [${res.status}]: ${body}`)
+              await updateLog(logClient, logId, { status: 'failed', error_message: `Resend ${res.status}: ${body}`.slice(0, 500) })
               return Response.json({ error: `Resend: ${res.status} ${body}` }, { status: 502 })
             }
             const out = (await res.json()) as { id?: string }
+            await updateLog(logClient, logId, {
+              status: 'sent',
+              provider_message_id: out.id ?? messageId,
+              sent_at: new Date().toISOString(),
+            })
             return Response.json({ success: true, recipient, messageId: out.id ?? messageId, provider: 'resend' })
           } catch (e) {
             console.error('send-preview: resend request failed', e)
+            await updateLog(logClient, logId, { status: 'failed', error_message: 'Resend request failed' })
             return Response.json({ error: 'Kunde inte skicka previewmailet via Resend' }, { status: 500 })
           }
         }
@@ -174,6 +259,17 @@ export const Route = createFileRoute('/api/admin/send-preview')({
             { status: 503 },
           )
         }
+
+        const queueLogId = await logSend(provider.client, {
+          reference: app.reference,
+          company: app.company ?? null,
+          recipient,
+          preview_url: app.preview_url ?? null,
+          sender: `${SITE_NAME} <noreply@${FROM_DOMAIN}>`,
+          provider: 'lovable-email',
+          provider_message_id: messageId,
+          status: 'queued',
+        })
 
         try {
           await provider.client.from('email_send_log').insert({
@@ -203,8 +299,10 @@ export const Route = createFileRoute('/api/admin/send-preview')({
             },
           })
           if (error) throw error
+          await updateLog(provider.client, queueLogId, { status: 'sent', sent_at: new Date().toISOString() })
         } catch (e) {
           console.error('send-preview: enqueue failed', e)
+          await updateLog(provider.client, queueLogId, { status: 'failed', error_message: 'Kunde inte köa previewmailet' })
           return Response.json({ error: 'Kunde inte skicka previewmailet' }, { status: 500 })
         }
 
