@@ -86,6 +86,7 @@ function Admin() {
   const [buildingRef, setBuildingRef] = useState<string | null>(null);
   const [showGallery, setShowGallery] = useState(false);
   const [seeding, setSeeding] = useState(false);
+  const [sendingRef, setSendingRef] = useState<string | null>(null);
   const realItems = items.filter((a) => !isTest(a));
   const testItems = items.filter(isTest);
 
@@ -158,6 +159,42 @@ function Admin() {
       await load();
     } finally {
       setBuildingRef(null);
+    }
+  }
+
+  async function sendPreviewEmail(a: Application) {
+    if (!a.preview_url) return;
+    let recipient: string | undefined;
+    if (isTest(a)) {
+      const input = window.prompt(
+        "Testansökan: ange en säker mottagaradress (aldrig testfallets fejkadress)",
+        "",
+      );
+      if (!input) return;
+      recipient = input.trim();
+    } else if (!window.confirm(`Skicka previewmail till ${a.email}?`)) {
+      return;
+    }
+    setSendingRef(a.reference);
+    try {
+      const res = await fetch("/api/admin/send-preview", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "x-admin-key": savedKey },
+        body: JSON.stringify({ reference: a.reference, recipient }),
+      });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(
+          body?.missingEnv
+            ? `${body.error} Saknad konfiguration: ${body.missingEnv}`
+            : body?.error || "Kunde inte skicka previewmailet",
+        );
+      }
+      toast.success(`Previewmail skickat till ${body.recipient}`);
+    } catch (e: any) {
+      toast.error(e.message || "Kunde inte skicka previewmailet");
+    } finally {
+      setSendingRef(null);
     }
   }
 
