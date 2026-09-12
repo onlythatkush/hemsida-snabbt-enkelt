@@ -65,7 +65,7 @@ const PreviewReadyEmail = ({ name, company, previewUrl, reference }: Props) => (
               <table role="presentation" cellPadding={0} cellSpacing={0} border={0} style={ctaTable}>
                 <tbody>
                   <tr>
-                    <td align="center" bgcolor={ORANGE} style={ctaCell}>
+                    <td align="center" {...({ bgcolor: ORANGE } as any)} style={ctaCell}>
                       <a href={previewUrl} style={ctaLink}>Se din nya hemsida</a>
                     </td>
                   </tr>
