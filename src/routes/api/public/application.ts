@@ -114,6 +114,7 @@ async function handlePost(request: Request): Promise<Response> {
           await sql.end()
         }
 
+        const reference = generateReference()
         const sql2 = postgres(databaseUrl, { max: 1, prepare: false })
         try {
           await sql2`
@@ -122,7 +123,7 @@ async function handlePost(request: Request): Promise<Response> {
               social_links, website_type, colors, extra_requests, wants_support,
               file_names, status, updated_at
             ) VALUES (
-              ${parsed.reference},
+              ${reference},
               ${parsed.name},
               ${parsed.email},
               ${parsed.phone},
@@ -162,7 +163,7 @@ async function handlePost(request: Request): Promise<Response> {
           await sql2.end()
         }
 
-        return Response.json({ success: true, reference: parsed.reference })
+        return Response.json({ success: true, reference })
       }
     }
   }
