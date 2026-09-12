@@ -130,6 +130,8 @@ export type DesignSpec = {
   images: SpecImage[];
   sections: Section[];
   fonts: string[];
+  /** Which curated photo set to fall back on when the customer has no own photos. */
+  stockSet?: string;
 };
 
 export type ApplicationInput = {
