@@ -5,11 +5,11 @@
  * Run: bun scripts/generate-test-applications.ts > /tmp/test-apps.sql
  */
 import { composeDesignSpec } from "../src/lib/design/compose";
-import type { ApplicationInput } from "../src/lib/design/types";
+import { TEST_CASES } from "../src/lib/design/test-cases";
 
-type Case = ApplicationInput & { website_type: string };
+export { TEST_CASES };
 
-export const TEST_CASES: Case[] = [
+const UNUSED_CASES: never[] = [
   {
     reference: "TEST-001",
     company: "[TEST] Nordbygg Entreprenad AB",
