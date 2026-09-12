@@ -11,7 +11,7 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import {
-  ChevronDown, ChevronUp, ExternalLink, FileText, Inbox, Loader2, RefreshCw, Sparkles,
+  ChevronDown, ChevronUp, ExternalLink, FileText, Inbox, LayoutGrid, Loader2, RefreshCw, Sparkles,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -84,6 +84,9 @@ function Admin() {
   const [loading, setLoading] = useState(false);
   const [openRef, setOpenRef] = useState<string | null>(null);
   const [buildingRef, setBuildingRef] = useState<string | null>(null);
+  const [showGallery, setShowGallery] = useState(false);
+  const realItems = items.filter((a) => !isTest(a));
+  const testItems = items.filter(isTest);
 
   useEffect(() => {
     const existing = sessionStorage.getItem("dwp-admin-key") || "";
@@ -361,7 +364,7 @@ function Admin() {
                 </Card>
               );
             })}
-            {!items.length && !loading && <Card><CardContent className="py-10 text-center text-muted-foreground">Inga ansökningar ännu.</CardContent></Card>}
+            {!realItems.length && !loading && <Card><CardContent className="py-10 text-center text-muted-foreground">Inga ansökningar ännu.</CardContent></Card>}
           </div>
 
           <Card className="hidden md:block">
@@ -373,7 +376,7 @@ function Admin() {
                     <TableHead>Typ</TableHead><TableHead>Status</TableHead><TableHead>Preview</TableHead><TableHead>Datum</TableHead><TableHead>Åtgärd</TableHead>
                   </TableRow></TableHeader>
                   <TableBody>
-                    {items.map((a) => (
+                    {realItems.map((a) => (
                       <TableRow key={a.reference}>
                         <TableCell className="font-mono text-xs">{a.reference}</TableCell>
                         <TableCell><div className="font-medium">{a.company}</div><div className="text-xs text-muted-foreground">{a.name}</div></TableCell>
@@ -410,7 +413,7 @@ function Admin() {
                         </TableCell>
                       </TableRow>
                     ))}
-                    {!items.length && !loading && <TableRow><TableCell colSpan={8} className="text-center py-10 text-muted-foreground">Inga ansökningar ännu.</TableCell></TableRow>}
+                    {!realItems.length && !loading && <TableRow><TableCell colSpan={8} className="text-center py-10 text-muted-foreground">Inga ansökningar ännu.</TableCell></TableRow>}
                   </TableBody>
                 </Table>
               </div>
