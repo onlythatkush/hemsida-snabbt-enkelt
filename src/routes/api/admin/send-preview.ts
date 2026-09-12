@@ -88,6 +88,51 @@ async function updateLog(client: any, id: string | null, patch: Partial<LogRow>)
   }
 }
 
+type AppRow = { reference: string; company?: string; name?: string; email?: string; preview_url?: string }
+
+async function loadApplication(reference: string): Promise<AppRow | null> {
+  const dbUrl = databaseUrl()
+  if (dbUrl) {
+    const sql = postgres(dbUrl, { max: 1, prepare: false })
+    try {
+      const rows = await sql`
+        SELECT reference, company, name, email, preview_url
+        FROM public.project_applications
+        WHERE reference = ${reference}
+        LIMIT 1
+      `
+      return ((rows as any[])[0] as AppRow) || null
+    } finally {
+      await sql.end({ timeout: 5 })
+    }
+  }
+  const provider = emailProvider()
+  if (!provider.ok) return null
+  const { data } = await provider.client
+    .from('project_applications')
+    .select('reference, company, name, email, preview_url')
+    .eq('reference', reference)
+    .maybeSingle()
+  return (data as AppRow) || null
+}
+
+/** Renders the shared preview-ready template for a given application. */
+async function renderPreviewEmail(app: AppRow) {
+  const entry = TEMPLATES['preview-ready']
+  const data = {
+    name: app.name,
+    company: app.company?.replace('[TEST] ', ''),
+    previewUrl: app.preview_url,
+    reference: app.reference,
+  }
+  const element = React.createElement(entry.component, data)
+  return {
+    html: await render(element),
+    text: await render(element, { plainText: true }),
+    subject: typeof entry.subject === 'function' ? entry.subject(data) : entry.subject,
+  }
+}
+
 export const Route = createFileRoute('/api/admin/send-preview')({
   server: {
     handlers: {
@@ -95,6 +140,21 @@ export const Route = createFileRoute('/api/admin/send-preview')({
         if (!authorized(request)) return Response.json({ error: 'Unauthorized' }, { status: 401 })
         const url = new URL(request.url)
         const reference = (url.searchParams.get('reference') || '').trim().toUpperCase()
+
+        // Visual template preview for the admin panel (renders, never sends).
+        if (url.searchParams.get('mode') === 'html') {
+          if (!reference) return Response.json({ error: 'reference krävs' }, { status: 400 })
+          let app: AppRow | null = null
+          try { app = await loadApplication(reference) }
+          catch (e) {
+            console.error('send-preview: preview read failed', e)
+            return Response.json({ error: 'Kunde inte läsa ansökan' }, { status: 500 })
+          }
+          if (!app) return Response.json({ error: 'Ansökan hittades inte' }, { status: 404 })
+          const rendered = await renderPreviewEmail(app)
+          return Response.json({ subject: rendered.subject, html: rendered.html, text: rendered.text })
+        }
+
         const provider = emailProvider()
         if (!provider.ok) return Response.json({ error: 'Database not configured' }, { status: 500 })
 
