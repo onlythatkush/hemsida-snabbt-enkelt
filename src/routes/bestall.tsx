@@ -19,6 +19,7 @@ import { SiteHeader, SiteFooter } from "@/components/site-header";
 import { ArrowLeft, ArrowRight, Check, Upload, X, Info } from "lucide-react";
 import { toast } from "sonner";
 import { createClient } from "@supabase/supabase-js";
+import { publicApiFetch } from "@/lib/public-api";
 
 export const Route = createFileRoute("/bestall")({
   head: () => ({
@@ -113,7 +114,7 @@ function OrderPage() {
     try {
       // Save the application first. Email is deliberately secondary so a mail
       // outage can never make us lose a customer brief.
-      const saveRes = await fetch("/api/public/application", {
+      const saveRes = await publicApiFetch("/api/public/application", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -150,7 +151,7 @@ function OrderPage() {
         const uploadedPaths: string[] = [];
 
         for (const file of files) {
-          const ticketRes = await fetch("/api/public/application-files", {
+          const ticketRes = await publicApiFetch("/api/public/application-files", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -178,7 +179,7 @@ function OrderPage() {
           uploadedPaths.push(ticket.path);
         }
 
-        const completeRes = await fetch("/api/public/application-files", {
+        const completeRes = await publicApiFetch("/api/public/application-files", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -194,7 +195,7 @@ function OrderPage() {
       }
 
       // Best-effort notification. The application is already safely stored.
-      fetch("/api/public/contact", {
+      publicApiFetch("/api/public/contact", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
