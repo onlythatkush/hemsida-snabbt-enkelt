@@ -24,6 +24,7 @@ export const Route = createFileRoute('/api/public/application')({
   server: {
     handlers: {
       OPTIONS: async ({ request }) => preflight(request),
+      GET: async ({ request }) => withCors(request, await handleGet(request)),
       POST: async ({ request }) => withCors(request, await handlePost(request)),
     },
   },
@@ -153,5 +154,36 @@ async function handlePost(request: Request): Promise<Response> {
         return Response.json({ success: true, reference: parsed.reference })
       }
     }
+  }
+}
+
+/** Public existence check so the confirmation page can verify a reference. */
+async function handleGet(request: Request): Promise<Response> {
+  const reference = new URL(request.url).searchParams.get('reference')?.trim() || ''
+  if (!reference || reference.length > 40 || !/^[A-Za-z0-9-]+$/.test(reference)) {
+    return Response.json({ error: 'Invalid reference' }, { status: 400 })
+  }
+
+  const databaseUrl =
+    process.env.POSTGRES_URL ||
+    process.env.STORAGE_POSTGRES_URL ||
+    process.env.STORAGE_DATABASE_URL ||
+    process.env.DATABASE_URL ||
+    process.env.SUPABASE_DB_URL
+  if (!databaseUrl) {
+    return Response.json({ error: 'Database not configured' }, { status: 500 })
+  }
+
+  const sql = postgres(databaseUrl, { max: 1, prepare: false })
+  try {
+    const rows = await sql<{ reference: string }[]>`
+      SELECT reference FROM public.project_applications WHERE reference = ${reference} LIMIT 1
+    `
+    return Response.json({ exists: rows.length > 0, reference })
+  } catch (error) {
+    console.error('Failed to verify application', error)
+    return Response.json({ error: 'Lookup failed' }, { status: 500 })
+  } finally {
+    await sql.end()
   }
 }

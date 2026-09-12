@@ -1,9 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
 import { z } from "zod";
 import { SiteHeader, SiteFooter } from "@/components/site-header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Check, Mail, ArrowRight, Clock } from "lucide-react";
+import { Check, Mail, ArrowRight, Clock, AlertTriangle, Loader2 } from "lucide-react";
+import { publicApiFetch } from "@/lib/public-api";
+import { BUILD_LABEL } from "@/lib/build-info";
 
 export const Route = createFileRoute("/bekraftelse")({
   validateSearch: z.object({ id: z.string().optional() }),
@@ -13,8 +16,85 @@ export const Route = createFileRoute("/bekraftelse")({
   component: ConfirmPage,
 });
 
+type VerifyState = "idle" | "checking" | "ok" | "missing" | "unknown";
+
 function ConfirmPage() {
   const { id } = Route.useSearch();
+  const [verify, setVerify] = useState<VerifyState>(id ? "checking" : "idle");
+
+  useEffect(() => {
+    if (!id) return;
+    let active = true;
+    setVerify("checking");
+    publicApiFetch(`/api/public/application?reference=${encodeURIComponent(id)}`, { timeoutMs: 12000 })
+      .then(async (res) => {
+        if (!res.ok) throw new Error("lookup failed");
+        const body = (await res.json()) as { exists?: boolean };
+        if (active) setVerify(body.exists ? "ok" : "missing");
+      })
+      .catch(() => {
+        if (active) setVerify("unknown");
+      });
+    return () => {
+      active = false;
+    };
+  }, [id]);
+
+  if (verify === "checking") {
+    return (
+      <div className="min-h-screen flex flex-col bg-background">
+        <SiteHeader />
+        <main className="flex-1 bg-gradient-hero">
+          <div className="container mx-auto px-4 py-20 max-w-2xl">
+            <Card className="border-border/60 shadow-elegant text-center">
+              <CardContent className="pt-14 pb-14 flex flex-col items-center gap-4">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                <p className="text-muted-foreground">Kontrollerar din förfrågan...</p>
+              </CardContent>
+            </Card>
+          </div>
+        </main>
+        <SiteFooter />
+      </div>
+    );
+  }
+
+  if (verify === "missing") {
+    return (
+      <div className="min-h-screen flex flex-col bg-background">
+        <SiteHeader />
+        <main className="flex-1 bg-gradient-hero">
+          <div className="container mx-auto px-4 py-20 max-w-2xl">
+            <Card className="border-destructive/40 shadow-elegant text-center">
+              <CardContent className="pt-10 pb-10">
+                <div className="mx-auto h-16 w-16 rounded-full bg-destructive/15 flex items-center justify-center">
+                  <AlertTriangle className="h-8 w-8 text-destructive" />
+                </div>
+                <h1 className="mt-6 text-2xl md:text-3xl font-semibold tracking-tight">
+                  Din förfrågan kom tyvärr inte fram
+                </h1>
+                <p className="mt-3 text-muted-foreground">
+                  Vi hittar ingen sparad förfrågan med referens <span className="font-mono">{id}</span>.
+                  Skicka den gärna igen, eller mejla oss direkt så hjälper vi dig.
+                </p>
+                <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+                  <Button asChild variant="hero" size="lg">
+                    <Link to="/bestall">Försök igen <ArrowRight /></Link>
+                  </Button>
+                  <Button variant="outline" size="lg" asChild>
+                    <a href="mailto:dinwebbpartner@hotmail.com"><Mail /> Mejla oss</a>
+                  </Button>
+                </div>
+                <p className="mt-6 text-xs text-muted-foreground/70">{BUILD_LABEL}</p>
+              </CardContent>
+            </Card>
+          </div>
+        </main>
+        <SiteFooter />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <SiteHeader />
