@@ -117,7 +117,7 @@ export const Route = createFileRoute('/api/admin/send-preview')({
         }
 
         const provider = emailProvider()
-        if (!provider.ok) {
+        if (!provider.ok && !process.env.RESEND_API_KEY) {
           return Response.json(
             {
               error: 'E-postleverantör saknas — inget mail skickades.',
