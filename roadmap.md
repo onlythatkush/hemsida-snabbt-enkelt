@@ -27,3 +27,5 @@
 - [ ] Visa alla projekt, GitHub/Vercel/Lovable-status, kundflöden, logs och deploys i realtid.
 - [ ] Ha en inbyggd AI-chat som kan starta jobb och styra verktyg från samma gränssnitt.
 - [ ] Designa lösningen modellagnostiskt så olika AI-modeller kan användas för olika uppgifter vid behov.
+
+<!-- redeploy resend preview flow 2026-09-12 -->
