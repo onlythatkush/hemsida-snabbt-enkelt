@@ -15,7 +15,9 @@ export const INDUSTRY_KEYWORDS: Record<IndustryId, string[]> = {
   photography: ["fotograf", "foto", "bröllopsfotograf", "film", "videoproduktion"],
   cleaning: ["städ", "städfirma", "flyttstäd", "hemstäd", "fönsterputs", "lokalvård"],
   realestate: ["mäklare", "fastighet", "fastighetsbolag", "uthyrning", "bostäder"],
-  events: ["event", "bröllop", "fest", "konferens", "uthyrning av lokal", "dj", "artist", "band"],
+  events: ["event", "bröllop", "fest", "konferens", "uthyrning av lokal", "dj", "artist", "band", "eventbyrå"],
+  automotive: ["bilverkstad", "bilservice", "verkstad för bilar", "mekaniker", "däckbyte", "däckhotell", "bilrekond", "bilvård", "ac-service", "fordon", "lastbil", "mc-verkstad", "bilplåt", "besiktningshjälp"],
+  hospitality: ["hotell", "bed and breakfast", "b&b", "vandrarhem", "pensionat", "stugor", "stuguthyrning", "boende", "övernattning", "gästhus", "rum med frukost"],
   generic: [],
 };
 

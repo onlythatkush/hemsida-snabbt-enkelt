@@ -23,6 +23,8 @@ export type IndustryId =
   | "cleaning"
   | "realestate"
   | "events"
+  | "automotive"
+  | "hospitality"
   | "generic";
 
 export type Tone = {

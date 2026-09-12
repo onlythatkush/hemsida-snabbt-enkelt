@@ -4,29 +4,60 @@ const NAMED: Record<string, string> = {
   röd: "#c0392b",
   rod: "#c0392b",
   rött: "#c0392b",
+  tomatröd: "#d0402f",
+  korall: "#f0715c",
   orange: "#e8802a",
   gul: "#e8b93a",
+  solgul: "#f2c033",
+  varningsgul: "#f2c200",
   guld: "#c9a227",
   gyllene: "#c9a227",
+  mässing: "#b5883b",
+  champagne: "#e6d5b8",
   beige: "#d9c7ad",
+  linbeige: "#ddd0b8",
+  benvit: "#efe9dd",
   sand: "#d8c3a5",
+  ockra: "#c98f2b",
   brun: "#8b5e3c",
+  trä: "#a4713f",
   choklad: "#5a3825",
   grön: "#3f7d54",
   gron: "#3f7d54",
   mossgrön: "#5b7a4b",
+  bladgrön: "#4f8a46",
+  mörkgrön: "#27503a",
+  neongrön: "#49d63a",
+  mint: "#8fd0bb",
+  mintgrön: "#8fd0bb",
   turkos: "#2ca6a4",
   blå: "#2b5fa8",
   bla: "#2b5fa8",
   marinblå: "#1d3557",
+  mörkblå: "#1b3a63",
+  djupblå: "#173059",
+  klarblå: "#1f7fd1",
+  "elektrisk blå": "#1e7ae0",
   ljusblå: "#6aa9e0",
+  indigo: "#3a3d84",
   lila: "#6b4a9c",
+  lavendel: "#a893cf",
   rosa: "#d98ca6",
+  puderrosa: "#e3b9c2",
   cerise: "#c2185b",
   svart: "#141414",
+  grafit: "#2c2f33",
+  antracit: "#32363b",
+  charcoal: "#2b2e31",
+  stålgrå: "#7c858f",
+  silver: "#aab0b6",
   grå: "#6b7280",
   gra: "#6b7280",
+  ljusgrå: "#c9ced4",
+  varmgrå: "#9b9086",
+  mörkgrå: "#4a4f55",
   vit: "#f7f5f2",
+  "off-white": "#f4f1ec",
   krämvit: "#f5efe4",
   kram: "#f5efe4",
   pastell: "#e6d7e0",
@@ -122,7 +153,10 @@ export function ensureContrast(fg: string, bg: string, ratio = 4.5): string {
   return current;
 }
 
-/** Extracts hex codes and Swedish colour words from free text. */
+/**
+ * Extracts hex codes and Swedish colour words from free text.
+ * Longer words win: "marinblå" must not be read as plain "blå".
+ */
 export function extractColors(text?: string | null): string[] {
   if (!text) return [];
   const out: string[] = [];
@@ -131,9 +165,14 @@ export function extractColors(text?: string | null): string[] {
     const full = hex.length === 4 ? "#" + hex.slice(1).split("").map((c) => c + c).join("") : hex;
     out.push(full.toLowerCase());
   }
-  const lower = text.toLowerCase();
-  for (const [word, hex] of Object.entries(NAMED)) {
-    if (lower.includes(word) && !out.includes(hex)) out.push(hex);
+  let haystack = text.toLowerCase();
+  const words = Object.keys(NAMED).sort((a, b) => b.length - a.length);
+  for (const word of words) {
+    if (!haystack.includes(word)) continue;
+    // Consume the match so a shorter word inside it cannot match again.
+    haystack = haystack.split(word).join(" ");
+    const hex = NAMED[word];
+    if (!out.includes(hex)) out.push(hex);
   }
   return out.slice(0, 4);
 }

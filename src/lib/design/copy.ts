@@ -35,6 +35,8 @@ const TAGLINES: Record<IndustryId, string[]> = {
   cleaning: ["Rent och klart", "Vi tar hand om städningen", "Mer tid över till annat"],
   realestate: ["Hem som passar dig", "Trygg affär hela vägen", "Vi kan din marknad"],
   events: ["Stunder att minnas", "Vi fixar helheten", "Ett event i stil"],
+  automotive: ["Bilen i trygga händer", "Service utan krångel", "Vi kan fordon"],
+  hospitality: ["En stund bort från vardagen", "Sov gott, vakna utvilad", "Ditt andra hem"],
   generic: ["Nära, enkelt och personligt", "Vi gör jobbet ordentligt", "Kvalitet i varje detalj"],
 };
 
@@ -54,6 +56,8 @@ const HERO_TITLES: Record<IndustryId, (c: string) => string[]> = {
   cleaning: (c) => [`${c} — rent och klart`, `Låt ${c} sköta städningen`],
   realestate: (c) => [`${c} — hem som passar dig`, `Trygg bostadsaffär med ${c}`],
   events: (c) => [`${c} skapar stunden`, `Event med ${c}`],
+  automotive: (c) => [`${c} — bilen i trygga händer`, `Service och reparation hos ${c}`],
+  hospitality: (c) => [`Välkommen till ${c}`, `${c} — en stund bort från vardagen`],
   generic: (c) => [`Välkommen till ${c}`, `${c} — nära och personligt`],
 };
 
@@ -77,6 +81,8 @@ export function ctaPrimary(industry: IndustryId, tone: Tone) {
   if (industry === "beauty" || industry === "health" || industry === "fitness") return "Boka tid";
   if (industry === "construction" || industry === "cleaning") return "Begär offert";
   if (industry === "legal" || industry === "consulting" || industry === "realestate") return "Boka ett möte";
+  if (industry === "automotive") return "Boka verkstadstid";
+  if (industry === "hospitality") return "Boka ditt rum";
   return tone.formality > 0.7 ? "Kontakta oss" : "Hör av dig";
 }
 

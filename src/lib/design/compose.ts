@@ -1,4 +1,4 @@
-import { contrast, extractColors } from "./color";
+import { contrast, extractColors, hexToHsl } from "./color";
 import { ctaPrimary, ctaSecondary, heroSub, heroTitle, tagline } from "./copy";
 import { FAMILIES, buildPalette, toneDistance, tuneShape, tuneTypography } from "./families";
 import { detectIndustry, detectTone, isLocal } from "./keywords";
@@ -78,10 +78,17 @@ export function composeDesignSpec(app: ApplicationInput, override?: { family?: F
   const familyDef = FAMILIES[chosen];
   // Pale colours make poor primaries; the strongest colour leads, pale ones become tints.
   const allColors = extractColors(app.colors);
-  const strong = allColors.filter((c) => contrast(c, "#ffffff") >= 2.2).sort((a, b) => contrast(b, "#ffffff") - contrast(a, "#ffffff"));
+  const strong = allColors.filter((c) => contrast(c, "#ffffff") >= 2.2);
   const pale = allColors.filter((c) => contrast(c, "#ffffff") < 2.2);
-  // Only strong colours drive primary/accent; pale ones stay soft tints.
-  const customerColors = strong.length ? strong : pale;
+  // Keep the order the customer wrote them in, but let a saturated colour lead
+  // over a neutral (black/grey) so pages don't all end up with the same ink primary.
+  const saturation = (hex: string) => hexToHsl(hex).s;
+  const ordered = [...strong].sort((a, b) => {
+    const sa = saturation(a) >= 14 ? 1 : 0;
+    const sb = saturation(b) >= 14 ? 1 : 0;
+    return sb - sa;
+  });
+  const customerColors = ordered.length ? ordered : pale;
 
   const palette = buildPalette(familyDef, customerColors, tone);
   if (pale.length) palette.tint = pale[0];
