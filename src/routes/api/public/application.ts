@@ -4,8 +4,19 @@ import { z } from 'zod'
 import postgres from 'postgres'
 import { preflight, withCors } from '@/lib/cors'
 
+/** Server-authoritative reference. The browser never invents one. */
+function generateReference(): string {
+  const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
+  const bytes = new Uint8Array(6)
+  crypto.getRandomValues(bytes)
+  let out = ''
+  for (const b of bytes) out += alphabet[b % alphabet.length]
+  return `ORD-${out}`
+}
+
 const schema = z.object({
-  reference: z.string().trim().min(4).max(40),
+  // Optional and ignored for new submissions; kept so older clients still work.
+  reference: z.string().trim().min(4).max(40).optional(),
   name: z.string().trim().min(1).max(120),
   email: z.string().trim().email().max(255),
   phone: z.string().trim().min(4).max(60),
