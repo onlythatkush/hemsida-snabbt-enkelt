@@ -59,6 +59,26 @@ const industryLabels: Record<string, string> = {
   hospitality: "Hotell", generic: "Övrigt",
 };
 
+type PreviewLog = {
+  id: string;
+  reference: string;
+  recipient_masked?: string | null;
+  provider: string;
+  provider_message_id?: string | null;
+  status: string;
+  error_message?: string | null;
+  sent_at?: string | null;
+  delivered_at?: string | null;
+  created_at: string;
+};
+
+const mailStatusLabels: Record<string, string> = {
+  queued: "Köad",
+  sent: "Skickad",
+  delivered: "Levererad",
+  failed: "Misslyckad",
+};
+
 function isTest(a: Application) {
   return a.company?.startsWith("[TEST]") || a.reference?.startsWith("TEST-");
 }
@@ -87,6 +107,7 @@ function Admin() {
   const [showGallery, setShowGallery] = useState(false);
   const [seeding, setSeeding] = useState(false);
   const [sendingRef, setSendingRef] = useState<string | null>(null);
+  const [logVersion, setLogVersion] = useState(0);
   const realItems = items.filter((a) => !isTest(a));
   const testItems = items.filter(isTest);
 
@@ -191,6 +212,7 @@ function Admin() {
         );
       }
       toast.success(`Previewmail skickat till ${body.recipient}`);
+      setLogVersion((v) => v + 1);
     } catch (e: any) {
       toast.error(e.message || "Kunde inte skicka previewmailet");
     } finally {
@@ -405,6 +427,8 @@ function Admin() {
                           </>
                         )}
 
+                        <PreviewMailLog reference={a.reference} adminKey={savedKey} version={logVersion} />
+
                         {!!a.file_names?.length && (
                           <div>
                             <div className="text-xs text-muted-foreground mb-2">Filer</div>
@@ -505,6 +529,58 @@ function Admin() {
         </div>
       </main>
       <SiteFooter />
+    </div>
+  );
+}
+
+function PreviewMailLog({ reference, adminKey, version }: { reference: string; adminKey: string; version: number }) {
+  const [logs, setLogs] = useState<PreviewLog[] | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    if (!adminKey) return;
+    (async () => {
+      try {
+        const res = await fetch(`/api/admin/send-preview?reference=${encodeURIComponent(reference)}`, {
+          headers: { "x-admin-key": adminKey },
+        });
+        if (!res.ok) throw new Error("fel");
+        const body = await res.json();
+        if (active) setLogs(body.logs || []);
+      } catch {
+        if (active) setLogs([]);
+      }
+    })();
+    return () => { active = false; };
+  }, [reference, adminKey, version]);
+
+  const latest = logs?.[0];
+
+  return (
+    <div className="rounded-lg border p-3">
+      <div className="text-xs text-muted-foreground mb-2">Previewmail</div>
+      {!logs && <div className="text-sm text-muted-foreground">Hämtar…</div>}
+      {logs && !latest && <div className="text-sm text-muted-foreground">Inget previewmail skickat ännu.</div>}
+      {latest && (
+        <div className="space-y-1 text-sm">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="rounded-full bg-muted px-2 py-0.5 text-xs">
+              {mailStatusLabels[latest.status] || latest.status}
+            </span>
+            <span className="text-xs text-muted-foreground">{latest.provider}</span>
+          </div>
+          <div className="break-all">{latest.recipient_masked}</div>
+          <div className="text-xs text-muted-foreground">
+            {new Date(latest.sent_at || latest.created_at).toLocaleString("sv-SE")}
+          </div>
+          {latest.error_message && (
+            <div className="text-xs text-destructive break-words">{latest.error_message}</div>
+          )}
+          {logs.length > 1 && (
+            <div className="text-xs text-muted-foreground">+{logs.length - 1} tidigare försök</div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
