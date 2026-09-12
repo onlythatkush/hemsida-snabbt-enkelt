@@ -216,7 +216,7 @@ function sectionBackground(section: Section, spec: DesignSpec) {
   const p = spec.palette;
   if (section.tone === "contrast") {
     return {
-      background: `linear-gradient(140deg, ${p.primary} 0%, ${p.accent} 100%)`,
+      background: `linear-gradient(145deg, ${p.primary} 0%, ${p.primary} 32%, ${p.accent} 135%)`,
       color: p.onPrimary,
     };
   }
@@ -527,21 +527,22 @@ function GalleryBlock({ ctx, section, index }: { ctx: Ctx; section: Section; ind
   const p = ctx.spec.palette;
   const own = (section.images || []).map((i) => ctx.spec.images[i]?.url).filter((u): u is string => Boolean(u));
   const imgs = own.length >= 3 ? own : ctx.imagesFor(section, index, Math.max(3, own.length));
+  const big = imgs.length >= 5;
   return (
     <div>
       <Heading ctx={ctx} section={section} contrast={false} />
-      <div className="mt-9 grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
+      <div className={`mt-9 grid grid-cols-2 gap-3 sm:gap-4 ${big ? "sm:grid-cols-4" : "sm:grid-cols-3"}`}>
         {imgs.slice(0, 8).map((src, i) => (
           <figure
             key={src + i}
-            className={`overflow-hidden ${i % 5 === 0 ? "col-span-2 row-span-2" : ""}`}
+            className={`overflow-hidden ${big && i % 5 === 0 ? "col-span-2 row-span-2" : ""}`}
             style={{ borderRadius: "var(--r-img)", boxShadow: "var(--shadow)", background: p.surfaceAlt }}
           >
             <img
               src={src}
               alt={ctx.spec.brand.company}
               loading="lazy"
-              className={`w-full object-cover ${i % 5 === 0 ? "h-56 sm:h-[26rem]" : "h-28 sm:h-[12.5rem]"}`}
+              className={`w-full object-cover ${big && i % 5 === 0 ? "h-56 sm:h-[26rem]" : "h-40 sm:h-[13rem]"}`}
             />
           </figure>
         ))}
@@ -565,7 +566,7 @@ function StatementBlock({ ctx, section, contrast }: { ctx: Ctx; section: Section
       <div
         aria-hidden
         className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full"
-        style={{ background: contrast ? rgba("#ffffff", 0.12) : (p.tint || p.primarySoft), filter: "blur(8px)" }}
+        style={{ background: contrast ? rgba("#ffffff", 0.1) : rgba(p.tint || p.primarySoft, 0.55), filter: "blur(38px)" }}
       />
       <div className="relative">
         <Heading ctx={ctx} section={section} contrast={contrast} />
