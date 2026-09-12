@@ -3,6 +3,7 @@ import { ctaPrimary, ctaSecondary, heroSub, heroTitle, tagline } from "./copy";
 import { FAMILIES, buildPalette, toneDistance, tuneShape, tuneTypography } from "./families";
 import { detectIndustry, detectTone, isLocal } from "./keywords";
 import { buildSections } from "./sections";
+import { stockSetFor } from "./stock";
 import type { ApplicationInput, DesignSpec, FamilyId, SpecImage } from "./types";
 
 export const DESIGN_SPEC_VERSION = 1;
