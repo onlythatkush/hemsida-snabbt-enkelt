@@ -299,8 +299,10 @@ export const Route = createFileRoute('/api/admin/send-preview')({
             },
           })
           if (error) throw error
+          await updateLog(provider.client, queueLogId, { status: 'sent', sent_at: new Date().toISOString() })
         } catch (e) {
           console.error('send-preview: enqueue failed', e)
+          await updateLog(provider.client, queueLogId, { status: 'failed', error_message: 'Kunde inte köa previewmailet' })
           return Response.json({ error: 'Kunde inte skicka previewmailet' }, { status: 500 })
         }
 
