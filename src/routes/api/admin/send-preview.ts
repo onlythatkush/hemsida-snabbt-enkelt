@@ -167,6 +167,13 @@ export const Route = createFileRoute('/api/admin/send-preview')({
           }
         }
 
+        if (!provider.ok) {
+          return Response.json(
+            { error: 'E-postleverantör saknas — inget mail skickades.', missingEnv: provider.missing },
+            { status: 503 },
+          )
+        }
+
         try {
           await provider.client.from('email_send_log').insert({
             message_id: messageId,
