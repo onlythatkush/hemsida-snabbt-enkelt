@@ -21,6 +21,7 @@ import { Route as ApiPublicHealthRouteImport } from './routes/api/public/health'
 import { Route as ApiPublicContactRouteImport } from './routes/api/public/contact'
 import { Route as ApiPublicApplicationFilesRouteImport } from './routes/api/public/application-files'
 import { Route as ApiPublicApplicationRouteImport } from './routes/api/public/application'
+import { Route as ApiAdminSeedTestGalleryRouteImport } from './routes/api/admin/seed-test-gallery'
 import { Route as ApiAdminApplicationsRouteImport } from './routes/api/admin/applications'
 import { Route as LovableEmailTransactionalSendRouteImport } from './routes/lovable/email/transactional/send'
 import { Route as LovableEmailTransactionalPreviewRouteImport } from './routes/lovable/email/transactional/preview'
@@ -88,6 +89,11 @@ const ApiPublicApplicationRoute = ApiPublicApplicationRouteImport.update({
   path: '/api/public/application',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAdminSeedTestGalleryRoute = ApiAdminSeedTestGalleryRouteImport.update({
+  id: '/api/admin/seed-test-gallery',
+  path: '/api/admin/seed-test-gallery',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiAdminApplicationsRoute = ApiAdminApplicationsRouteImport.update({
   id: '/api/admin/applications',
   path: '/api/admin/applications',
@@ -127,6 +133,7 @@ export interface FileRoutesByFullPath {
   '/kund-preview/$reference': typeof KundPreviewReferenceRoute
   '/portfolio/$slug': typeof PortfolioSlugRoute
   '/api/admin/applications': typeof ApiAdminApplicationsRoute
+  '/api/admin/seed-test-gallery': typeof ApiAdminSeedTestGalleryRoute
   '/api/public/application': typeof ApiPublicApplicationRoute
   '/api/public/application-files': typeof ApiPublicApplicationFilesRoute
   '/api/public/contact': typeof ApiPublicContactRoute
@@ -146,6 +153,7 @@ export interface FileRoutesByTo {
   '/kund-preview/$reference': typeof KundPreviewReferenceRoute
   '/portfolio/$slug': typeof PortfolioSlugRoute
   '/api/admin/applications': typeof ApiAdminApplicationsRoute
+  '/api/admin/seed-test-gallery': typeof ApiAdminSeedTestGalleryRoute
   '/api/public/application': typeof ApiPublicApplicationRoute
   '/api/public/application-files': typeof ApiPublicApplicationFilesRoute
   '/api/public/contact': typeof ApiPublicContactRoute
@@ -166,6 +174,7 @@ export interface FileRoutesById {
   '/kund-preview/$reference': typeof KundPreviewReferenceRoute
   '/portfolio/$slug': typeof PortfolioSlugRoute
   '/api/admin/applications': typeof ApiAdminApplicationsRoute
+  '/api/admin/seed-test-gallery': typeof ApiAdminSeedTestGalleryRoute
   '/api/public/application': typeof ApiPublicApplicationRoute
   '/api/public/application-files': typeof ApiPublicApplicationFilesRoute
   '/api/public/contact': typeof ApiPublicContactRoute
@@ -187,6 +196,7 @@ export interface FileRouteTypes {
     | '/kund-preview/$reference'
     | '/portfolio/$slug'
     | '/api/admin/applications'
+    | '/api/admin/seed-test-gallery'
     | '/api/public/application'
     | '/api/public/application-files'
     | '/api/public/contact'
@@ -206,6 +216,7 @@ export interface FileRouteTypes {
     | '/kund-preview/$reference'
     | '/portfolio/$slug'
     | '/api/admin/applications'
+    | '/api/admin/seed-test-gallery'
     | '/api/public/application'
     | '/api/public/application-files'
     | '/api/public/contact'
@@ -225,6 +236,7 @@ export interface FileRouteTypes {
     | '/kund-preview/$reference'
     | '/portfolio/$slug'
     | '/api/admin/applications'
+    | '/api/admin/seed-test-gallery'
     | '/api/public/application'
     | '/api/public/application-files'
     | '/api/public/contact'
@@ -245,6 +257,7 @@ export interface RootRouteChildren {
   KundPreviewReferenceRoute: typeof KundPreviewReferenceRoute
   PortfolioSlugRoute: typeof PortfolioSlugRoute
   ApiAdminApplicationsRoute: typeof ApiAdminApplicationsRoute
+  ApiAdminSeedTestGalleryRoute: typeof ApiAdminSeedTestGalleryRoute
   ApiPublicApplicationRoute: typeof ApiPublicApplicationRoute
   ApiPublicApplicationFilesRoute: typeof ApiPublicApplicationFilesRoute
   ApiPublicContactRoute: typeof ApiPublicContactRoute
@@ -342,6 +355,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicApplicationRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/admin/seed-test-gallery': {
+      id: '/api/admin/seed-test-gallery'
+      path: '/api/admin/seed-test-gallery'
+      fullPath: '/api/admin/seed-test-gallery'
+      preLoaderRoute: typeof ApiAdminSeedTestGalleryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/admin/applications': {
       id: '/api/admin/applications'
       path: '/api/admin/applications'
@@ -389,6 +409,7 @@ const rootRouteChildren: RootRouteChildren = {
   KundPreviewReferenceRoute: KundPreviewReferenceRoute,
   PortfolioSlugRoute: PortfolioSlugRoute,
   ApiAdminApplicationsRoute: ApiAdminApplicationsRoute,
+  ApiAdminSeedTestGalleryRoute: ApiAdminSeedTestGalleryRoute,
   ApiPublicApplicationRoute: ApiPublicApplicationRoute,
   ApiPublicApplicationFilesRoute: ApiPublicApplicationFilesRoute,
   ApiPublicContactRoute: ApiPublicContactRoute,

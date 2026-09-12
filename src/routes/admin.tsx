@@ -229,7 +229,14 @@ function Admin() {
                   <h2 className="text-xl font-semibold">Testgalleri</h2>
                   <p className="text-sm text-muted-foreground">Demo-exempel för att jämföra designer. Påverkar inte riktiga kunder.</p>
                 </div>
-                {!testItems.length && <p className="text-sm text-muted-foreground py-6">Inga testexempel hittades.</p>}
+                {!testItems.length && (
+                  <div className="py-6 space-y-3">
+                    <p className="text-sm text-muted-foreground">Inga testexempel hittades i den här miljön.</p>
+                    <Button onClick={seedTestGallery} disabled={seeding}>
+                      {seeding ? <Loader2 className="h-4 w-4 animate-spin" /> : <LayoutGrid className="h-4 w-4" />} Skapa testexempel
+                    </Button>
+                  </div>
+                )}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                   {testItems.map((a) => {
                     const spec = a.design_spec || {};
