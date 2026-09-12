@@ -85,6 +85,7 @@ function Admin() {
   const [openRef, setOpenRef] = useState<string | null>(null);
   const [buildingRef, setBuildingRef] = useState<string | null>(null);
   const [showGallery, setShowGallery] = useState(false);
+  const [seeding, setSeeding] = useState(false);
   const realItems = items.filter((a) => !isTest(a));
   const testItems = items.filter(isTest);
 
