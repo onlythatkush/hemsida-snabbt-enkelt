@@ -26,7 +26,8 @@ function buildCtx(spec: DesignSpec): Ctx {
       .filter((u): u is string => Boolean(u));
     const out = own.slice(0, count);
     for (let k = 0; out.length < count; k++) {
-      out.push(stock[(index + k + out.length) % stock.length]);
+      const start = index === 0 ? 0 : 1;
+      out.push(stock[(start + index + k + out.length) % stock.length]);
       if (k > 8) break;
     }
     return out;
