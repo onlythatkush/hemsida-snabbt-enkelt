@@ -21,3 +21,9 @@
 - [x] Alla 20 previews renderade mobilt utan fel, 0 trasiga bilder, build OK
 
 <!-- production redeploy trigger: testgalleri -->
+
+## Framtida idé — AI Hub / kontrollpanel
+- [ ] Bygg en egen central AI-kontrollpanel när Din Webbpartner-flödet är stabilt.
+- [ ] Visa alla projekt, GitHub/Vercel/Lovable-status, kundflöden, logs och deploys i realtid.
+- [ ] Ha en inbyggd AI-chat som kan starta jobb och styra verktyg från samma gränssnitt.
+- [ ] Designa lösningen modellagnostiskt så olika AI-modeller kan användas för olika uppgifter vid behov.
