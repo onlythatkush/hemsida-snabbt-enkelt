@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { Sparkles, Mail, MapPin, Instagram, Linkedin, Facebook } from "lucide-react";
+import { BUILD_ID, BUILD_LABEL } from "@/lib/build-info";
 
 export function SiteHeader() {
   return (
@@ -80,7 +81,10 @@ export function SiteFooter() {
         </div>
         <div className="mt-12 pt-8 border-t border-white/10 flex flex-col md:flex-row items-center justify-between gap-3 text-xs text-ink-foreground/60">
           <span>© {new Date().getFullYear()} Din Webbpartner. Alla rättigheter förbehållna.</span>
-          <span>Org.nr: 559XXX-XXXX · Moms: SE559XXXXXXXX01</span>
+          <span>
+            Org.nr: 559XXX-XXXX · Moms: SE559XXXXXXXX01
+            <span data-build-id={BUILD_ID} className="ml-2 opacity-50">{BUILD_LABEL}</span>
+          </span>
         </div>
       </div>
     </footer>
