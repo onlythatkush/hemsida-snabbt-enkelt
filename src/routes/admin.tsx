@@ -85,6 +85,7 @@ function Admin() {
   const [openRef, setOpenRef] = useState<string | null>(null);
   const [buildingRef, setBuildingRef] = useState<string | null>(null);
   const [showGallery, setShowGallery] = useState(false);
+  const [seeding, setSeeding] = useState(false);
   const realItems = items.filter((a) => !isTest(a));
   const testItems = items.filter(isTest);
 
@@ -160,6 +161,24 @@ function Admin() {
     }
   }
 
+  async function seedTestGallery() {
+    setSeeding(true);
+    try {
+      const res = await fetch("/api/admin/seed-test-gallery", {
+        method: "POST",
+        headers: { "x-admin-key": savedKey },
+      });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(body?.error || "Kunde inte skapa testexempel");
+      toast.success(`${body.seeded ?? 20} testexempel skapade`);
+      await load();
+    } catch (e: any) {
+      toast.error(e.message || "Kunde inte skapa testexempel");
+    } finally {
+      setSeeding(false);
+    }
+  }
+
   async function openFile(path: string) {
     try {
       const res = await fetch(`/api/admin/applications?file=${encodeURIComponent(path)}`, {
@@ -229,7 +248,14 @@ function Admin() {
                   <h2 className="text-xl font-semibold">Testgalleri</h2>
                   <p className="text-sm text-muted-foreground">Demo-exempel för att jämföra designer. Påverkar inte riktiga kunder.</p>
                 </div>
-                {!testItems.length && <p className="text-sm text-muted-foreground py-6">Inga testexempel hittades.</p>}
+                {!testItems.length && (
+                  <div className="py-6 space-y-3">
+                    <p className="text-sm text-muted-foreground">Inga testexempel hittades i den här miljön.</p>
+                    <Button onClick={seedTestGallery} disabled={seeding}>
+                      {seeding ? <Loader2 className="h-4 w-4 animate-spin" /> : <LayoutGrid className="h-4 w-4" />} Skapa testexempel
+                    </Button>
+                  </div>
+                )}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                   {testItems.map((a) => {
                     const spec = a.design_spec || {};
