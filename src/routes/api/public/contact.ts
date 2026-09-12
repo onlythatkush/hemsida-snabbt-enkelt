@@ -4,6 +4,7 @@ import { createClient } from '@supabase/supabase-js'
 import { createFileRoute } from '@tanstack/react-router'
 import { z } from 'zod'
 import { TEMPLATES } from '@/lib/email-templates/registry'
+import { getUnsubscribeToken } from '@/lib/unsubscribe-token.server'
 
 const SITE_NAME = 'Din Webbpartner'
 const SENDER_DOMAIN = 'notify.dinwebbpartner.com'
@@ -42,6 +43,8 @@ async function enqueue(
     status: 'pending',
   })
 
+  const unsubscribeToken = await getUnsubscribeToken(supabase, to)
+
   const { error } = await supabase.rpc('enqueue_email', {
     queue_name: 'transactional_emails',
     payload: {
@@ -55,6 +58,7 @@ async function enqueue(
       purpose: 'transactional',
       label: templateName,
       idempotency_key: idempotencyKey,
+      unsubscribe_token: unsubscribeToken,
       queued_at: new Date().toISOString(),
     },
   })

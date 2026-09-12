@@ -5,6 +5,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import postgres from 'postgres'
 import { z } from 'zod'
 import { TEMPLATES } from '@/lib/email-templates/registry'
+import { getUnsubscribeToken } from '@/lib/unsubscribe-token.server'
 
 const SITE_NAME = 'Din Webbpartner'
 const SENDER_DOMAIN = 'notify.dinwebbpartner.com'
@@ -182,6 +183,8 @@ export const Route = createFileRoute('/api/admin/send-preview')({
             status: 'pending',
           })
 
+          const unsubscribeToken = await getUnsubscribeToken(provider.client, recipient)
+
           const { error } = await provider.client.rpc('enqueue_email', {
             queue_name: 'transactional_emails',
             payload: {
@@ -195,6 +198,7 @@ export const Route = createFileRoute('/api/admin/send-preview')({
               purpose: 'transactional',
               label: 'preview-ready',
               idempotency_key: `preview-ready-${reference}-${messageId}`,
+              unsubscribe_token: unsubscribeToken,
               queued_at: new Date().toISOString(),
             },
           })
