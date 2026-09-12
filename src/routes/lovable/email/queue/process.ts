@@ -35,6 +35,20 @@ function getRetryAfterSeconds(error: unknown): number {
   return 60
 }
 
+// Mirror queue outcomes onto the admin-facing preview email log (best effort).
+async function syncPreviewLog(
+  supabase: any,
+  messageId: unknown,
+  patch: Record<string, unknown>
+): Promise<void> {
+  if (!messageId || typeof messageId !== 'string') return
+  try {
+    await supabase.from('preview_email_log').update(patch).eq('provider_message_id', messageId)
+  } catch (error) {
+    console.warn('Failed to sync preview_email_log', { messageId, error })
+  }
+}
+
 // Move a message to the dead letter queue and log the reason.
 async function moveToDlq(
   supabase: any,
