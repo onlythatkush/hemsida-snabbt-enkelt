@@ -210,8 +210,20 @@ export const Route = createFileRoute('/api/admin/send-preview')({
 
         // Fallback provider: Resend (used when the Lovable sender domain is not verified).
         const resendKey = process.env.RESEND_API_KEY
+        const logClient = provider.ok ? provider.client : null
         if (resendKey) {
           const from = process.env.RESEND_FROM || 'Din Webbpartner <onboarding@resend.dev>'
+          const logId = logClient
+            ? await logSend(logClient, {
+                reference: app.reference,
+                company: app.company ?? null,
+                recipient,
+                preview_url: app.preview_url ?? null,
+                sender: from,
+                provider: 'resend',
+                status: 'queued',
+              })
+            : null
           try {
             const res = await fetch('https://api.resend.com/emails', {
               method: 'POST',
@@ -224,12 +236,19 @@ export const Route = createFileRoute('/api/admin/send-preview')({
             if (!res.ok) {
               const body = await res.text()
               console.error(`send-preview: resend failed [${res.status}]: ${body}`)
+              await updateLog(logClient, logId, { status: 'failed', error_message: `Resend ${res.status}: ${body}`.slice(0, 500) })
               return Response.json({ error: `Resend: ${res.status} ${body}` }, { status: 502 })
             }
             const out = (await res.json()) as { id?: string }
+            await updateLog(logClient, logId, {
+              status: 'sent',
+              provider_message_id: out.id ?? messageId,
+              sent_at: new Date().toISOString(),
+            })
             return Response.json({ success: true, recipient, messageId: out.id ?? messageId, provider: 'resend' })
           } catch (e) {
             console.error('send-preview: resend request failed', e)
+            await updateLog(logClient, logId, { status: 'failed', error_message: 'Resend request failed' })
             return Response.json({ error: 'Kunde inte skicka previewmailet via Resend' }, { status: 500 })
           }
         }
