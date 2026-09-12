@@ -207,15 +207,69 @@ function Admin() {
             </Button>
           </div>
 
-          <Card className="mb-6">
-            <CardContent className="pt-5 flex items-center gap-3">
-              <Inbox className="text-primary" />
-              <div><div className="text-2xl font-semibold">{items.length}</div><div className="text-sm text-muted-foreground">ansökningar</div></div>
-            </CardContent>
-          </Card>
+          <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 mb-6">
+            <Card>
+              <CardContent className="pt-5 flex items-center gap-3">
+                <Inbox className="text-primary shrink-0" />
+                <div className="min-w-0"><div className="text-2xl font-semibold">{realItems.length}</div><div className="text-sm text-muted-foreground truncate">ansökningar</div></div>
+              </CardContent>
+            </Card>
+            <Button variant={showGallery ? "default" : "outline"} onClick={() => setShowGallery((v) => !v)} className="shrink-0">
+              <LayoutGrid className="h-4 w-4" /> Testgalleri ({testItems.length})
+            </Button>
+          </div>
+
+          {showGallery && (
+            <Card className="mb-8">
+              <CardContent className="pt-6">
+                <div className="mb-4">
+                  <h2 className="text-xl font-semibold">Testgalleri</h2>
+                  <p className="text-sm text-muted-foreground">Demo-exempel för att jämföra designer. Påverkar inte riktiga kunder.</p>
+                </div>
+                {!testItems.length && <p className="text-sm text-muted-foreground py-6">Inga testexempel hittades.</p>}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {testItems.map((a) => {
+                    const spec = a.design_spec || {};
+                    const palette = spec.palette || {};
+                    const family = a.design_family || spec.family;
+                    const industry = spec.industry as string | undefined;
+                    return (
+                      <div key={a.reference} className="rounded-xl border overflow-hidden bg-card flex flex-col">
+                        <div
+                          className="h-24 w-full"
+                          style={{ background: `linear-gradient(135deg, ${palette.primary || "hsl(var(--primary))"} 0%, ${palette.accent || palette.primary || "hsl(var(--muted))"} 100%)` }}
+                        />
+                        <div className="p-4 flex flex-col gap-3 flex-1">
+                          <div className="min-w-0">
+                            <div className="font-semibold leading-tight break-words">{a.company.replace("[TEST] ", "")}</div>
+                            <div className="font-mono text-xs text-muted-foreground mt-1">{a.reference}</div>
+                          </div>
+                          <div className="flex flex-wrap items-center gap-2 text-xs">
+                            {industry && <span className="rounded-full border px-2 py-0.5">{industryLabels[industry] || industry}</span>}
+                            {family && <span className="rounded-full border px-2 py-0.5">{familyLabels[family] || family}</span>}
+                            {palette.primary && (
+                              <span className="inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 font-mono">
+                                <span className="h-3 w-3 rounded-full border shrink-0" style={{ background: palette.primary }} />
+                                {palette.primary}
+                              </span>
+                            )}
+                          </div>
+                          <Button asChild size="sm" className="mt-auto w-full" disabled={!a.preview_url}>
+                            <a href={a.preview_url || "#"} target="_blank" rel="noreferrer">
+                              <ExternalLink className="h-4 w-4" /> Öppna preview
+                            </a>
+                          </Button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           <div className="md:hidden space-y-3">
-            {items.map((a) => {
+            {realItems.map((a) => {
               const isOpen = openRef === a.reference;
               return (
                 <Card key={a.reference}>
