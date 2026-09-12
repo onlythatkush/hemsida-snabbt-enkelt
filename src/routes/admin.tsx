@@ -37,7 +37,31 @@ type Application = {
   preview_url?: string | null;
   file_names?: string[];
   created_at: string;
+  design_family?: string | null;
+  design_spec?: any;
 };
+
+const familyLabels: Record<string, string> = {
+  "warm-craft": "Varm hantverk",
+  "clean-nordic": "Ren nordisk",
+  "trust-professional": "Trygg professionell",
+  "bold-modern": "Modern & kraftfull",
+  "soft-wellness": "Mjuk wellness",
+  "fresh-retail": "Fräsch retail",
+  "night-premium": "Mörk premium",
+};
+
+const industryLabels: Record<string, string> = {
+  bakery: "Bageri", restaurant: "Restaurang", cafe: "Café", ecommerce: "E-handel",
+  retail: "Butik", legal: "Juridik", consulting: "Konsult", beauty: "Skönhet",
+  health: "Hälsa", construction: "Bygg", fitness: "Träning", photography: "Foto",
+  cleaning: "Städ", realestate: "Mäklare", events: "Event", automotive: "Fordon",
+  hospitality: "Hotell", generic: "Övrigt",
+};
+
+function isTest(a: Application) {
+  return a.company?.startsWith("[TEST]") || a.reference?.startsWith("TEST-");
+}
 
 const statuses = ["new","reviewing","building","preview","changes","approved","paid","delivered","archived"];
 
