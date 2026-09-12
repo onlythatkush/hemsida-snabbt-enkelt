@@ -2,6 +2,7 @@ import { createClient } from '@supabase/supabase-js'
 import { createFileRoute } from '@tanstack/react-router'
 import { z } from 'zod'
 import postgres from 'postgres'
+import { preflight, withCors } from '@/lib/cors'
 
 const schema = z.object({
   reference: z.string().trim().min(4).max(40),
@@ -22,7 +23,16 @@ const schema = z.object({
 export const Route = createFileRoute('/api/public/application')({
   server: {
     handlers: {
-      POST: async ({ request }) => {
+      OPTIONS: async ({ request }) => preflight(request),
+      POST: async ({ request }) => withCors(request, await handlePost(request)),
+    },
+  },
+})
+
+async function handlePost(request: Request): Promise<Response> {
+  {
+    {
+      {
         const supabaseUrl =
           import.meta.env.VITE_SUPABASE_URL ||
           import.meta.env.VITE_STORAGE_URL ||
@@ -141,7 +151,7 @@ export const Route = createFileRoute('/api/public/application')({
         }
 
         return Response.json({ success: true, reference: parsed.reference })
-      },
-    },
-  },
-})
+      }
+    }
+  }
+}

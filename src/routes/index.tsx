@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { publicApiFetch } from "@/lib/public-api";
 import { createFileRoute, Link } from "@tanstack/react-router";
 
 import mockupRestaurant from "@/assets/mockup-restaurant.jpg";
@@ -797,7 +798,7 @@ function Kontakt() {
                   };
                   const t = toast.loading("Skickar...");
                   try {
-                    const res = await fetch("/api/public/contact", {
+                    const res = await publicApiFetch("/api/public/contact", {
                       method: "POST",
                       headers: { "Content-Type": "application/json" },
                       body: JSON.stringify(payload),
