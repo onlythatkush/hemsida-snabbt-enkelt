@@ -141,6 +141,32 @@ export const Route = createFileRoute('/api/admin/send-preview')({
         const subject = typeof entry.subject === 'function' ? entry.subject(data) : entry.subject
         const messageId = crypto.randomUUID()
 
+        // Fallback provider: Resend (used when the Lovable sender domain is not verified).
+        const resendKey = process.env.RESEND_API_KEY
+        if (resendKey) {
+          const from = process.env.RESEND_FROM || 'Din Webbpartner <onboarding@resend.dev>'
+          try {
+            const res = await fetch('https://api.resend.com/emails', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${resendKey}`,
+              },
+              body: JSON.stringify({ from, to: [recipient], subject, html, text }),
+            })
+            if (!res.ok) {
+              const body = await res.text()
+              console.error(`send-preview: resend failed [${res.status}]: ${body}`)
+              return Response.json({ error: `Resend: ${res.status} ${body}` }, { status: 502 })
+            }
+            const out = (await res.json()) as { id?: string }
+            return Response.json({ success: true, recipient, messageId: out.id ?? messageId, provider: 'resend' })
+          } catch (e) {
+            console.error('send-preview: resend request failed', e)
+            return Response.json({ error: 'Kunde inte skicka previewmailet via Resend' }, { status: 500 })
+          }
+        }
+
         try {
           await provider.client.from('email_send_log').insert({
             message_id: messageId,
