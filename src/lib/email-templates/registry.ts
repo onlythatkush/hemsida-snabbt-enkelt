@@ -10,8 +10,10 @@ export interface TemplateEntry {
 
 import { template as contactConfirmation } from './contact-confirmation'
 import { template as contactNotification } from './contact-notification'
+import { template as previewReady } from './preview-ready'
 
 export const TEMPLATES: Record<string, TemplateEntry> = {
   'contact-confirmation': contactConfirmation,
   'contact-notification': contactNotification,
+  'preview-ready': previewReady,
 }
