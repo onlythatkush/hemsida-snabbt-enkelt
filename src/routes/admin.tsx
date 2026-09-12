@@ -160,6 +160,24 @@ function Admin() {
     }
   }
 
+  async function seedTestGallery() {
+    setSeeding(true);
+    try {
+      const res = await fetch("/api/admin/seed-test-gallery", {
+        method: "POST",
+        headers: { "x-admin-key": savedKey },
+      });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(body?.error || "Kunde inte skapa testexempel");
+      toast.success(`${body.seeded ?? 20} testexempel skapade`);
+      await load();
+    } catch (e: any) {
+      toast.error(e.message || "Kunde inte skapa testexempel");
+    } finally {
+      setSeeding(false);
+    }
+  }
+
   async function openFile(path: string) {
     try {
       const res = await fetch(`/api/admin/applications?file=${encodeURIComponent(path)}`, {
