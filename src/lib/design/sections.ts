@@ -317,7 +317,7 @@ const RENTAL_OFFER = {
 };
 
 export function buildSections(ctx: SectionContext): Section[] {
-  const { industry, tone, local, description, extra, images, docCount, company } = ctx;
+  const { industry, tone, local, description, images, docCount, company } = ctx;
   const rental = industry === "automotive" && Boolean(ctx.art?.subjects.includes("rental"));
   const heroImages = images.filter((i) => i.role === "hero");
   const featureImages = images.filter((i) => i.role === "feature");
