@@ -14,6 +14,81 @@ export type Database = {
   }
   public: {
     Tables: {
+      application_events: {
+        Row: {
+          created_at: string
+          details: Json | null
+          event_type: string
+          id: string
+          label: string
+          reference: string
+        }
+        Insert: {
+          created_at?: string
+          details?: Json | null
+          event_type: string
+          id?: string
+          label: string
+          reference: string
+        }
+        Update: {
+          created_at?: string
+          details?: Json | null
+          event_type?: string
+          id?: string
+          label?: string
+          reference?: string
+        }
+        Relationships: []
+      }
+      customer_change_requests: {
+        Row: {
+          created_at: string
+          directives: Json | null
+          error: string | null
+          from_email: string | null
+          id: string
+          matched_via: string | null
+          message_id: string
+          processed_at: string | null
+          raw_text: string
+          received_at: string
+          reference: string
+          revision: number | null
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          directives?: Json | null
+          error?: string | null
+          from_email?: string | null
+          id?: string
+          matched_via?: string | null
+          message_id: string
+          processed_at?: string | null
+          raw_text: string
+          received_at?: string
+          reference: string
+          revision?: number | null
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          directives?: Json | null
+          error?: string | null
+          from_email?: string | null
+          id?: string
+          matched_via?: string | null
+          message_id?: string
+          processed_at?: string | null
+          raw_text?: string
+          received_at?: string
+          reference?: string
+          revision?: number | null
+          status?: string
+        }
+        Relationships: []
+      }
       email_send_log: {
         Row: {
           created_at: string
