@@ -397,6 +397,11 @@ export const Route = createFileRoute('/api/admin/send-preview')({
           return Response.json({ error: 'Kunde inte skicka previewmailet' }, { status: 500 })
         }
 
+        await provider.client
+          .from('application_events')
+          .insert({ reference, event_type: 'preview_sent', label: 'Previewmail skickat', details: { messageId } })
+          .then(() => undefined, () => undefined)
+
         return Response.json({ success: true, recipient, messageId })
       },
     },

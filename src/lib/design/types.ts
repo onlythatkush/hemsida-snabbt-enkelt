@@ -231,6 +231,10 @@ export type DesignSpec = {
   qa?: QaReport;
   /** v2.1 — art direction taken from the customer's free-text wishes. */
   art?: ArtDirection;
+  /** v7 — structured customer revision wishes. Admin-only, never rendered. */
+  directives?: unknown;
+  /** v7 — sanitised summary of the applied revision. Admin-only. */
+  revisionNotes?: string[];
 };
 
 export type ApplicationInput = {

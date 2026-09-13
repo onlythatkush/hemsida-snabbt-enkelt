@@ -502,12 +502,13 @@ function Admin() {
                             </Button>
                             <Button variant="outline" className="w-full" onClick={() => sendPreviewEmail(a)} disabled={sendingRef === a.reference || !qaOf(a).canSend}>
                               {sendingRef === a.reference ? <Loader2 className="h-4 w-4 animate-spin" /> : <Mail className="h-4 w-4" />}
-                              Skicka preview
+                              {a.status === "changes" ? "Skicka uppdaterad preview" : "Skicka preview"}
                             </Button>
                           </>
                         )}
 
                         <PreviewMailLog reference={a.reference} adminKey={savedKey} version={logVersion} />
+                        <RevisionTimeline reference={a.reference} adminKey={savedKey} version={logVersion} />
 
                         {!!a.file_names?.length && (
                           <div>
@@ -666,6 +667,76 @@ function PreviewMailLog({ reference, adminKey, version }: { reference: string; a
             <div className="text-xs text-muted-foreground">+{logs.length - 1} tidigare försök</div>
           )}
         </div>
+      )}
+    </div>
+  );
+}
+
+type TimelineEvent = { id: string; event_type: string; label: string; created_at: string; details?: any };
+type ChangeRequest = {
+  id: string;
+  raw_text: string;
+  status: string;
+  revision: number | null;
+  received_at: string;
+  matched_via: string | null;
+  directives?: { summary?: string[] } | null;
+};
+
+/** Customer replies and the full history for one application. */
+function RevisionTimeline({ reference, adminKey, version }: { reference: string; adminKey: string; version: number }) {
+  const [events, setEvents] = useState<TimelineEvent[] | null>(null);
+  const [requests, setRequests] = useState<ChangeRequest[]>([]);
+
+  useEffect(() => {
+    let active = true;
+    if (!adminKey) return;
+    (async () => {
+      try {
+        const res = await fetch(`/api/admin/applications?timeline=${encodeURIComponent(reference)}`, {
+          headers: { "x-admin-key": adminKey },
+        });
+        if (!res.ok) throw new Error("fel");
+        const body = await res.json();
+        if (!active) return;
+        setEvents(body.events || []);
+        setRequests(body.changeRequests || []);
+      } catch {
+        if (active) setEvents([]);
+      }
+    })();
+    return () => { active = false; };
+  }, [reference, adminKey, version]);
+
+  if (!events || (!events.length && !requests.length)) return null;
+
+  return (
+    <div className="rounded-lg border p-3 space-y-3">
+      <div className="text-xs text-muted-foreground">Kundsvar & historik</div>
+      {requests.slice(0, 3).map((r) => (
+        <div key={r.id} className="rounded-md bg-muted/50 p-2 text-sm space-y-1">
+          <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+            <span className="rounded-full bg-background px-2 py-0.5">{r.status}</span>
+            {r.revision ? <span>version {r.revision}</span> : null}
+            <span>{new Date(r.received_at).toLocaleString("sv-SE")}</span>
+          </div>
+          <div className="break-words">{r.raw_text.slice(0, 220)}</div>
+          {!!r.directives?.summary?.length && (
+            <ul className="list-disc pl-4 text-xs text-muted-foreground">
+              {r.directives.summary.map((s) => <li key={s}>{s}</li>)}
+            </ul>
+          )}
+        </div>
+      ))}
+      {!!events.length && (
+        <ol className="space-y-1 text-xs text-muted-foreground">
+          {events.slice(0, 8).map((e) => (
+            <li key={e.id} className="flex flex-wrap gap-2">
+              <span className="text-foreground">{e.label}</span>
+              <span>{new Date(e.created_at).toLocaleString("sv-SE")}</span>
+            </li>
+          ))}
+        </ol>
       )}
     </div>
   );

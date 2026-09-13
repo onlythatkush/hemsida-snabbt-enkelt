@@ -9,6 +9,7 @@ import { buildSections } from "./sections";
 import { stockSetFor } from "./stock-map";
 import { buildTokens } from "./tokens";
 import type { ApplicationInput, ArtDirection, DesignSpec, FamilyId } from "./types";
+import type { RevisionDirectives } from "@/lib/revision/types";
 import { buildVariation } from "./variants";
 
 export const DESIGN_SPEC_VERSION = 6;
@@ -58,8 +59,9 @@ export function chooseFamily(
 
 export function composeDesignSpec(
   app: ApplicationInput,
-  override?: { family?: FamilyId; revision?: number },
+  override?: { family?: FamilyId; revision?: number; directives?: RevisionDirectives },
 ): DesignSpec {
+  const directives = override?.directives;
   // Deterministic per (application, revision): pressing "Gör ny hemsida" bumps
   // the revision, which yields a genuinely different — but reproducible — page.
   const revision = Math.max(1, Math.floor(override?.revision ?? 1));
@@ -73,7 +75,16 @@ export function composeDesignSpec(
 
   const art = analyzeArt(industry, description, app.extra_requests, app.website_type);
 
-  const chosen = override?.family || chooseFamily(industry, tone, seed, photoCount, art).family;
+  let chosen = override?.family || chooseFamily(industry, tone, seed, photoCount, art).family;
+  // A customer reply asking for a lighter/darker expression must actually change
+  // the page, so switch to the best-scoring family in the requested mode.
+  if (!override?.family && directives?.mode && FAMILIES[chosen].base.mode !== directives.mode) {
+    const scores = chooseFamily(industry, tone, seed, photoCount, art).scores;
+    const best = Object.entries(scores)
+      .filter(([id]) => FAMILIES[id as FamilyId].base.mode === directives.mode)
+      .sort((a, b) => b[1] - a[1])[0]?.[0] as FamilyId | undefined;
+    if (best) chosen = best;
+  }
   const familyDef = FAMILIES[chosen];
   // Pale colours make poor primaries; the strongest colour leads, pale ones become tints.
   const allColors = extractColors(app.colors);
@@ -87,11 +98,29 @@ export function composeDesignSpec(
     const sb = saturation(b) >= 14 ? 1 : 0;
     return sb - sa;
   });
-  const customerColors = ordered.length ? ordered : pale;
+  let customerColors = ordered.length ? ordered : pale;
+
+  // Customer revision wishes: kept colours lead, removed colours disappear,
+  // added colours join as accents without throwing away the brand identity.
+  if (directives) {
+    const removed = new Set(directives.removeColors);
+    const base = customerColors.filter((c) => !removed.has(c));
+    const kept = directives.keepColors.filter((c) => !removed.has(c));
+    const added = directives.addColors.filter((c) => !removed.has(c));
+    const merged = [...kept, ...base, ...added].filter((c, i, arr) => arr.indexOf(c) === i);
+    if (merged.length) customerColors = merged;
+  }
 
   const palette = buildPalette(familyDef, customerColors, tone);
   if (pale.length) palette.tint = pale[0];
-  const type = tuneTypography(familyDef.type, tone);
+  // An explicitly requested new colour must be visible as the accent.
+  const addedAccent = directives?.addColors.find((c) => !directives.keepColors.includes(c));
+  if (addedAccent) palette.accent = addedAccent;
+  let type = tuneTypography(familyDef.type, tone);
+  if (directives?.headingScale) {
+    const scale = Math.min(1.2, Math.max(0.82, type.scale + directives.headingScale));
+    type = { ...type, scale: Number(scale.toFixed(3)) };
+  }
   const shape = tuneShape(familyDef.shape, tone);
 
   const built = buildSections({
@@ -107,8 +136,10 @@ export function composeDesignSpec(
     seed,
   });
 
-  const variation = buildVariation(chosen, seed, built.map((s) => s.id));
-  const sections = [...built].sort(
+  const dropped = new Set(directives?.dropSections || []);
+  const kept = built.filter((s) => !dropped.has(s.id));
+  const variation = buildVariation(chosen, seed, kept.map((s) => s.id));
+  const sections = [...kept].sort(
     (a, b) => variation.sectionOrder.indexOf(a.id) - variation.sectionOrder.indexOf(b.id),
   );
   const tokens = buildTokens(type, shape, tone);
@@ -148,6 +179,8 @@ export function composeDesignSpec(
     fonts: familyDef.fonts,
     stockSet: stockSetFor(industry),
     art,
+    // Admin-only record of what the customer asked for. Never rendered publicly.
+    ...(directives ? { directives, revisionNotes: directives.summary } : {}),
   };
 
   spec.qa = evaluateQuality(spec);

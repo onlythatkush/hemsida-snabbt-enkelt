@@ -54,7 +54,10 @@ export function SplitBlock({ ctx, section, index }: { ctx: Ctx; section: Section
       <div>
         <Heading ctx={ctx} section={section} contrast={false} />
         <ul className="mt-7 space-y-3">
-          {["Personlig kontakt", "Genuint hantverk", "Trygga leveranser"].map((line) => (
+          {(section.items?.length
+            ? section.items.map((item) => item.title)
+            : ["Personlig kontakt", "Tydliga besked", "Trygg leverans"]
+          ).map((line) => (
             <li
               key={line}
               className="flex items-start gap-3"
