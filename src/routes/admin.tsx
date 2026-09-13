@@ -637,6 +637,36 @@ function PreviewMailLog({ reference, adminKey, version }: { reference: string; a
   );
 }
 
+/** Proof of exactly which generation produced the current preview. */
+function DesignDiagnostics({ app }: { app: Application }) {
+  const spec = app.design_spec || {};
+  const e = spec.engine || {};
+  if (!spec.version && !e.version) return null;
+  const rows: [string, string][] = [
+    ["Revision", String(spec.revision ?? e.revision ?? 1)],
+    ["Motorversion", String(spec.version ?? e.version ?? "–")],
+    ["Genererad", spec.generatedAt ? new Date(spec.generatedAt).toLocaleString("sv-SE") : "–"],
+    ["Designfamilj", String(app.design_family || spec.family || "–")],
+    ["Bransch", String(spec.industry || "–")],
+    ["Hero-bild", e.heroSource === "customer" ? `Kundens bild: ${e.heroAsset}` : e.heroSource === "curated" ? `Kurerad bild (${e.stockSet || "–"})` : "Ingen"],
+    ["QA", spec.qa ? `${spec.qa.status} · ${spec.qa.score}` : "–"],
+    ["Bortvalda filer", (e.rejectedAssets || []).length ? (e.rejectedAssets as string[]).join(", ") : "Inga"],
+  ];
+  return (
+    <div className="rounded-lg border bg-muted/30 p-3">
+      <div className="text-xs font-medium mb-2">Designdiagnostik</div>
+      <dl className="grid grid-cols-1 gap-1 text-xs sm:grid-cols-2">
+        {rows.map(([k, v]) => (
+          <div key={k} className="flex flex-wrap gap-1">
+            <dt className="text-muted-foreground">{k}:</dt>
+            <dd className="break-all font-mono">{v}</dd>
+          </div>
+        ))}
+      </dl>
+    </div>
+  );
+}
+
 function Info({ label, value }: { label: string; value: string }) {
   return (
     <div>
