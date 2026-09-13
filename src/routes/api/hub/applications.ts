@@ -52,6 +52,7 @@ export const Route = createFileRoute('/api/hub/applications')({
             .limit(reference ? 1 : MAX_ROWS)
 
           if (reference) query = query.eq('reference', reference)
+          else query = query.not('reference', 'like', 'TEST-%')
 
           const { data, error } = await query
           if (error) throw error
