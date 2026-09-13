@@ -227,7 +227,8 @@ function finishPalette(family: FamilyDef, primary: string, accent: string, dark:
     surface,
     surfaceAlt: hslToHex({ h: primaryHsl.h, s: Math.min(bgSat + 8, 66), l: bgLight - 4.5 }),
     ink,
-    muted: withLightness(ink, 42),
+    // Secondary text must stay above WCAG AA on the tinted background.
+    muted: ensureContrast(withLightness(ink, 42), bg, 4.8),
     border: `rgba(0,0,0,${(0.08 + tone.density * 0.05).toFixed(3)})`,
     primary: safePrimary,
     primarySoft: withLightness(safePrimary, 92),
