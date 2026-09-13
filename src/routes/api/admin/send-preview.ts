@@ -204,7 +204,7 @@ export const Route = createFileRoute('/api/admin/send-preview')({
         const reference = input.reference.toUpperCase()
 
         // Load the application (prefer the same Postgres connection the rest of admin uses).
-        let app: { reference: string; company?: string; name?: string; email?: string; preview_url?: string } | null = null
+        let app: AppRow | null = null
         const dbUrl = databaseUrl()
         if (dbUrl) {
           const sql = postgres(dbUrl, { max: 1, prepare: false })
