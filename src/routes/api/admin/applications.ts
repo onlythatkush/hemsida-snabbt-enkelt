@@ -178,6 +178,12 @@ export const Route = createFileRoute('/api/admin/applications')({
             WHERE reference = ${input.reference}
             RETURNING *
           `
+          await sql`
+            INSERT INTO public.application_events (reference, event_type, label, details)
+            VALUES (${input.reference}, 'revision_generated', ${'Ny version ' + revision + ' skapad i admin'},
+                    ${sql.json({ revision, family: spec.family, qaStatus: qa?.status, qaScore: qa?.score } as any)})
+          `.catch(() => undefined)
+
           return Response.json({
             application: rows[0],
             diagnostics: {
