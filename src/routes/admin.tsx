@@ -444,6 +444,8 @@ function Admin() {
                         {a.extra_requests && <Info label="Extra önskemål" value={a.extra_requests} />}
                         <Info label="Support & hosting" value={a.wants_support ? "Ja" : "Nej"} />
 
+                        <DesignDiagnostics app={a} />
+
                         {(a.status === "reviewing" || a.status === "new") ? (
                           <Button className="w-full" onClick={() => createPreview(a.reference)} disabled={buildingRef === a.reference}>
                             {buildingRef === a.reference ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
