@@ -98,11 +98,29 @@ export function composeDesignSpec(
     const sb = saturation(b) >= 14 ? 1 : 0;
     return sb - sa;
   });
-  const customerColors = ordered.length ? ordered : pale;
+  let customerColors = ordered.length ? ordered : pale;
+
+  // Customer revision wishes: kept colours lead, removed colours disappear,
+  // added colours join as accents without throwing away the brand identity.
+  if (directives) {
+    const removed = new Set(directives.removeColors);
+    const base = customerColors.filter((c) => !removed.has(c));
+    const kept = directives.keepColors.filter((c) => !removed.has(c));
+    const added = directives.addColors.filter((c) => !removed.has(c));
+    const merged = [...kept, ...base, ...added].filter((c, i, arr) => arr.indexOf(c) === i);
+    if (merged.length) customerColors = merged;
+  }
 
   const palette = buildPalette(familyDef, customerColors, tone);
   if (pale.length) palette.tint = pale[0];
-  const type = tuneTypography(familyDef.type, tone);
+  // An explicitly requested new colour must be visible as the accent.
+  const addedAccent = directives?.addColors.find((c) => !directives.keepColors.includes(c));
+  if (addedAccent) palette.accent = addedAccent;
+  let type = tuneTypography(familyDef.type, tone);
+  if (directives?.headingScale) {
+    const scale = Math.min(1.2, Math.max(0.82, type.scale + directives.headingScale));
+    type = { ...type, scale: Number(scale.toFixed(3)) };
+  }
   const shape = tuneShape(familyDef.shape, tone);
 
   const built = buildSections({
