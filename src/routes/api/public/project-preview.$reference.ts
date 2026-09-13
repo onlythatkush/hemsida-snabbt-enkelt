@@ -1,7 +1,7 @@
 import { createClient } from '@supabase/supabase-js'
 import { createFileRoute } from '@tanstack/react-router'
 import postgres from 'postgres'
-import { composeDesignSpec } from '@/lib/design/compose'
+import { DESIGN_SPEC_VERSION, composeDesignSpec } from '@/lib/design/compose'
 import type { DesignSpec } from '@/lib/design/types'
 
 function databaseUrl() {
@@ -46,7 +46,7 @@ export const Route = createFileRoute('/api/public/project-preview/$reference')({
           // Recompose in-memory when the stored spec is behind the current engine.
           const storedVersion = Number(item.design_spec?.version || 0)
           const spec: DesignSpec =
-            item.design_spec && storedVersion >= 3
+            item.design_spec && storedVersion >= DESIGN_SPEC_VERSION
               ? (item.design_spec as DesignSpec)
               : composeDesignSpec({
                   reference: item.reference,
