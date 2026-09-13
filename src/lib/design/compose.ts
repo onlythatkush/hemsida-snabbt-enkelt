@@ -33,7 +33,8 @@ export function chooseFamily(
     let score = family.industries[industry] ?? 0;
     score += (1 - toneDistance(tone, family.toneTarget)) * 5;
     if (imageCount === 0 && (family.id === "warm-craft" || family.id === "fresh-retail")) score -= 0.8;
-    if (imageCount === 0 && (family.id === "clean-nordic" || family.id === "trust-professional")) score += 0.8;
+    if (imageCount === 0 && (family.id === "clean-nordic" || family.id === "editorial-b2b")) score += 0.8;
+    if (imageCount >= 4 && (family.motif.hero === "cinematic" || family.motif.hero === "fullbleed")) score += 0.5;
     if (tone.warmth < 0.3 && family.base.mode === "dark") score += 1.2;
     if (tone.warmth > 0.7 && family.base.mode === "dark") score -= 2.5;
     score += ((seed % 13) / 13) * 0.2;
