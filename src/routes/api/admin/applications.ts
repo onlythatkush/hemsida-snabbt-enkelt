@@ -187,6 +187,8 @@ export const Route = createFileRoute('/api/admin/applications')({
         const patch: Record<string, any> = { updated_at: new Date().toISOString() }
         if (input.status) patch.status = input.status
         if (input.previewUrl !== undefined) patch.preview_url = input.previewUrl || null
+        if (input.acceptQa !== undefined) patch.qa_accepted_at = input.acceptQa ? new Date().toISOString() : null
+
 
         const { data, error } = await client()
           .from('project_applications')
