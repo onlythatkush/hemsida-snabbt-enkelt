@@ -444,10 +444,15 @@ function Admin() {
                         {a.extra_requests && <Info label="Extra önskemål" value={a.extra_requests} />}
                         <Info label="Support & hosting" value={a.wants_support ? "Ja" : "Nej"} />
 
-                        {(a.status === "reviewing" || a.status === "new") && (
+                        {(a.status === "reviewing" || a.status === "new") ? (
                           <Button className="w-full" onClick={() => createPreview(a.reference)} disabled={buildingRef === a.reference}>
                             {buildingRef === a.reference ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
                             Skapa hemsida
+                          </Button>
+                        ) : (
+                          <Button className="w-full" variant="outline" onClick={() => createPreview(a.reference, "regenerate-design")} disabled={buildingRef === a.reference}>
+                            {buildingRef === a.reference ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+                            Regenerera preview
                           </Button>
                         )}
                         {a.preview_url && (
