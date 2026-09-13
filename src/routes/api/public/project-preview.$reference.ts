@@ -42,8 +42,11 @@ export const Route = createFileRoute('/api/public/project-preview/$reference')({
           if (!rows.length) return Response.json({ error: 'Preview not found' }, { status: 404 })
 
           const item = rows[0] as any
+          // Never serve a stale persisted design from an older engine version.
+          // Recompose in-memory when the stored spec is behind the current engine.
+          const storedVersion = Number(item.design_spec?.version || 0)
           const spec: DesignSpec =
-            item.design_spec && item.design_spec.version
+            item.design_spec && storedVersion >= 3
               ? (item.design_spec as DesignSpec)
               : composeDesignSpec({
                   reference: item.reference,
