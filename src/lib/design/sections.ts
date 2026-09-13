@@ -340,6 +340,7 @@ export function buildSections(ctx: SectionContext): Section[] {
     eyebrow: local ? "Om oss — lokalt och nära" : "Om oss",
     title: tone.craft > 0.6 ? "Gjort för hand, med omsorg" : tone.formality > 0.75 ? "Erfarenhet du kan luta dig mot" : "Det här är vi",
     body: aboutBody,
+    items: (ABOUT_POINTS[industry] || ABOUT_POINTS_DEFAULT).map((title) => ({ title })),
     images: featureImages.slice(0, 1).map(indexOf),
     layout: featureImages.length ? "split" : "list",
     tone: "base",
