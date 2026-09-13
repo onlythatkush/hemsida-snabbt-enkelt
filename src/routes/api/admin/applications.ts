@@ -39,7 +39,33 @@ export const Route = createFileRoute('/api/admin/applications')({
         try {
           const url = new URL(request.url)
           const file = url.searchParams.get('file')
+          const timeline = url.searchParams.get('timeline')
           const supabase = client()
+
+          if (timeline) {
+            if (!/^[A-Z0-9-]{4,40}$/.test(timeline)) {
+              return Response.json({ error: 'Invalid reference' }, { status: 400 })
+            }
+            const [events, requests] = await Promise.all([
+              supabase
+                .from('application_events')
+                .select('id, event_type, label, details, created_at')
+                .eq('reference', timeline)
+                .order('created_at', { ascending: false })
+                .limit(50),
+              supabase
+                .from('customer_change_requests')
+                .select('id, raw_text, directives, status, revision, received_at, matched_via, error')
+                .eq('reference', timeline)
+                .order('received_at', { ascending: false })
+                .limit(20),
+            ])
+            // Missing tables must never break the admin panel.
+            return Response.json({
+              events: events.error ? [] : events.data || [],
+              changeRequests: requests.error ? [] : requests.data || [],
+            })
+          }
 
           if (file) {
             if (!file.startsWith('ORD-') || file.includes('..')) {
