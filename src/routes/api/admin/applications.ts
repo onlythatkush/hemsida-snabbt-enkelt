@@ -93,6 +93,8 @@ export const Route = createFileRoute('/api/admin/applications')({
             return Response.json({ error: 'Designen är låst för denna kund' }, { status: 409 })
           }
 
+          // IMPORTANT: regenerate must never silently reuse an old preview spec.
+          // Always compose a fresh spec from the current customer application.
           const spec = composeDesignSpec(
             {
               reference: app.reference,
@@ -116,10 +118,14 @@ export const Route = createFileRoute('/api/admin/applications')({
               : crypto.randomUUID().replaceAll('-', '') + crypto.randomUUID().replaceAll('-', '')
           const previewUrl = origin + '/kund-preview/' + encodeURIComponent(input.reference) + '?token=' + token
 
+          // Version the preview URL so Safari/CDNs cannot show a cached old render after regeneration.
+          const previewRevision = Date.now().toString(36)
+          const versionedPreviewUrl = previewUrl + '&v=' + previewRevision
+
           const rows = await sql`
             UPDATE public.project_applications
             SET preview_token = ${token},
-                preview_url = ${previewUrl},
+                preview_url = ${versionedPreviewUrl},
                 design_spec = ${sql.json(spec as any)},
                 design_family = ${spec.family},
                 status = 'preview',
