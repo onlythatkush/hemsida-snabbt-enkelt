@@ -11,7 +11,7 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import {
-  ChevronDown, ChevronUp, Eye, ExternalLink, FileText, Inbox, LayoutGrid, Loader2, Mail, RefreshCw, Sparkles,
+  ChevronDown, ChevronUp, Eye, ExternalLink, FileText, Inbox, LayoutGrid, Loader2, Mail, RefreshCw, ShieldCheck, Sparkles,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -39,7 +39,27 @@ type Application = {
   created_at: string;
   design_family?: string | null;
   design_spec?: any;
+  qa_status?: string | null;
+  qa_score?: number | null;
+  qa_report?: any;
+  qa_accepted_at?: string | null;
 };
+
+const qaStatusLabels: Record<string, string> = {
+  ready: "Klar att skicka",
+  review: "Kräver granskning",
+  blocked: "Blockerad",
+};
+
+function qaOf(a: Application) {
+  const report = a.qa_report || a.design_spec?.qa || null;
+  const status = (a.qa_status || report?.status || null) as "ready" | "review" | "blocked" | null;
+  const score = a.qa_score ?? report?.score ?? null;
+  const checks = (report?.checks || []) as { id: string; label: string; level: string; detail?: string }[];
+  const accepted = Boolean(a.qa_accepted_at);
+  const canSend = status === "blocked" ? false : status === "review" ? accepted : true;
+  return { status, score, checks, accepted, canSend, evaluatedAt: report?.evaluatedAt as string | undefined };
+}
 
 const familyLabels: Record<string, string> = {
   "warm-craft": "Varm hantverk",
@@ -148,7 +168,7 @@ function Admin() {
     setSavedKey(trimmed);
   }
 
-  async function update(reference: string, patch: { status?: string; previewUrl?: string }) {
+  async function update(reference: string, patch: { status?: string; previewUrl?: string; acceptQa?: boolean }) {
     const res = await fetch("/api/admin/applications", {
       method: "PATCH",
       headers: { "Content-Type": "application/json", "x-admin-key": savedKey },
@@ -187,6 +207,15 @@ function Admin() {
 
   async function sendPreviewEmail(a: Application) {
     if (!a.preview_url) return;
+    const qa = qaOf(a);
+    if (!qa.canSend) {
+      toast.error(
+        qa.status === "blocked"
+          ? "Kvalitetskontrollen blockerar previewen — åtgärda felen och gör en ny hemsida."
+          : "Previewen har varningar. Godkänn den i QA-rutan innan du skickar.",
+      );
+      return;
+    }
     let recipient: string | undefined;
     if (isTest(a)) {
       const input = window.prompt(
@@ -220,6 +249,10 @@ function Admin() {
     } finally {
       setSendingRef(null);
     }
+  }
+
+  async function acceptQa(reference: string, accept: boolean) {
+    await update(reference, { acceptQa: accept });
   }
 
   async function openMailPreview(reference: string) {
@@ -444,6 +477,7 @@ function Admin() {
                         {a.extra_requests && <Info label="Extra önskemål" value={a.extra_requests} />}
                         <Info label="Support & hosting" value={a.wants_support ? "Ja" : "Nej"} />
 
+                        <QaPanel app={a} onAccept={acceptQa} />
                         <DesignDiagnostics app={a} />
 
                         {(a.status === "reviewing" || a.status === "new") ? (
@@ -466,7 +500,7 @@ function Admin() {
                               {previewingRef === a.reference ? <Loader2 className="h-4 w-4 animate-spin" /> : <Eye className="h-4 w-4" />}
                               Förhandsgranska mail
                             </Button>
-                            <Button variant="outline" className="w-full" onClick={() => sendPreviewEmail(a)} disabled={sendingRef === a.reference}>
+                            <Button variant="outline" className="w-full" onClick={() => sendPreviewEmail(a)} disabled={sendingRef === a.reference || !qaOf(a).canSend}>
                               {sendingRef === a.reference ? <Loader2 className="h-4 w-4 animate-spin" /> : <Mail className="h-4 w-4" />}
                               Skicka preview
                             </Button>
@@ -563,7 +597,7 @@ function Admin() {
                             </Button>
                           )}
                           {a.preview_url && (
-                            <Button size="sm" variant="secondary" onClick={() => sendPreviewEmail(a)} disabled={sendingRef === a.reference}>
+                            <Button size="sm" variant="secondary" onClick={() => sendPreviewEmail(a)} disabled={sendingRef === a.reference || !qaOf(a).canSend} title={qaOf(a).canSend ? undefined : "Kvalitetskontrollen tillåter inte utskick"}>
                               {sendingRef === a.reference ? <Loader2 className="h-4 w-4 animate-spin" /> : <Mail className="h-4 w-4" />}
                               Skicka preview
                             </Button>
@@ -630,6 +664,51 @@ function PreviewMailLog({ reference, adminKey, version }: { reference: string; a
           )}
           {logs.length > 1 && (
             <div className="text-xs text-muted-foreground">+{logs.length - 1} tidigare försök</div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/** Automatic QA gate result for the current generated preview. */
+function QaPanel({ app, onAccept }: { app: Application; onAccept: (reference: string, accept: boolean) => void }) {
+  const qa = qaOf(app);
+  if (!qa.status) return null;
+  const issues = qa.checks.filter((c) => c.level === "fail" || c.level === "warn");
+  const tone =
+    qa.status === "blocked" ? "border-destructive/60 bg-destructive/10"
+    : qa.status === "review" ? "border-amber-500/60 bg-amber-500/10"
+    : "border-emerald-500/60 bg-emerald-500/10";
+  return (
+    <div className={`rounded-lg border p-3 ${tone}`}>
+      <div className="flex flex-wrap items-center gap-2">
+        <ShieldCheck className="h-4 w-4 shrink-0" />
+        <span className="text-sm font-medium">Kvalitetskontroll: {qaStatusLabels[qa.status] || qa.status}</span>
+        {qa.score !== null && <span className="rounded-full bg-background/60 px-2 py-0.5 text-xs font-mono">{qa.score}/100</span>}
+      </div>
+      {!!issues.length && (
+        <ul className="mt-2 space-y-1 text-xs">
+          {issues.map((c) => (
+            <li key={c.id} className="break-words">
+              <span className="font-medium">{c.level === "fail" ? "Fel" : "Varning"}:</span> {c.label}
+              {c.detail ? ` — ${c.detail}` : ""}
+            </li>
+          ))}
+        </ul>
+      )}
+      {qa.status === "blocked" && (
+        <p className="mt-2 text-xs">Previewen kan inte skickas till kund förrän felen är åtgärdade. Gör en ny hemsida.</p>
+      )}
+      {qa.status === "review" && (
+        <div className="mt-2">
+          {qa.accepted ? (
+            <div className="flex flex-wrap items-center gap-2 text-xs">
+              <span>Godkänd av admin {new Date(app.qa_accepted_at as string).toLocaleString("sv-SE")}.</span>
+              <Button size="sm" variant="outline" onClick={() => onAccept(app.reference, false)}>Ångra godkännande</Button>
+            </div>
+          ) : (
+            <Button size="sm" onClick={() => onAccept(app.reference, true)}>Godkänn trots varningar</Button>
           )}
         </div>
       )}

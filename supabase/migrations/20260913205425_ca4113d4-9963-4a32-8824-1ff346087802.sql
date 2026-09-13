@@ -1,0 +1,5 @@
+ALTER TABLE public.project_applications
+  ADD COLUMN IF NOT EXISTS qa_status TEXT,
+  ADD COLUMN IF NOT EXISTS qa_score INTEGER,
+  ADD COLUMN IF NOT EXISTS qa_report JSONB,
+  ADD COLUMN IF NOT EXISTS qa_accepted_at TIMESTAMPTZ;

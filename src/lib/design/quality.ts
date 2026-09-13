@@ -171,6 +171,47 @@ export function evaluateQuality(spec: DesignSpec): QaReport {
     detail: spec.tokens ? undefined : "Äldre spec utan clamp-baserade tokens.",
   });
 
+  // v6 gate — a section that renders nothing at all is a visual hole on mobile.
+  const emptySection = spec.sections.find(
+    (s) =>
+      s.type !== "hero" &&
+      s.type !== "contact" &&
+      !s.title &&
+      !s.body &&
+      !(s.items || []).length &&
+      !(s.images || []).length,
+  );
+  checks.push({
+    id: "section-content",
+    label: "Inga tomma sektioner",
+    level: emptySection ? "fail" : "pass",
+    detail: emptySection ? `Sektionen "${emptySection.id}" saknar innehåll.` : undefined,
+  });
+
+  // v6 gate — media must come from customer uploads or the curated library,
+  // never a remote/unknown origin that can break or leak a tool screenshot.
+  const external = spec.images.find(
+    (i) => i.role !== "reject" && /^(https?:)?\/\//i.test(i.path || ""),
+  );
+  checks.push({
+    id: "asset-origin",
+    label: "Säkra bildkällor",
+    level: external ? "fail" : "pass",
+    detail: external ? `Extern bildlänk: ${external.path}` : undefined,
+  });
+
+  // v6 gate — very long unbroken tokens anywhere in body copy overflow at 375px.
+  const longestBodyWord = spec.sections
+    .flatMap((s) => [s.body || "", ...(s.items || []).flatMap((i) => [i.title, i.body || ""])])
+    .flatMap((t) => t.split(/\s+/))
+    .find((w) => w.length > 28);
+  checks.push({
+    id: "overflow-body",
+    label: "Ingen överflödsrisk i text",
+    level: longestBodyWord ? "warn" : "pass",
+    detail: longestBodyWord ? `Långt ord i brödtext: "${longestBodyWord}"` : undefined,
+  });
+
   const fails = checks.filter((c) => c.level === "fail").length;
   const warns = checks.filter((c) => c.level === "warn").length;
   const score = Math.max(0, Math.round(100 - fails * 22 - warns * 6));
@@ -178,3 +219,29 @@ export function evaluateQuality(spec: DesignSpec): QaReport {
 
   return { score, status, checks, evaluatedAt: new Date().toISOString() };
 }
+
+/**
+ * Single source of truth for whether a generated preview may be emailed.
+ * blocked -> never. review -> only after explicit admin acceptance. ready -> yes.
+ */
+export function previewSendGate(
+  qa: Pick<QaReport, "status" | "checks"> | null | undefined,
+  accepted: boolean,
+): { sendable: boolean; reason?: string } {
+  const status = qa?.status;
+  if (status === "blocked") {
+    const failed = (qa?.checks || []).filter((c) => c.level === "fail").map((c) => c.label);
+    return {
+      sendable: false,
+      reason: `Kvalitetskontrollen blockerar previewen${failed.length ? `: ${failed.join(", ")}` : ""}.`,
+    };
+  }
+  if (status === "review" && !accepted) {
+    return {
+      sendable: false,
+      reason: "Previewen har varningar och måste godkännas av admin innan den skickas.",
+    };
+  }
+  return { sendable: true };
+}
+

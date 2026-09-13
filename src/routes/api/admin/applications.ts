@@ -14,7 +14,9 @@ const updateSchema = z.object({
   reference: z.string().min(4).max(40),
   status: z.enum(['new','reviewing','building','preview','changes','approved','paid','delivered','archived']).optional(),
   previewUrl: z.string().url().max(500).optional().or(z.literal('')),
+  acceptQa: z.boolean().optional(),
 })
+
 
 function authorized(request: Request) {
   const expected = process.env.ADMIN_ACCESS_KEY
@@ -81,7 +83,12 @@ export const Route = createFileRoute('/api/admin/applications')({
             await sql`ALTER TABLE public.project_applications ADD COLUMN IF NOT EXISTS design_spec JSONB`
             await sql`ALTER TABLE public.project_applications ADD COLUMN IF NOT EXISTS design_family TEXT`
             await sql`ALTER TABLE public.project_applications ADD COLUMN IF NOT EXISTS design_locked BOOLEAN NOT NULL DEFAULT false`
+            await sql`ALTER TABLE public.project_applications ADD COLUMN IF NOT EXISTS qa_status TEXT`
+            await sql`ALTER TABLE public.project_applications ADD COLUMN IF NOT EXISTS qa_score INTEGER`
+            await sql`ALTER TABLE public.project_applications ADD COLUMN IF NOT EXISTS qa_report JSONB`
+            await sql`ALTER TABLE public.project_applications ADD COLUMN IF NOT EXISTS qa_accepted_at TIMESTAMPTZ`
           } catch { /* schema managed by migrations */ }
+
 
           const found = await sql`
             SELECT * FROM public.project_applications WHERE reference = ${input.reference} LIMIT 1
@@ -127,12 +134,19 @@ export const Route = createFileRoute('/api/admin/applications')({
           const previewRevision = `${revision}-${Date.now().toString(36)}`
           const versionedPreviewUrl = previewUrl + '&v=' + previewRevision
 
+          // The QA gate runs automatically on every generation. A new design
+          // always resets any previous admin acceptance.
+          const qa = spec.qa
           const rows = await sql`
             UPDATE public.project_applications
             SET preview_token = ${token},
                 preview_url = ${versionedPreviewUrl},
                 design_spec = ${sql.json(spec as any)},
                 design_family = ${spec.family},
+                qa_status = ${qa?.status ?? null},
+                qa_score = ${qa?.score ?? null},
+                qa_report = ${qa ? sql.json({ ...qa, designVersion: DESIGN_SPEC_VERSION, revision } as any) : null},
+                qa_accepted_at = NULL,
                 status = 'preview',
                 updated_at = now()
             WHERE reference = ${input.reference}
@@ -150,10 +164,13 @@ export const Route = createFileRoute('/api/admin/applications')({
               heroAsset: spec.engine?.heroAsset,
               stockSet: spec.stockSet,
               rejectedAssets: spec.engine?.rejectedAssets || [],
-              qaScore: spec.qa?.score,
-              qaStatus: spec.qa?.status,
+              qaScore: qa?.score,
+              qaStatus: qa?.status,
+              qaFailed: (qa?.checks || []).filter((c) => c.level === 'fail').map((c) => c.id),
+              qaWarned: (qa?.checks || []).filter((c) => c.level === 'warn').map((c) => c.id),
             },
           })
+
         } catch (error) {
           console.error('Failed to create preview', error)
           return Response.json({ error: 'Failed to create preview' }, { status: 500 })
@@ -170,6 +187,8 @@ export const Route = createFileRoute('/api/admin/applications')({
         const patch: Record<string, any> = { updated_at: new Date().toISOString() }
         if (input.status) patch.status = input.status
         if (input.previewUrl !== undefined) patch.preview_url = input.previewUrl || null
+        if (input.acceptQa !== undefined) patch.qa_accepted_at = input.acceptQa ? new Date().toISOString() : null
+
 
         const { data, error } = await client()
           .from('project_applications')
