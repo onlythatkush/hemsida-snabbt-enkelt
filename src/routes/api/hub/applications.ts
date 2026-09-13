@@ -1,3 +1,4 @@
+// Redeploy marker: HUB_READONLY_KEY project link refreshed
 import { createClient } from '@supabase/supabase-js'
 import { createFileRoute } from '@tanstack/react-router'
 
