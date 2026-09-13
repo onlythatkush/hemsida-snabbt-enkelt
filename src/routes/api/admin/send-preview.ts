@@ -104,33 +104,47 @@ type AppRow = {
  * Reads an application without assuming the newest schema exists.
  * `SELECT *` keeps older databases (before the QA/design columns landed)
  * working — a named column list made the whole read fail there.
+ * If the direct Postgres connection is unavailable or fails, we fall back to
+ * the service-role Data API so an existing application is never unreadable.
  */
 async function loadApplication(reference: string): Promise<AppRow | null> {
+  const ref = reference.trim().toUpperCase()
   const dbUrl = databaseUrl()
+  let firstError: unknown = null
+
   if (dbUrl) {
     const sql = postgres(dbUrl, { max: 1, prepare: false })
     try {
       const rows = await sql`
         SELECT * FROM public.project_applications
-        WHERE upper(reference) = ${reference.toUpperCase()}
+        WHERE upper(reference) = ${ref}
         LIMIT 1
       `
       const row = (rows as any[])[0]
-      return row ? (row as AppRow) : null
+      if (row) return row as AppRow
+      return null
+    } catch (e) {
+      firstError = e
+      console.error('send-preview: postgres read failed, falling back to Data API', e)
     } finally {
-      await sql.end({ timeout: 5 })
+      await sql.end({ timeout: 5 }).catch(() => undefined)
     }
   }
+
   const provider = emailProvider()
-  if (!provider.ok) return null
+  if (!provider.ok) {
+    if (firstError) throw firstError
+    return null
+  }
   const { data, error } = await provider.client
     .from('project_applications')
     .select('*')
-    .eq('reference', reference)
+    .eq('reference', ref)
     .maybeSingle()
   if (error) throw error
   return (data as AppRow) || null
 }
+
 
 
 /** Renders the shared preview-ready template for a given application. */
