@@ -1,7 +1,8 @@
 import { firstSentences, restSentences, sentences } from "./copy";
-import type { IndustryId, Section, SectionItem, SpecImage, Tone } from "./types";
+import type { ArtDirection, IndustryId, Section, SectionItem, SpecImage, Tone } from "./types";
 
 export type SectionContext = {
+  art?: ArtDirection;
   industry: IndustryId;
   tone: Tone;
   local: boolean;
@@ -215,14 +216,26 @@ const PROCESS_BY_INDUSTRY: Partial<Record<IndustryId, SectionItem[]>> = {
   ],
 };
 
+/** Luxury car rental has nothing to do with a workshop, so it gets its own offer. */
+const RENTAL_OFFER = {
+  eyebrow: "Vår flotta",
+  title: "Bilar att hyra",
+  items: [
+    { title: "Premium & sportbilar", body: "Noga utvalda bilar i toppskick, redo att köras." },
+    { title: "Privat & företag", body: "Dygnshyra, helg eller längre upplägg med fast pris." },
+    { title: "Leverans & upphämtning", body: "Vi möter upp där det passar dig bäst." },
+  ],
+};
+
 export function buildSections(ctx: SectionContext): Section[] {
   const { industry, tone, local, description, extra, images, docCount, company } = ctx;
+  const rental = industry === "automotive" && Boolean(ctx.art?.subjects.includes("rental"));
   const heroImages = images.filter((i) => i.role === "hero");
   const featureImages = images.filter((i) => i.role === "feature");
   const galleryImages = images.filter((i) => i.role === "gallery");
   const indexOf = (img: SpecImage) => images.indexOf(img);
 
-  const offer = OFFER_LABELS[industry] || OFFER_LABELS.generic;
+  const offer = rental ? RENTAL_OFFER : OFFER_LABELS[industry] || OFFER_LABELS.generic;
   const aboutBody = restSentences(description, 2) || firstSentences(description, 2) || `${company} är ett företag som sätter kunden först.`;
   const sections: Section[] = [];
 

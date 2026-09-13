@@ -42,7 +42,8 @@ export type Ctx = {
 };
 
 export function buildCtx(spec: DesignSpec): Ctx {
-  const stock = stockImages(spec.stockSet, spec.industry);
+  // Customer wishes ("två bilar", "stadsljus") float matching photos to the front.
+  const stock = stockImages(spec.stockSet, spec.industry, spec.art?.subjects || []);
   const logo = spec.images.find((i) => i.role === "logo" && i.url);
 
   const imagesFor = (section: Section, index: number, count: number) => {

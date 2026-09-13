@@ -406,6 +406,7 @@ export function ContactBlock({ ctx, section }: { ctx: Ctx; section: Section }) {
       </div>
       <div
         className="space-y-3"
+        hidden={rows.length === 0}
         style={{
           background: rgba("#ffffff", 0.12),
           border: `1px solid ${rgba("#ffffff", 0.24)}`,

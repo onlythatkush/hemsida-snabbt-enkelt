@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as QaPreviewRouteImport } from './routes/qa-preview'
 import { Route as BestallRouteImport } from './routes/bestall'
 import { Route as BekraftelseRouteImport } from './routes/bekraftelse'
 import { Route as AdminRouteImport } from './routes/admin'
@@ -30,6 +31,11 @@ import { Route as LovableEmailTransactionalPreviewRouteImport } from './routes/l
 import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/email/queue/process'
 import { Route as ApiPublicProjectPreviewReferenceRouteImport } from './routes/api/public/project-preview.$reference'
 
+const QaPreviewRoute = QaPreviewRouteImport.update({
+  id: '/qa-preview',
+  path: '/qa-preview',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const BestallRoute = BestallRouteImport.update({
   id: '/bestall',
   path: '/bestall',
@@ -141,6 +147,7 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AdminRoute
   '/bekraftelse': typeof BekraftelseRoute
   '/bestall': typeof BestallRoute
+  '/qa-preview': typeof QaPreviewRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/kund-preview/$reference': typeof KundPreviewReferenceRoute
   '/portfolio/$slug': typeof PortfolioSlugRoute
@@ -163,6 +170,7 @@ export interface FileRoutesByTo {
   '/admin': typeof AdminRoute
   '/bekraftelse': typeof BekraftelseRoute
   '/bestall': typeof BestallRoute
+  '/qa-preview': typeof QaPreviewRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/kund-preview/$reference': typeof KundPreviewReferenceRoute
   '/portfolio/$slug': typeof PortfolioSlugRoute
@@ -186,6 +194,7 @@ export interface FileRoutesById {
   '/admin': typeof AdminRoute
   '/bekraftelse': typeof BekraftelseRoute
   '/bestall': typeof BestallRoute
+  '/qa-preview': typeof QaPreviewRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/kund-preview/$reference': typeof KundPreviewReferenceRoute
   '/portfolio/$slug': typeof PortfolioSlugRoute
@@ -210,6 +219,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/bekraftelse'
     | '/bestall'
+    | '/qa-preview'
     | '/email/unsubscribe'
     | '/kund-preview/$reference'
     | '/portfolio/$slug'
@@ -232,6 +242,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/bekraftelse'
     | '/bestall'
+    | '/qa-preview'
     | '/email/unsubscribe'
     | '/kund-preview/$reference'
     | '/portfolio/$slug'
@@ -254,6 +265,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/bekraftelse'
     | '/bestall'
+    | '/qa-preview'
     | '/email/unsubscribe'
     | '/kund-preview/$reference'
     | '/portfolio/$slug'
@@ -277,6 +289,7 @@ export interface RootRouteChildren {
   AdminRoute: typeof AdminRoute
   BekraftelseRoute: typeof BekraftelseRoute
   BestallRoute: typeof BestallRoute
+  QaPreviewRoute: typeof QaPreviewRoute
   EmailUnsubscribeRoute: typeof EmailUnsubscribeRoute
   KundPreviewReferenceRoute: typeof KundPreviewReferenceRoute
   PortfolioSlugRoute: typeof PortfolioSlugRoute
@@ -297,6 +310,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/qa-preview': {
+      id: '/qa-preview'
+      path: '/qa-preview'
+      fullPath: '/qa-preview'
+      preLoaderRoute: typeof QaPreviewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/bestall': {
       id: '/bestall'
       path: '/bestall'
@@ -445,6 +465,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminRoute: AdminRoute,
   BekraftelseRoute: BekraftelseRoute,
   BestallRoute: BestallRoute,
+  QaPreviewRoute: QaPreviewRoute,
   EmailUnsubscribeRoute: EmailUnsubscribeRoute,
   KundPreviewReferenceRoute: KundPreviewReferenceRoute,
   PortfolioSlugRoute: PortfolioSlugRoute,

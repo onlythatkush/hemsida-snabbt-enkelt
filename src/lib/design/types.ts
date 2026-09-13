@@ -152,6 +152,17 @@ export type Variation = {
   useStatementAccent: boolean;
 };
 
+/** Concrete visual direction derived from the customer's own wishes. */
+export type ArtDirection = {
+  /** Visual subjects to feature, e.g. ["cars", "city", "night", "luxury"]. */
+  subjects: string[];
+  /** The matched phrases from the customer's text. */
+  keywords: string[];
+  mood: "night" | "bright" | "neutral";
+  /** True when the brief explicitly asks for imagery in the hero/background. */
+  requireHeroMedia: boolean;
+};
+
 export type QaCheck = {
   id: string;
   label: string;
@@ -199,6 +210,8 @@ export type DesignSpec = {
   tokens?: Tokens;
   variation?: Variation;
   qa?: QaReport;
+  /** v2.1 — art direction taken from the customer's free-text wishes. */
+  art?: ArtDirection;
 };
 
 export type ApplicationInput = {

@@ -1,3 +1,4 @@
+import { analyzeArt } from "./art";
 import { planAssets } from "./assets";
 import { contrast, extractColors, hexToHsl } from "./color";
 import { ctaPrimary, ctaSecondary, heroSub, heroTitle, tagline } from "./copy";
@@ -7,10 +8,10 @@ import { evaluateQuality } from "./quality";
 import { buildSections } from "./sections";
 import { stockSetFor } from "./stock-map";
 import { buildTokens } from "./tokens";
-import type { ApplicationInput, DesignSpec, FamilyId } from "./types";
+import type { ApplicationInput, ArtDirection, DesignSpec, FamilyId } from "./types";
 import { buildVariation } from "./variants";
 
-export const DESIGN_SPEC_VERSION = 2;
+export const DESIGN_SPEC_VERSION = 3;
 
 function hashSeed(input: string) {
   let hash = 2166136261;
@@ -27,16 +28,27 @@ export function chooseFamily(
   tone: ReturnType<typeof detectTone>["tone"],
   seed: number,
   imageCount: number,
+  art?: ArtDirection,
 ): { family: FamilyId; scores: Record<string, number> } {
   const scores: Record<string, number> = {};
+  // A specialist family for the industry must always beat a generic one.
+  const bestAffinity = Math.max(...Object.values(FAMILIES).map((f) => f.industries[industry] ?? 0));
   for (const family of Object.values(FAMILIES)) {
-    let score = family.industries[industry] ?? 0;
+    const affinity = family.industries[industry] ?? 0;
+    let score = affinity * 1.6;
+    if (bestAffinity >= 6 && affinity < bestAffinity - 3) score -= 6;
     score += (1 - toneDistance(tone, family.toneTarget)) * 5;
     if (imageCount === 0 && (family.id === "warm-craft" || family.id === "fresh-retail")) score -= 0.8;
     if (imageCount === 0 && (family.id === "clean-nordic" || family.id === "editorial-b2b")) score += 0.8;
     if (imageCount >= 4 && (family.motif.hero === "cinematic" || family.motif.hero === "fullbleed")) score += 0.5;
     if (tone.warmth < 0.3 && family.base.mode === "dark") score += 1.2;
     if (tone.warmth > 0.7 && family.base.mode === "dark") score -= 2.5;
+    // Requested night/city mood must actually produce a dark, cinematic page.
+    if (art?.mood === "night") {
+      score += family.base.mode === "dark" ? 2.4 : -1.6;
+      if (family.motif.hero === "cinematic") score += 1.2;
+    }
+    if (art?.subjects.includes("luxury") && family.base.mode === "dark") score += 0.8;
     score += ((seed % 13) / 13) * 0.2;
     scores[family.id] = Number(score.toFixed(3));
   }
@@ -53,7 +65,9 @@ export function composeDesignSpec(app: ApplicationInput, override?: { family?: F
   const { images, photoCount } = planAssets(app.file_names || []);
   const docCount = images.filter((i) => i.role === "doc").length;
 
-  const chosen = override?.family || chooseFamily(industry, tone, seed, photoCount).family;
+  const art = analyzeArt(industry, description, app.extra_requests, app.website_type);
+
+  const chosen = override?.family || chooseFamily(industry, tone, seed, photoCount, art).family;
   const familyDef = FAMILIES[chosen];
   // Pale colours make poor primaries; the strongest colour leads, pale ones become tints.
   const allColors = extractColors(app.colors);
@@ -75,6 +89,7 @@ export function composeDesignSpec(app: ApplicationInput, override?: { family?: F
   const shape = tuneShape(familyDef.shape, tone);
 
   const built = buildSections({
+    art,
     industry,
     tone,
     local,
@@ -108,10 +123,10 @@ export function composeDesignSpec(app: ApplicationInput, override?: { family?: F
     variation,
     brand: {
       company: app.company,
-      tagline: tagline(industry, seed),
-      heroTitle: heroTitle(industry, app.company, seed),
+      tagline: tagline(industry, seed, art.subjects),
+      heroTitle: heroTitle(industry, app.company, seed, art.subjects),
       heroSub: heroSub(description, tone, local),
-      ctaPrimary: ctaPrimary(industry, tone),
+      ctaPrimary: ctaPrimary(industry, tone, art.subjects),
       ctaSecondary: ctaSecondary(tone),
       email: app.email || undefined,
       phone: app.phone || undefined,
@@ -122,6 +137,7 @@ export function composeDesignSpec(app: ApplicationInput, override?: { family?: F
     sections,
     fonts: familyDef.fonts,
     stockSet: stockSetFor(industry),
+    art,
   };
 
   spec.qa = evaluateQuality(spec);

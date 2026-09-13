@@ -142,8 +142,10 @@ function SectionBody({
 function Footer({ ctx }: { ctx: Ctx }) {
   const p = ctx.spec.palette;
   const b = ctx.spec.brand;
+  // On dark pages the ink colour is light, so the footer uses the deep surface instead.
+  const bg = p.mode === "dark" ? p.surface : p.ink;
   return (
-    <footer style={{ background: p.ink, color: rgba("#ffffff", 0.72) }}>
+    <footer style={{ background: bg, color: rgba("#ffffff", 0.72) }}>
       <div
         className="mx-auto flex w-full flex-col gap-3 py-10 sm:flex-row sm:items-center sm:justify-between"
         style={{ maxWidth: "var(--t-max)", paddingInline: "var(--t-gutter)" }}

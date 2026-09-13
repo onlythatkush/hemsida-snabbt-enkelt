@@ -106,7 +106,7 @@ export const FAMILIES: Record<FamilyId, FamilyDef> = {
   "cinematic-auto": {
     id: "cinematic-auto",
     label: "Cinematic Auto",
-    base: { primary: "#c8b27a", accent: "#4d6b8a", bg: "#08090c", surface: "#111318", ink: "#f2f1ee", mode: "dark" },
+    base: { primary: "#c1122b", accent: "#9aa3ad", bg: "#08090c", surface: "#111318", ink: "#f2f1ee", mode: "dark" },
     type: { headingFamily: DISPLAY, bodyFamily: GROTESK, headingWeight: 700, headingTracking: "-0.045em", headingCase: "upper", scale: 1.1, eyebrowTracking: "0.32em" },
     shape: { radius: 2, radiusSm: 2, shadow: "0 40px 90px -40px rgba(0,0,0,0.95)", imageRadius: 2, border: "1px solid rgba(255,255,255,0.09)", sectionPadding: 96 },
     motif: motif({ hero: "cinematic", card: "glass", divider: "glow", overlay: 0.78, heroRatio: "9 / 16", ctaStyle: "outline", accentUse: "sparse", imageFilter: "contrast(1.12) saturate(0.88) brightness(0.94)" }),
