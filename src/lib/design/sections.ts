@@ -420,27 +420,23 @@ export function buildSections(ctx: SectionContext): Section[] {
   });
 
   {
+    const gallery = rental
+      ? { eyebrow: "Flottan", title: "Bilarna" }
+      : GALLERY_TITLE[industry] || { eyebrow: "Galleri", title: "Från verksamheten" };
     sections.push({
       id: "gallery",
       type: "gallery",
-      eyebrow: "Galleri",
-      title: "Bilder från oss",
+      eyebrow: gallery.eyebrow,
+      title: gallery.title,
       images: galleryImages.map(indexOf),
       layout: "masonry",
       tone: "base",
     });
   }
 
-  if (extra && extra.trim().length > 5) {
-    sections.push({
-      id: "wishes",
-      type: "wishes",
-      eyebrow: "Från underlaget",
-      title: "Önskemål vi tagit med",
-      body: extra.trim(),
-      tone: "alt",
-    });
-  }
+  // Customer instructions steer generation internally only — they are never
+  // printed verbatim on the public preview.
+
 
   if (docCount > 0) {
     sections.push({ id: "documents", type: "documents", eyebrow: "Material", title: "Bifogade filer", tone: "base" });
