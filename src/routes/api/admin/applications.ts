@@ -134,12 +134,19 @@ export const Route = createFileRoute('/api/admin/applications')({
           const previewRevision = `${revision}-${Date.now().toString(36)}`
           const versionedPreviewUrl = previewUrl + '&v=' + previewRevision
 
+          // The QA gate runs automatically on every generation. A new design
+          // always resets any previous admin acceptance.
+          const qa = spec.qa
           const rows = await sql`
             UPDATE public.project_applications
             SET preview_token = ${token},
                 preview_url = ${versionedPreviewUrl},
                 design_spec = ${sql.json(spec as any)},
                 design_family = ${spec.family},
+                qa_status = ${qa?.status ?? null},
+                qa_score = ${qa?.score ?? null},
+                qa_report = ${qa ? sql.json({ ...qa, designVersion: DESIGN_SPEC_VERSION, revision } as any) : null},
+                qa_accepted_at = NULL,
                 status = 'preview',
                 updated_at = now()
             WHERE reference = ${input.reference}
@@ -157,10 +164,13 @@ export const Route = createFileRoute('/api/admin/applications')({
               heroAsset: spec.engine?.heroAsset,
               stockSet: spec.stockSet,
               rejectedAssets: spec.engine?.rejectedAssets || [],
-              qaScore: spec.qa?.score,
-              qaStatus: spec.qa?.status,
+              qaScore: qa?.score,
+              qaStatus: qa?.status,
+              qaFailed: (qa?.checks || []).filter((c) => c.level === 'fail').map((c) => c.id),
+              qaWarned: (qa?.checks || []).filter((c) => c.level === 'warn').map((c) => c.id),
             },
           })
+
         } catch (error) {
           console.error('Failed to create preview', error)
           return Response.json({ error: 'Failed to create preview' }, { status: 500 })
