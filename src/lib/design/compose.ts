@@ -136,8 +136,10 @@ export function composeDesignSpec(
     seed,
   });
 
-  const variation = buildVariation(chosen, seed, built.map((s) => s.id));
-  const sections = [...built].sort(
+  const dropped = new Set(directives?.dropSections || []);
+  const kept = built.filter((s) => !dropped.has(s.id));
+  const variation = buildVariation(chosen, seed, kept.map((s) => s.id));
+  const sections = [...kept].sort(
     (a, b) => variation.sectionOrder.indexOf(a.id) - variation.sectionOrder.indexOf(b.id),
   );
   const tokens = buildTokens(type, shape, tone);
