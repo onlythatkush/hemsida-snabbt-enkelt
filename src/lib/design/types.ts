@@ -76,7 +76,7 @@ export type Shape = {
   sectionPadding: number;
 };
 
-export type ImageRole = "hero" | "feature" | "gallery" | "doc";
+export type ImageRole = "hero" | "feature" | "gallery" | "doc" | "logo";
 
 export type SpecImage = {
   path: string;
@@ -112,6 +112,60 @@ export type Section = {
   tone?: "base" | "alt" | "contrast";
 };
 
+/** Rendering recipe that gives each family its own character. */
+export type Motif = {
+  hero: "fullbleed" | "cinematic" | "split" | "editorial" | "poster";
+  card: "elevated" | "flat" | "outline" | "glass";
+  divider: "hairline" | "none" | "rule" | "glow";
+  imageFilter?: string;
+  /** 0-1, how dark the hero scrim is. */
+  overlay: number;
+  /** Aspect ratio used for hero media on mobile, e.g. "4 / 5". */
+  heroRatio: string;
+  ctaStyle: "solid" | "gradient" | "outline" | "pill";
+  accentUse: "sparse" | "balanced" | "loud";
+};
+
+/** Mobile-safe, clamp based sizing tokens. */
+export type Tokens = {
+  h1: string;
+  h2: string;
+  h3: string;
+  body: string;
+  small: string;
+  eyebrow: string;
+  sectionY: string;
+  gutter: string;
+  gap: string;
+  maxWidth: string;
+  ctaPadding: string;
+  measure: string;
+};
+
+export type Variation = {
+  /** Stable id, e.g. "cinematic-auto/v2". */
+  id: string;
+  heroAlign: "left" | "center";
+  sectionOrder: string[];
+  cardColumns: 2 | 3;
+  galleryStyle: "mosaic" | "even" | "strip";
+  useStatementAccent: boolean;
+};
+
+export type QaCheck = {
+  id: string;
+  label: string;
+  level: "pass" | "warn" | "fail";
+  detail?: string;
+};
+
+export type QaReport = {
+  score: number;
+  status: "ready" | "review" | "blocked";
+  checks: QaCheck[];
+  evaluatedAt: string;
+};
+
 export type DesignSpec = {
   version: number;
   generatedAt: string;
@@ -140,6 +194,11 @@ export type DesignSpec = {
   fonts: string[];
   /** Which curated photo set to fall back on when the customer has no own photos. */
   stockSet?: string;
+  /** v2 additions — optional so previously stored specs keep rendering. */
+  motif?: Motif;
+  tokens?: Tokens;
+  variation?: Variation;
+  qa?: QaReport;
 };
 
 export type ApplicationInput = {
