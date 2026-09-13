@@ -49,11 +49,10 @@ export function composeDesignSpec(app: ApplicationInput, override?: { family?: F
   const { industry } = detectIndustry(app.website_type, description, app.extra_requests, app.company);
   const { tone } = detectTone(description, app.extra_requests, app.colors, app.website_type);
   const local = isLocal(description, app.extra_requests, app.address);
-  const images = classifyImages(app.file_names || []);
-  const photos = images.filter((i) => i.role !== "doc");
-  const docCount = images.length - photos.length;
+  const { images, photoCount } = planAssets(app.file_names || []);
+  const docCount = images.filter((i) => i.role === "doc").length;
 
-  const chosen = override?.family || chooseFamily(industry, tone, seed, photos.length).family;
+  const chosen = override?.family || chooseFamily(industry, tone, seed, photoCount).family;
   const familyDef = FAMILIES[chosen];
   // Pale colours make poor primaries; the strongest colour leads, pale ones become tints.
   const allColors = extractColors(app.colors);
