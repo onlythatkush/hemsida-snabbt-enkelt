@@ -83,7 +83,12 @@ export const Route = createFileRoute('/api/admin/applications')({
             await sql`ALTER TABLE public.project_applications ADD COLUMN IF NOT EXISTS design_spec JSONB`
             await sql`ALTER TABLE public.project_applications ADD COLUMN IF NOT EXISTS design_family TEXT`
             await sql`ALTER TABLE public.project_applications ADD COLUMN IF NOT EXISTS design_locked BOOLEAN NOT NULL DEFAULT false`
+            await sql`ALTER TABLE public.project_applications ADD COLUMN IF NOT EXISTS qa_status TEXT`
+            await sql`ALTER TABLE public.project_applications ADD COLUMN IF NOT EXISTS qa_score INTEGER`
+            await sql`ALTER TABLE public.project_applications ADD COLUMN IF NOT EXISTS qa_report JSONB`
+            await sql`ALTER TABLE public.project_applications ADD COLUMN IF NOT EXISTS qa_accepted_at TIMESTAMPTZ`
           } catch { /* schema managed by migrations */ }
+
 
           const found = await sql`
             SELECT * FROM public.project_applications WHERE reference = ${input.reference} LIMIT 1
