@@ -358,15 +358,27 @@ export function buildSections(ctx: SectionContext): Section[] {
   });
 
   {
+    const craftHighlight =
+      tone.craft > 0.55 && ["bakery", "cafe", "restaurant", "photography", "beauty"].includes(industry);
+    const highlight = rental
+      ? RENTAL_HIGHLIGHT
+      : craftHighlight
+        ? {
+            eyebrow: "Hantverket",
+            title: "Från råvara till färdigt",
+            body: "Vi väljer råvarorna själva och gör det mesta för hand. Det tar lite längre tid — men det smakar och syns.",
+          }
+        : HIGHLIGHT_BY_INDUSTRY[industry] || {
+            eyebrow: "Så jobbar vi",
+            title: "Gjort ordentligt från början",
+            body: "Vi tar oss tid att göra rätt från början, så att resultatet håller över tid.",
+          };
     sections.push({
       id: "highlight",
       type: "highlight",
-      eyebrow: tone.craft > 0.55 ? "Hantverket" : "Så jobbar vi",
-      title: tone.craft > 0.55 ? "Från råvara till färdigt" : "Kvalitet i varje steg",
-      body:
-        tone.craft > 0.55
-          ? "Vi väljer råvarorna själva och gör det mesta för hand. Det tar lite längre tid — men det smakar och syns."
-          : "Vi tar oss tid att göra rätt från början, så att resultatet håller över tid.",
+      eyebrow: highlight.eyebrow,
+      title: highlight.title,
+      body: highlight.body,
       images: featureImages.slice(1, 3).map(indexOf),
       layout: "split-reverse",
       tone: "base",
