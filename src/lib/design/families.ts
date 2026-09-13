@@ -29,6 +29,7 @@ export const FAMILIES: Record<FamilyId, FamilyDef> = {
     base: { primary: "#b4562f", accent: "#c98b2e", bg: "#fbf5ec", surface: "#ffffff", ink: "#2c2119", mode: "light" },
     type: { headingFamily: SERIF, bodyFamily: GROTESK, headingWeight: 600, headingTracking: "-0.015em", headingCase: "none", scale: 1.02, eyebrowTracking: "0.16em" },
     shape: { radius: 22, radiusSm: 14, shadow: "0 18px 40px -24px rgba(74,48,28,0.45)", imageRadius: 24, border: "1px solid rgba(74,48,28,0.12)", sectionPadding: 72 },
+    motif: motif({ hero: "fullbleed", card: "elevated", divider: "hairline", overlay: 0.58, heroRatio: "4 / 5", ctaStyle: "gradient", accentUse: "balanced" }),
     fonts: ["Fraunces:wght@400;600;700", "Inter:wght@400;500;600"],
     industries: { bakery: 6, cafe: 5, restaurant: 3, retail: 3, photography: 2, events: 2, health: 1, hospitality: 4 },
     toneTarget: { warmth: 0.95, formality: 0.35, playfulness: 0.5, density: 0.5, craft: 0.9 },
@@ -39,8 +40,9 @@ export const FAMILIES: Record<FamilyId, FamilyDef> = {
     base: { primary: "#1f2933", accent: "#3f7d8c", bg: "#f6f7f8", surface: "#ffffff", ink: "#161a1d", mode: "light" },
     type: { headingFamily: GROTESK, bodyFamily: GROTESK, headingWeight: 600, headingTracking: "-0.03em", headingCase: "none", scale: 1, eyebrowTracking: "0.2em" },
     shape: { radius: 10, radiusSm: 8, shadow: "0 10px 30px -22px rgba(20,25,30,0.4)", imageRadius: 12, border: "1px solid rgba(20,25,30,0.09)", sectionPadding: 84 },
+    motif: motif({ hero: "split", card: "outline", divider: "hairline", overlay: 0.45, heroRatio: "5 / 4", ctaStyle: "solid", accentUse: "sparse" }),
     fonts: ["Inter:wght@400;500;600;700"],
-    industries: { consulting: 5, photography: 4, realestate: 3, ecommerce: 2, legal: 2, cleaning: 2 },
+    industries: { consulting: 4, photography: 4, realestate: 2, ecommerce: 2, legal: 2, cleaning: 3 },
     toneTarget: { warmth: 0.35, formality: 0.7, playfulness: 0.2, density: 0.2, craft: 0.25 },
   },
   "trust-professional": {
@@ -49,8 +51,9 @@ export const FAMILIES: Record<FamilyId, FamilyDef> = {
     base: { primary: "#1d3b6e", accent: "#b08d4f", bg: "#f4f6fa", surface: "#ffffff", ink: "#151c28", mode: "light" },
     type: { headingFamily: SERIF_ELEGANT, bodyFamily: GROTESK, headingWeight: 600, headingTracking: "-0.01em", headingCase: "none", scale: 1, eyebrowTracking: "0.18em" },
     shape: { radius: 8, radiusSm: 6, shadow: "0 14px 34px -26px rgba(15,28,50,0.55)", imageRadius: 10, border: "1px solid rgba(21,28,40,0.12)", sectionPadding: 80 },
+    motif: motif({ hero: "editorial", card: "outline", divider: "rule", overlay: 0.55, heroRatio: "3 / 2", ctaStyle: "solid", accentUse: "sparse" }),
     fonts: ["Playfair Display:wght@500;600;700", "Inter:wght@400;500;600"],
-    industries: { legal: 6, realestate: 4, consulting: 3, health: 3, cleaning: 2 },
+    industries: { legal: 6, health: 3, cleaning: 2, consulting: 2 },
     toneTarget: { warmth: 0.3, formality: 0.95, playfulness: 0.12, density: 0.5, craft: 0.3 },
   },
   "bold-modern": {
@@ -59,8 +62,9 @@ export const FAMILIES: Record<FamilyId, FamilyDef> = {
     base: { primary: "#f25c26", accent: "#111418", bg: "#ffffff", surface: "#f2f3f5", ink: "#0d0f12", mode: "light" },
     type: { headingFamily: DISPLAY, bodyFamily: GROTESK, headingWeight: 700, headingTracking: "-0.035em", headingCase: "none", scale: 1.08, eyebrowTracking: "0.22em" },
     shape: { radius: 4, radiusSm: 3, shadow: "0 20px 40px -30px rgba(0,0,0,0.6)", imageRadius: 4, border: "1.5px solid rgba(13,15,18,0.14)", sectionPadding: 80 },
+    motif: motif({ hero: "poster", card: "flat", divider: "rule", overlay: 0.6, heroRatio: "1 / 1", ctaStyle: "solid", accentUse: "loud" }),
     fonts: ["Space Grotesk:wght@500;700", "Inter:wght@400;500;600"],
-    industries: { construction: 6, fitness: 5, consulting: 2, ecommerce: 2, events: 2, automotive: 6 },
+    industries: { ecommerce: 2, events: 3, consulting: 2 },
     toneTarget: { warmth: 0.4, formality: 0.5, playfulness: 0.5, density: 0.85, craft: 0.35 },
   },
   "soft-wellness": {
@@ -69,8 +73,9 @@ export const FAMILIES: Record<FamilyId, FamilyDef> = {
     base: { primary: "#7f9d84", accent: "#d9a88f", bg: "#f7f3ef", surface: "#ffffff", ink: "#2d302c", mode: "light" },
     type: { headingFamily: SERIF_ELEGANT, bodyFamily: GROTESK, headingWeight: 500, headingTracking: "0em", headingCase: "none", scale: 1, eyebrowTracking: "0.24em" },
     shape: { radius: 28, radiusSm: 18, shadow: "0 16px 40px -28px rgba(60,60,50,0.4)", imageRadius: 28, border: "1px solid rgba(45,48,44,0.08)", sectionPadding: 88 },
+    motif: motif({ hero: "split", card: "elevated", divider: "none", overlay: 0.4, heroRatio: "4 / 5", ctaStyle: "pill", accentUse: "sparse" }),
     fonts: ["Playfair Display:wght@500;600", "Inter:wght@400;500"],
-    industries: { beauty: 6, health: 6, cafe: 2, photography: 2, events: 1 },
+    industries: { cafe: 2, photography: 2, events: 1 },
     toneTarget: { warmth: 0.7, formality: 0.45, playfulness: 0.3, density: 0.2, craft: 0.45 },
   },
   "fresh-retail": {
@@ -79,8 +84,9 @@ export const FAMILIES: Record<FamilyId, FamilyDef> = {
     base: { primary: "#e0483c", accent: "#f2b705", bg: "#fffdf8", surface: "#ffffff", ink: "#20211f", mode: "light" },
     type: { headingFamily: DISPLAY, bodyFamily: GROTESK, headingWeight: 700, headingTracking: "-0.025em", headingCase: "none", scale: 1.04, eyebrowTracking: "0.16em" },
     shape: { radius: 16, radiusSm: 12, shadow: "0 14px 34px -24px rgba(32,33,31,0.4)", imageRadius: 16, border: "1px solid rgba(32,33,31,0.1)", sectionPadding: 72 },
+    motif: motif({ hero: "poster", card: "elevated", divider: "hairline", overlay: 0.5, heroRatio: "1 / 1", ctaStyle: "pill", accentUse: "loud" }),
     fonts: ["Space Grotesk:wght@500;700", "Inter:wght@400;500;600"],
-    industries: { ecommerce: 6, retail: 5, bakery: 2, events: 2, fitness: 1 },
+    industries: { ecommerce: 6, retail: 5, bakery: 2, events: 2 },
     toneTarget: { warmth: 0.6, formality: 0.35, playfulness: 0.85, density: 0.6, craft: 0.3 },
   },
   "night-premium": {
@@ -89,11 +95,86 @@ export const FAMILIES: Record<FamilyId, FamilyDef> = {
     base: { primary: "#c9a227", accent: "#7f8dad", bg: "#0f1116", surface: "#171a21", ink: "#f3f0ea", mode: "dark" },
     type: { headingFamily: SERIF_ELEGANT, bodyFamily: GROTESK, headingWeight: 600, headingTracking: "-0.01em", headingCase: "none", scale: 1.06, eyebrowTracking: "0.26em" },
     shape: { radius: 14, radiusSm: 10, shadow: "0 24px 60px -30px rgba(0,0,0,0.8)", imageRadius: 16, border: "1px solid rgba(255,255,255,0.1)", sectionPadding: 88 },
+    motif: motif({ hero: "cinematic", card: "glass", divider: "glow", overlay: 0.72, heroRatio: "3 / 4", ctaStyle: "outline", accentUse: "sparse", imageFilter: "saturate(0.95) contrast(1.06)" }),
     fonts: ["Playfair Display:wght@500;600;700", "Inter:wght@400;500;600"],
-    industries: { restaurant: 5, events: 5, photography: 3, realestate: 2, fitness: 2, automotive: 3, hospitality: 3 },
+    industries: { restaurant: 6, events: 5, photography: 3, hospitality: 6 },
     toneTarget: { warmth: 0.2, formality: 0.9, playfulness: 0.2, density: 0.7, craft: 0.4 },
   },
+
+  /* ---------------------------------------------------------- v2 families */
+
+  "cinematic-auto": {
+    id: "cinematic-auto",
+    label: "Cinematic Auto",
+    base: { primary: "#c8b27a", accent: "#4d6b8a", bg: "#08090c", surface: "#111318", ink: "#f2f1ee", mode: "dark" },
+    type: { headingFamily: DISPLAY, bodyFamily: GROTESK, headingWeight: 700, headingTracking: "-0.045em", headingCase: "upper", scale: 1.1, eyebrowTracking: "0.32em" },
+    shape: { radius: 2, radiusSm: 2, shadow: "0 40px 90px -40px rgba(0,0,0,0.95)", imageRadius: 2, border: "1px solid rgba(255,255,255,0.09)", sectionPadding: 96 },
+    motif: motif({ hero: "cinematic", card: "glass", divider: "glow", overlay: 0.78, heroRatio: "9 / 16", ctaStyle: "outline", accentUse: "sparse", imageFilter: "contrast(1.12) saturate(0.88) brightness(0.94)" }),
+    fonts: ["Space Grotesk:wght@500;700", "Inter:wght@400;500;600"],
+    industries: { automotive: 9, realestate: 2, events: 2 },
+    toneTarget: { warmth: 0.15, formality: 0.85, playfulness: 0.15, density: 0.8, craft: 0.35 },
+  },
+  "industrial-trade": {
+    id: "industrial-trade",
+    label: "Industrial Trade",
+    base: { primary: "#f0a020", accent: "#1c2126", bg: "#f3f4f5", surface: "#ffffff", ink: "#14181c", mode: "light" },
+    type: { headingFamily: DISPLAY, bodyFamily: GROTESK, headingWeight: 700, headingTracking: "-0.03em", headingCase: "upper", scale: 1.05, eyebrowTracking: "0.24em" },
+    shape: { radius: 3, radiusSm: 2, shadow: "0 18px 36px -28px rgba(14,18,22,0.6)", imageRadius: 3, border: "2px solid rgba(20,24,28,0.14)", sectionPadding: 76 },
+    motif: motif({ hero: "poster", card: "flat", divider: "rule", overlay: 0.66, heroRatio: "4 / 5", ctaStyle: "solid", accentUse: "loud" }),
+    fonts: ["Space Grotesk:wght@500;700", "Inter:wght@400;500;600;700"],
+    industries: { construction: 9, cleaning: 5, automotive: 3, realestate: 2 },
+    toneTarget: { warmth: 0.35, formality: 0.55, playfulness: 0.2, density: 0.85, craft: 0.6 },
+  },
+  "calm-wellness": {
+    id: "calm-wellness",
+    label: "Calm Wellness",
+    base: { primary: "#8a9d8c", accent: "#cfa98c", bg: "#f8f5f1", surface: "#ffffff", ink: "#2b2d2a", mode: "light" },
+    type: { headingFamily: SERIF_ELEGANT, bodyFamily: GROTESK, headingWeight: 500, headingTracking: "-0.005em", headingCase: "none", scale: 0.98, eyebrowTracking: "0.3em" },
+    shape: { radius: 30, radiusSm: 20, shadow: "0 24px 56px -36px rgba(60,58,52,0.45)", imageRadius: 32, border: "1px solid rgba(43,45,42,0.07)", sectionPadding: 92 },
+    motif: motif({ hero: "split", card: "elevated", divider: "none", overlay: 0.38, heroRatio: "4 / 5", ctaStyle: "pill", accentUse: "sparse", imageFilter: "saturate(0.94)" }),
+    fonts: ["Playfair Display:wght@500;600", "Inter:wght@400;500"],
+    industries: { beauty: 9, health: 8, fitness: 2, hospitality: 2 },
+    toneTarget: { warmth: 0.72, formality: 0.45, playfulness: 0.25, density: 0.15, craft: 0.45 },
+  },
+  "editorial-b2b": {
+    id: "editorial-b2b",
+    label: "Editorial B2B",
+    base: { primary: "#22405c", accent: "#c2703c", bg: "#f5f6f7", surface: "#ffffff", ink: "#12171c", mode: "light" },
+    type: { headingFamily: SERIF, bodyFamily: GROTESK, headingWeight: 600, headingTracking: "-0.02em", headingCase: "none", scale: 1.02, eyebrowTracking: "0.22em" },
+    shape: { radius: 6, radiusSm: 4, shadow: "0 16px 38px -30px rgba(12,20,28,0.5)", imageRadius: 6, border: "1px solid rgba(18,23,28,0.1)", sectionPadding: 88 },
+    motif: motif({ hero: "editorial", card: "outline", divider: "rule", overlay: 0.5, heroRatio: "16 / 10", ctaStyle: "solid", accentUse: "balanced" }),
+    fonts: ["Fraunces:wght@400;600;700", "Inter:wght@400;500;600"],
+    industries: { consulting: 9, legal: 4, photography: 2, ecommerce: 1 },
+    toneTarget: { warmth: 0.35, formality: 0.8, playfulness: 0.15, density: 0.45, craft: 0.35 },
+  },
+  "estate-modern": {
+    id: "estate-modern",
+    label: "Estate Modern",
+    base: { primary: "#2f4f4a", accent: "#b99a63", bg: "#f4f3ef", surface: "#ffffff", ink: "#1a1d1c", mode: "light" },
+    type: { headingFamily: SERIF_ELEGANT, bodyFamily: GROTESK, headingWeight: 500, headingTracking: "-0.015em", headingCase: "none", scale: 1.04, eyebrowTracking: "0.28em" },
+    shape: { radius: 4, radiusSm: 3, shadow: "0 26px 60px -38px rgba(20,26,24,0.6)", imageRadius: 4, border: "1px solid rgba(26,29,28,0.1)", sectionPadding: 90 },
+    motif: motif({ hero: "fullbleed", card: "flat", divider: "hairline", overlay: 0.55, heroRatio: "3 / 4", ctaStyle: "outline", accentUse: "sparse" }),
+    fonts: ["Playfair Display:wght@500;600;700", "Inter:wght@400;500;600"],
+    industries: { realestate: 9, hospitality: 3, construction: 2, photography: 2 },
+    toneTarget: { warmth: 0.4, formality: 0.85, playfulness: 0.12, density: 0.4, craft: 0.4 },
+  },
+  "kinetic-fitness": {
+    id: "kinetic-fitness",
+    label: "Kinetic Fitness",
+    base: { primary: "#e8462f", accent: "#f5d03a", bg: "#0d0f11", surface: "#16191d", ink: "#f6f6f5", mode: "dark" },
+    type: { headingFamily: DISPLAY, bodyFamily: GROTESK, headingWeight: 700, headingTracking: "-0.05em", headingCase: "upper", scale: 1.12, eyebrowTracking: "0.3em" },
+    shape: { radius: 3, radiusSm: 2, shadow: "0 30px 70px -36px rgba(0,0,0,0.9)", imageRadius: 3, border: "1px solid rgba(255,255,255,0.12)", sectionPadding: 82 },
+    motif: motif({ hero: "poster", card: "glass", divider: "glow", overlay: 0.66, heroRatio: "4 / 5", ctaStyle: "solid", accentUse: "loud", imageFilter: "contrast(1.1) saturate(1.05)" }),
+    fonts: ["Space Grotesk:wght@500;700", "Inter:wght@400;500;600;700"],
+    industries: { fitness: 9, health: 2, events: 2 },
+    toneTarget: { warmth: 0.35, formality: 0.4, playfulness: 0.6, density: 0.9, craft: 0.25 },
+  },
 };
+
+export function listFamilies() {
+  return Object.values(FAMILIES).map((f) => ({ id: f.id, label: f.label, mode: f.base.mode }));
+}
+
 
 export function toneDistance(a: Tone, b: Tone) {
   const keys: (keyof Tone)[] = ["warmth", "formality", "playfulness", "density", "craft"];
