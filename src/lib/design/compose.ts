@@ -9,6 +9,7 @@ import { buildSections } from "./sections";
 import { stockSetFor } from "./stock-map";
 import { buildTokens } from "./tokens";
 import type { ApplicationInput, ArtDirection, DesignSpec, FamilyId } from "./types";
+import type { RevisionDirectives } from "@/lib/revision/types";
 import { buildVariation } from "./variants";
 
 export const DESIGN_SPEC_VERSION = 6;
