@@ -14,7 +14,9 @@ const updateSchema = z.object({
   reference: z.string().min(4).max(40),
   status: z.enum(['new','reviewing','building','preview','changes','approved','paid','delivered','archived']).optional(),
   previewUrl: z.string().url().max(500).optional().or(z.literal('')),
+  acceptQa: z.boolean().optional(),
 })
+
 
 function authorized(request: Request) {
   const expected = process.env.ADMIN_ACCESS_KEY
