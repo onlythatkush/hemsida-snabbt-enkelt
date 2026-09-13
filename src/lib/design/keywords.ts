@@ -14,9 +14,10 @@ export const INDUSTRY_KEYWORDS: Record<IndustryId, string[]> = {
   fitness: ["gym", "träning", "pt", "personlig tränare", "crossfit", "träningsstudio"],
   photography: ["fotograf", "foto", "bröllopsfotograf", "film", "videoproduktion"],
   cleaning: ["städ", "städfirma", "flyttstäd", "hemstäd", "fönsterputs", "lokalvård"],
-  realestate: ["mäklare", "fastighet", "fastighetsbolag", "uthyrning", "bostäder"],
+  // "uthyrning" alone is ambiguous (cars, tools, venues) — it must be tied to housing.
+  realestate: ["mäklare", "fastighetsmäklare", "fastighetsbolag", "bostadsrätt", "bostäder", "lägenheter", "hyresrätter", "uthyrning av bostad", "uthyrning av lägenhet", "villa till salu"],
   events: ["event", "bröllop", "fest", "konferens", "uthyrning av lokal", "dj", "artist", "band", "eventbyrå"],
-  automotive: ["bilverkstad", "bilservice", "verkstad för bilar", "mekaniker", "däckbyte", "däckhotell", "bilrekond", "bilvård", "ac-service", "fordon", "lastbil", "mc-verkstad", "bilplåt", "besiktningshjälp", "bilhandlare", "bilfirma", "bilhandel", "bilförsäljning", "begagnade bilar", "premiumbilar", "lyxbilar", "sportbil", "sportbilar", "exklusiva bilar", "motor"],
+  automotive: ["bilverkstad", "bilservice", "verkstad för bilar", "mekaniker", "däckbyte", "däckhotell", "bilrekond", "bilvård", "ac-service", "fordon", "lastbil", "mc-verkstad", "bilplåt", "besiktningshjälp", "bilhandlare", "bilfirma", "bilhandel", "bilförsäljning", "begagnade bilar", "premiumbilar", "lyxbilar", "sportbil", "sportbilar", "exklusiva bilar", "motor", "biluthyrning", "hyrbil", "hyrbilar", "hyra bil", "hyra ut bilar", "uthyrning av bilar", "biluthyrare", "car rental", "rental cars", "premium cars", "luxury cars", "bilar"],
   hospitality: ["hotell", "bed and breakfast", "b&b", "vandrarhem", "pensionat", "stugor", "stuguthyrning", "boende", "övernattning", "gästhus", "rum med frukost"],
   generic: [],
 };

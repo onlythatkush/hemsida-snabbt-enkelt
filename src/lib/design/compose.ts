@@ -11,7 +11,7 @@ import { buildTokens } from "./tokens";
 import type { ApplicationInput, ArtDirection, DesignSpec, FamilyId } from "./types";
 import { buildVariation } from "./variants";
 
-export const DESIGN_SPEC_VERSION = 3;
+export const DESIGN_SPEC_VERSION = 4;
 
 function hashSeed(input: string) {
   let hash = 2166136261;
@@ -56,13 +56,19 @@ export function chooseFamily(
   return { family, scores };
 }
 
-export function composeDesignSpec(app: ApplicationInput, override?: { family?: FamilyId }): DesignSpec {
-  const seed = hashSeed(app.reference || app.company || "dwp");
+export function composeDesignSpec(
+  app: ApplicationInput,
+  override?: { family?: FamilyId; revision?: number },
+): DesignSpec {
+  // Deterministic per (application, revision): pressing "Gör ny hemsida" bumps
+  // the revision, which yields a genuinely different — but reproducible — page.
+  const revision = Math.max(1, Math.floor(override?.revision ?? 1));
+  const seed = hashSeed(`${app.reference || app.company || "dwp"}#r${revision}`);
   const description = app.description || "";
   const { industry } = detectIndustry(app.website_type, description, app.extra_requests, app.company);
   const { tone } = detectTone(description, app.extra_requests, app.colors, app.website_type);
   const local = isLocal(description, app.extra_requests, app.address);
-  const { images, photoCount } = planAssets(app.file_names || []);
+  const { images, photoCount, rejected } = planAssets(app.file_names || []);
   const docCount = images.filter((i) => i.role === "doc").length;
 
   const art = analyzeArt(industry, description, app.extra_requests, app.website_type);
@@ -107,9 +113,13 @@ export function composeDesignSpec(app: ApplicationInput, override?: { family?: F
   );
   const tokens = buildTokens(type, shape, tone);
 
+  const generatedAt = new Date().toISOString();
+  const heroAsset = images.find((i) => i.role === "hero");
+
   const spec: DesignSpec = {
     version: DESIGN_SPEC_VERSION,
-    generatedAt: new Date().toISOString(),
+    generatedAt,
+    revision,
     seed,
     family: chosen,
     variant: variation.id,
@@ -141,5 +151,19 @@ export function composeDesignSpec(app: ApplicationInput, override?: { family?: F
   };
 
   spec.qa = evaluateQuality(spec);
+  spec.engine = {
+    version: DESIGN_SPEC_VERSION,
+    revision,
+    generatedAt,
+    seed,
+    family: chosen,
+    industry,
+    heroSource: heroAsset ? "customer" : spec.stockSet ? "curated" : "none",
+    heroAsset: heroAsset?.name,
+    stockSet: spec.stockSet,
+    rejectedAssets: rejected,
+    qaScore: spec.qa.score,
+    qaStatus: spec.qa.status,
+  };
   return spec;
 }

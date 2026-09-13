@@ -2,7 +2,7 @@ import { createClient } from '@supabase/supabase-js'
 import { createFileRoute } from '@tanstack/react-router'
 import { z } from 'zod'
 import postgres from 'postgres'
-import { composeDesignSpec } from '@/lib/design/compose'
+import { DESIGN_SPEC_VERSION, composeDesignSpec } from '@/lib/design/compose'
 
 const createPreviewSchema = z.object({
   reference: z.string().min(4).max(40),
@@ -95,6 +95,11 @@ export const Route = createFileRoute('/api/admin/applications')({
 
           // IMPORTANT: regenerate must never silently reuse an old preview spec.
           // Always compose a fresh spec from the current customer application.
+          // Every press of "Gör ny hemsida" is a new, deterministic revision of
+          // the design — never a reuse of the previously stored spec.
+          const previousRevision = Number(app.design_spec?.revision) || 0
+          const revision = previousRevision + 1
+
           const spec = composeDesignSpec(
             {
               reference: app.reference,
@@ -109,7 +114,7 @@ export const Route = createFileRoute('/api/admin/applications')({
               phone: app.phone,
               file_names: Array.isArray(app.file_names) ? app.file_names : [],
             },
-            input.family ? { family: input.family as any } : undefined,
+            { revision, ...(input.family ? { family: input.family as any } : {}) },
           )
 
           const token: string =
@@ -119,7 +124,7 @@ export const Route = createFileRoute('/api/admin/applications')({
           const previewUrl = origin + '/kund-preview/' + encodeURIComponent(input.reference) + '?token=' + token
 
           // Version the preview URL so Safari/CDNs cannot show a cached old render after regeneration.
-          const previewRevision = Date.now().toString(36)
+          const previewRevision = `${revision}-${Date.now().toString(36)}`
           const versionedPreviewUrl = previewUrl + '&v=' + previewRevision
 
           const rows = await sql`
@@ -133,7 +138,22 @@ export const Route = createFileRoute('/api/admin/applications')({
             WHERE reference = ${input.reference}
             RETURNING *
           `
-          return Response.json({ application: rows[0] })
+          return Response.json({
+            application: rows[0],
+            diagnostics: {
+              revision,
+              designVersion: DESIGN_SPEC_VERSION,
+              generatedAt: spec.generatedAt,
+              family: spec.family,
+              industry: spec.industry,
+              heroSource: spec.engine?.heroSource,
+              heroAsset: spec.engine?.heroAsset,
+              stockSet: spec.stockSet,
+              rejectedAssets: spec.engine?.rejectedAssets || [],
+              qaScore: spec.qa?.score,
+              qaStatus: spec.qa?.status,
+            },
+          })
         } catch (error) {
           console.error('Failed to create preview', error)
           return Response.json({ error: 'Failed to create preview' }, { status: 500 })

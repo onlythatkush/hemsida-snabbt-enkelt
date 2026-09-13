@@ -76,7 +76,7 @@ export type Shape = {
   sectionPadding: number;
 };
 
-export type ImageRole = "hero" | "feature" | "gallery" | "doc" | "logo";
+export type ImageRole = "hero" | "feature" | "gallery" | "doc" | "logo" | "reject";
 
 export type SpecImage = {
   path: string;
@@ -177,9 +177,28 @@ export type QaReport = {
   evaluatedAt: string;
 };
 
+/** Proof of what produced a given preview — shown in admin and the Hub. */
+export type EngineInfo = {
+  version: number;
+  revision: number;
+  generatedAt: string;
+  seed: number;
+  family: FamilyId;
+  industry: IndustryId;
+  heroSource: "customer" | "curated" | "none";
+  heroAsset?: string;
+  stockSet?: string;
+  rejectedAssets: string[];
+  qaScore?: number;
+  qaStatus?: QaReport["status"];
+};
+
 export type DesignSpec = {
   version: number;
   generatedAt: string;
+  /** Increments every time admin presses "Gör ny hemsida". */
+  revision?: number;
+  engine?: EngineInfo;
   seed: number;
   family: FamilyId;
   variant: string;
