@@ -4,6 +4,7 @@ import {
   Link,
   createRootRouteWithContext,
   useRouter,
+  useRouterState,
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
@@ -101,6 +102,25 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 });
 
 function RootShell({ children }: { children: React.ReactNode }) {
+  // Customer previews must render the generated website alone — no Din Webbpartner
+  // site chrome, background or effects behind or through it.
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const isolated = pathname.startsWith("/kund-preview");
+
+  if (isolated) {
+    return (
+      <html lang="sv">
+        <head>
+          <HeadContent />
+        </head>
+        <body style={{ background: "#0b0d12" }}>
+          {children}
+          <Scripts />
+        </body>
+      </html>
+    );
+  }
+
   return (
     <html lang="sv" className="dark">
       <head>

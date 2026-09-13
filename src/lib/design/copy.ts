@@ -65,16 +65,30 @@ export function pick<T>(list: T[], seed: number): T {
   return list[Math.abs(seed) % list.length];
 }
 
-export function tagline(industry: IndustryId, seed: number) {
+/** Luxury car rental reads nothing like a workshop, so it gets its own voice. */
+const isLuxuryRental = (industry: IndustryId, subjects: string[] = []) =>
+  industry === "automotive" && subjects.includes("rental");
+
+export function tagline(industry: IndustryId, seed: number, subjects: string[] = []) {
+  if (isLuxuryRental(industry, subjects)) {
+    return pick(["Kör något exceptionellt", "Premiumbilar när du vill", "Lyx på fyra hjul"], seed);
+  }
   return pick(TAGLINES[industry] || TAGLINES.generic, seed);
 }
 
-export function heroTitle(industry: IndustryId, company: string, seed: number) {
+export function heroTitle(industry: IndustryId, company: string, seed: number, subjects: string[] = []) {
+  if (isLuxuryRental(industry, subjects)) {
+    return pick(
+      [`${company} — premiumbilar att hyra`, `Hyr lyxbilen hos ${company}`, `${company}. Kör i en klass för sig`],
+      seed,
+    );
+  }
   const list = (HERO_TITLES[industry] || HERO_TITLES.generic)(company);
   return pick(list, seed);
 }
 
-export function ctaPrimary(industry: IndustryId, tone: Tone) {
+export function ctaPrimary(industry: IndustryId, tone: Tone, subjects: string[] = []) {
+  if (isLuxuryRental(industry, subjects)) return "Boka din bil";
   if (industry === "ecommerce" || industry === "retail") return "Till butiken";
   if (industry === "bakery") return tone.warmth > 0.7 ? "Beställ hos oss" : "Se utbudet";
   if (industry === "restaurant" || industry === "cafe") return "Boka bord";

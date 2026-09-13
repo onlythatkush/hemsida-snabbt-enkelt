@@ -1,4 +1,6 @@
 import { contrast } from "./color";
+import { FAMILIES } from "./families";
+import { allowedSetsFor, stockSetFor } from "./stock-map";
 import type { DesignSpec, QaCheck, QaReport } from "./types";
 
 const LONGEST_MOBILE_WORD = 15;
@@ -103,6 +105,51 @@ export function evaluateQuality(spec: DesignSpec): QaReport {
     level: ownPhotos >= 3 ? "pass" : ownPhotos > 0 ? "warn" : "warn",
     detail: ownPhotos ? `${ownPhotos} egna bilder` : "Inga egna bilder — kurerade bilder används.",
   });
+
+  // v2.1 — media relevance: fallback photography must match the industry.
+  const usedSet = (spec.stockSet || stockSetFor(spec.industry)) as ReturnType<typeof stockSetFor>;
+  const relevantSet = allowedSetsFor(spec.industry).includes(usedSet);
+  checks.push({
+    id: "media-relevance",
+    label: "Relevanta bilder",
+    level: relevantSet ? "pass" : "fail",
+    detail: relevantSet ? undefined : `Bildsetet "${usedSet}" hör inte till branschen ${spec.industry}.`,
+  });
+
+  // v2.1 — the chosen family must actually suit the detected industry.
+  const affinity = FAMILIES[spec.family]?.industries[spec.industry] ?? 0;
+  const bestAffinity = Math.max(...Object.values(FAMILIES).map((f) => f.industries[spec.industry] ?? 0));
+  const familyOk = bestAffinity < 6 || affinity >= bestAffinity - 3;
+  checks.push({
+    id: "family-match",
+    label: "Designfamilj matchar bransch",
+    level: familyOk ? "pass" : "fail",
+    detail: familyOk ? undefined : `${spec.family} passar inte ${spec.industry}.`,
+  });
+
+  // v2.1 — explicit image wishes must be visible in the hero.
+  const art = spec.art;
+  if (art?.requireHeroMedia) {
+    const heroHasMedia = heroImage || Boolean(spec.stockSet);
+    const cinematicHero = spec.motif?.hero === "cinematic" || spec.motif?.hero === "fullbleed" || spec.motif?.hero === "poster";
+    checks.push({
+      id: "wish-hero-media",
+      label: "Önskad hero-bild",
+      level: heroHasMedia && cinematicHero ? "pass" : "warn",
+      detail:
+        heroHasMedia && cinematicHero
+          ? `Önskemål i bild: ${art.subjects.join(", ")}`
+          : "Kunden bad om bild i bakgrunden men hero är inte bilddriven.",
+    });
+    if (art.mood === "night") {
+      checks.push({
+        id: "wish-mood",
+        label: "Önskad stämning",
+        level: spec.palette.mode === "dark" ? "pass" : "fail",
+        detail: spec.palette.mode === "dark" ? undefined : "Mörk/nattkänsla efterfrågades men sidan blev ljus.",
+      });
+    }
+  }
 
   checks.push({
     id: "responsive-tokens",
