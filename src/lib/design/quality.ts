@@ -1,3 +1,4 @@
+import { isScreenshotLike } from "./assets";
 import { contrast } from "./color";
 import { FAMILIES } from "./families";
 import { allowedSetsFor, stockSetFor } from "./stock-map";
@@ -98,12 +99,24 @@ export function evaluateQuality(spec: DesignSpec): QaReport {
     detail: `${sectionCount} sektioner`,
   });
 
-  const ownPhotos = spec.images.filter((i) => i.role !== "doc" && i.role !== "logo").length;
+  const ownPhotos = spec.images.filter(
+    (i) => i.role !== "doc" && i.role !== "logo" && i.role !== "reject",
+  ).length;
   checks.push({
     id: "media-coverage",
     label: "Bildmaterial",
     level: ownPhotos >= 3 ? "pass" : ownPhotos > 0 ? "warn" : "warn",
     detail: ownPhotos ? `${ownPhotos} egna bilder` : "Inga egna bilder — kurerade bilder används.",
+  });
+
+  // v2.2 — screenshots / UI captures must never be rendered as website media.
+  const renderedAssets = spec.images.filter((i) => i.role === "hero" || i.role === "feature" || i.role === "gallery");
+  const badAsset = renderedAssets.find((i) => isScreenshotLike(i.name) || isScreenshotLike(i.path));
+  checks.push({
+    id: "media-safety",
+    label: "Inga skärmdumpar som sidmaterial",
+    level: badAsset ? "fail" : "pass",
+    detail: badAsset ? `"${badAsset.name}" ser ut som en skärmdump och får inte användas.` : undefined,
   });
 
   // v2.1 — media relevance: fallback photography must match the industry.
