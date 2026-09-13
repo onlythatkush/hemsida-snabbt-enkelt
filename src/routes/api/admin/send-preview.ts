@@ -231,7 +231,8 @@ export const Route = createFileRoute('/api/admin/send-preview')({
           app = await loadApplication(reference)
         } catch (e) {
           console.error('send-preview: db read failed', e)
-          return Response.json({ error: 'Kunde inte läsa ansökan' }, { status: 500 })
+          return Response.json({ error: 'Kunde inte läsa ansökan', detail: String((e as any)?.message || e).slice(0, 200) }, { status: 500 })
+
         }
 
 
