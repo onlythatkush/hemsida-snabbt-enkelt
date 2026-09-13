@@ -21,6 +21,7 @@ import { Route as ApiPublicHealthRouteImport } from './routes/api/public/health'
 import { Route as ApiPublicContactRouteImport } from './routes/api/public/contact'
 import { Route as ApiPublicApplicationFilesRouteImport } from './routes/api/public/application-files'
 import { Route as ApiPublicApplicationRouteImport } from './routes/api/public/application'
+import { Route as ApiHubApplicationsRouteImport } from './routes/api/hub/applications'
 import { Route as ApiAdminSendPreviewRouteImport } from './routes/api/admin/send-preview'
 import { Route as ApiAdminSeedTestGalleryRouteImport } from './routes/api/admin/seed-test-gallery'
 import { Route as ApiAdminApplicationsRouteImport } from './routes/api/admin/applications'
@@ -90,6 +91,11 @@ const ApiPublicApplicationRoute = ApiPublicApplicationRouteImport.update({
   path: '/api/public/application',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiHubApplicationsRoute = ApiHubApplicationsRouteImport.update({
+  id: '/api/hub/applications',
+  path: '/api/hub/applications',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiAdminSendPreviewRoute = ApiAdminSendPreviewRouteImport.update({
   id: '/api/admin/send-preview',
   path: '/api/admin/send-preview',
@@ -141,6 +147,7 @@ export interface FileRoutesByFullPath {
   '/api/admin/applications': typeof ApiAdminApplicationsRoute
   '/api/admin/seed-test-gallery': typeof ApiAdminSeedTestGalleryRoute
   '/api/admin/send-preview': typeof ApiAdminSendPreviewRoute
+  '/api/hub/applications': typeof ApiHubApplicationsRoute
   '/api/public/application': typeof ApiPublicApplicationRoute
   '/api/public/application-files': typeof ApiPublicApplicationFilesRoute
   '/api/public/contact': typeof ApiPublicContactRoute
@@ -162,6 +169,7 @@ export interface FileRoutesByTo {
   '/api/admin/applications': typeof ApiAdminApplicationsRoute
   '/api/admin/seed-test-gallery': typeof ApiAdminSeedTestGalleryRoute
   '/api/admin/send-preview': typeof ApiAdminSendPreviewRoute
+  '/api/hub/applications': typeof ApiHubApplicationsRoute
   '/api/public/application': typeof ApiPublicApplicationRoute
   '/api/public/application-files': typeof ApiPublicApplicationFilesRoute
   '/api/public/contact': typeof ApiPublicContactRoute
@@ -184,6 +192,7 @@ export interface FileRoutesById {
   '/api/admin/applications': typeof ApiAdminApplicationsRoute
   '/api/admin/seed-test-gallery': typeof ApiAdminSeedTestGalleryRoute
   '/api/admin/send-preview': typeof ApiAdminSendPreviewRoute
+  '/api/hub/applications': typeof ApiHubApplicationsRoute
   '/api/public/application': typeof ApiPublicApplicationRoute
   '/api/public/application-files': typeof ApiPublicApplicationFilesRoute
   '/api/public/contact': typeof ApiPublicContactRoute
@@ -207,6 +216,7 @@ export interface FileRouteTypes {
     | '/api/admin/applications'
     | '/api/admin/seed-test-gallery'
     | '/api/admin/send-preview'
+    | '/api/hub/applications'
     | '/api/public/application'
     | '/api/public/application-files'
     | '/api/public/contact'
@@ -228,6 +238,7 @@ export interface FileRouteTypes {
     | '/api/admin/applications'
     | '/api/admin/seed-test-gallery'
     | '/api/admin/send-preview'
+    | '/api/hub/applications'
     | '/api/public/application'
     | '/api/public/application-files'
     | '/api/public/contact'
@@ -249,6 +260,7 @@ export interface FileRouteTypes {
     | '/api/admin/applications'
     | '/api/admin/seed-test-gallery'
     | '/api/admin/send-preview'
+    | '/api/hub/applications'
     | '/api/public/application'
     | '/api/public/application-files'
     | '/api/public/contact'
@@ -271,6 +283,7 @@ export interface RootRouteChildren {
   ApiAdminApplicationsRoute: typeof ApiAdminApplicationsRoute
   ApiAdminSeedTestGalleryRoute: typeof ApiAdminSeedTestGalleryRoute
   ApiAdminSendPreviewRoute: typeof ApiAdminSendPreviewRoute
+  ApiHubApplicationsRoute: typeof ApiHubApplicationsRoute
   ApiPublicApplicationRoute: typeof ApiPublicApplicationRoute
   ApiPublicApplicationFilesRoute: typeof ApiPublicApplicationFilesRoute
   ApiPublicContactRoute: typeof ApiPublicContactRoute
@@ -368,6 +381,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicApplicationRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/hub/applications': {
+      id: '/api/hub/applications'
+      path: '/api/hub/applications'
+      fullPath: '/api/hub/applications'
+      preLoaderRoute: typeof ApiHubApplicationsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/admin/send-preview': {
       id: '/api/admin/send-preview'
       path: '/api/admin/send-preview'
@@ -431,6 +451,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAdminApplicationsRoute: ApiAdminApplicationsRoute,
   ApiAdminSeedTestGalleryRoute: ApiAdminSeedTestGalleryRoute,
   ApiAdminSendPreviewRoute: ApiAdminSendPreviewRoute,
+  ApiHubApplicationsRoute: ApiHubApplicationsRoute,
   ApiPublicApplicationRoute: ApiPublicApplicationRoute,
   ApiPublicApplicationFilesRoute: ApiPublicApplicationFilesRoute,
   ApiPublicContactRoute: ApiPublicContactRoute,
