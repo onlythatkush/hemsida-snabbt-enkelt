@@ -167,6 +167,14 @@ export const Route = createFileRoute('/api/admin/send-preview')({
 
         const { data, error } = await query
         if (error) {
+          const code = String((error as any)?.code || '')
+          const message = String((error as any)?.message || '')
+          // The log table may not exist yet in an environment that has not run
+          // the migration. That must not break the admin panel.
+          if (code === 'PGRST205' || code === '42P01' || /preview_email_log/i.test(message)) {
+            console.warn('send-preview: preview_email_log missing', code)
+            return Response.json({ logs: [], unavailable: 'preview_email_log saknas i databasen' })
+          }
           console.error('send-preview: history read failed', error)
           return Response.json({ error: 'Kunde inte läsa mailhistorik' }, { status: 500 })
         }
