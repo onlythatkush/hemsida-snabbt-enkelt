@@ -1,14 +1,16 @@
+import { planAssets } from "./assets";
 import { contrast, extractColors, hexToHsl } from "./color";
 import { ctaPrimary, ctaSecondary, heroSub, heroTitle, tagline } from "./copy";
 import { FAMILIES, buildPalette, toneDistance, tuneShape, tuneTypography } from "./families";
 import { detectIndustry, detectTone, isLocal } from "./keywords";
+import { evaluateQuality } from "./quality";
 import { buildSections } from "./sections";
 import { stockSetFor } from "./stock-map";
-import type { ApplicationInput, DesignSpec, FamilyId, SpecImage } from "./types";
+import { buildTokens } from "./tokens";
+import type { ApplicationInput, DesignSpec, FamilyId } from "./types";
+import { buildVariation } from "./variants";
 
-export const DESIGN_SPEC_VERSION = 1;
-
-const IMAGE_RE = /\.(jpe?g|png|webp|gif|avif)$/i;
+export const DESIGN_SPEC_VERSION = 2;
 
 function hashSeed(input: string) {
   let hash = 2166136261;
@@ -19,29 +21,6 @@ function hashSeed(input: string) {
   return Math.abs(hash);
 }
 
-function classifyImages(fileNames: string[]): SpecImage[] {
-  const images: SpecImage[] = [];
-  const docs: SpecImage[] = [];
-  for (const path of fileNames.slice(0, 12)) {
-    const name = String(path).split("/").pop() || "Fil";
-    if (IMAGE_RE.test(name)) images.push({ path, name, role: "gallery" });
-    else docs.push({ path, name, role: "doc" });
-  }
-  // Rank by filename hints, then upload order: hero first, then features.
-  const score = (img: SpecImage) => {
-    const n = img.name.toLowerCase();
-    let s = 0;
-    if (/(hero|framsida|omslag|banner|huvud|cover)/.test(n)) s += 5;
-    if (/(logo|logga|ikon|icon)/.test(n)) s -= 6;
-    if (/(produkt|meny|bakverk|tavla|projekt)/.test(n)) s += 1;
-    return s;
-  };
-  const sorted = [...images].sort((a, b) => score(b) - score(a));
-  sorted.forEach((img, index) => {
-    img.role = index === 0 ? "hero" : index < 4 ? "feature" : "gallery";
-  });
-  return [...sorted, ...docs];
-}
 
 export function chooseFamily(
   industry: ReturnType<typeof detectIndustry>["industry"],
