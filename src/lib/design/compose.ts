@@ -58,8 +58,9 @@ export function chooseFamily(
 
 export function composeDesignSpec(
   app: ApplicationInput,
-  override?: { family?: FamilyId; revision?: number },
+  override?: { family?: FamilyId; revision?: number; directives?: RevisionDirectives },
 ): DesignSpec {
+  const directives = override?.directives;
   // Deterministic per (application, revision): pressing "Gör ny hemsida" bumps
   // the revision, which yields a genuinely different — but reproducible — page.
   const revision = Math.max(1, Math.floor(override?.revision ?? 1));
