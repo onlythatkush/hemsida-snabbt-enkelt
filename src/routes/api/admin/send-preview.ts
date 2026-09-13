@@ -5,6 +5,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import postgres from 'postgres'
 import { z } from 'zod'
 import { TEMPLATES } from '@/lib/email-templates/registry'
+import { previewSendGate } from '@/lib/design/quality'
 import { getUnsubscribeToken } from '@/lib/unsubscribe-token.server'
 
 const SITE_NAME = 'Din Webbpartner'
@@ -88,7 +89,16 @@ async function updateLog(client: any, id: string | null, patch: Partial<LogRow>)
   }
 }
 
-type AppRow = { reference: string; company?: string; name?: string; email?: string; preview_url?: string }
+type AppRow = {
+  reference: string
+  company?: string
+  name?: string
+  email?: string
+  preview_url?: string
+  qa_status?: string | null
+  qa_report?: any
+  qa_accepted_at?: string | null
+}
 
 async function loadApplication(reference: string): Promise<AppRow | null> {
   const dbUrl = databaseUrl()
@@ -96,7 +106,7 @@ async function loadApplication(reference: string): Promise<AppRow | null> {
     const sql = postgres(dbUrl, { max: 1, prepare: false })
     try {
       const rows = await sql`
-        SELECT reference, company, name, email, preview_url
+        SELECT reference, company, name, email, preview_url, qa_status, qa_report, qa_accepted_at
         FROM public.project_applications
         WHERE reference = ${reference}
         LIMIT 1
@@ -110,7 +120,7 @@ async function loadApplication(reference: string): Promise<AppRow | null> {
   if (!provider.ok) return null
   const { data } = await provider.client
     .from('project_applications')
-    .select('reference, company, name, email, preview_url')
+    .select('reference, company, name, email, preview_url, qa_status, qa_report, qa_accepted_at')
     .eq('reference', reference)
     .maybeSingle()
   return (data as AppRow) || null
@@ -200,7 +210,7 @@ export const Route = createFileRoute('/api/admin/send-preview')({
           const sql = postgres(dbUrl, { max: 1, prepare: false })
           try {
             const rows = await sql`
-              SELECT reference, company, name, email, preview_url
+              SELECT reference, company, name, email, preview_url, qa_status, qa_report, qa_accepted_at
               FROM public.project_applications
               WHERE reference = ${reference}
               LIMIT 1
@@ -217,7 +227,7 @@ export const Route = createFileRoute('/api/admin/send-preview')({
           if (!provider.ok) return Response.json({ error: 'Database not configured' }, { status: 500 })
           const { data } = await provider.client
             .from('project_applications')
-            .select('reference, company, name, email, preview_url')
+            .select('reference, company, name, email, preview_url, qa_status, qa_report, qa_accepted_at')
             .eq('reference', reference)
             .maybeSingle()
           app = (data as any) || null
@@ -226,6 +236,19 @@ export const Route = createFileRoute('/api/admin/send-preview')({
         if (!app) return Response.json({ error: 'Ansökan hittades inte' }, { status: 404 })
         if (!app.preview_url) {
           return Response.json({ error: 'Ingen preview-länk finns för den här ansökan' }, { status: 400 })
+        }
+
+        // Automatic QA gate: blocked previews can never be sent, review previews
+        // require an explicit admin acceptance recorded on the application.
+        const gate = previewSendGate(
+          app.qa_status ? { status: app.qa_status as any, checks: app.qa_report?.checks || [] } : null,
+          Boolean(app.qa_accepted_at),
+        )
+        if (!gate.sendable) {
+          return Response.json(
+            { error: gate.reason, qaStatus: app.qa_status, qaBlocked: app.qa_status === 'blocked' },
+            { status: 409 },
+          )
         }
 
         // Recipient rules
