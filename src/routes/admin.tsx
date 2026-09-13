@@ -168,7 +168,7 @@ function Admin() {
     setSavedKey(trimmed);
   }
 
-  async function update(reference: string, patch: { status?: string; previewUrl?: string }) {
+  async function update(reference: string, patch: { status?: string; previewUrl?: string; acceptQa?: boolean }) {
     const res = await fetch("/api/admin/applications", {
       method: "PATCH",
       headers: { "Content-Type": "application/json", "x-admin-key": savedKey },
@@ -597,7 +597,7 @@ function Admin() {
                             </Button>
                           )}
                           {a.preview_url && (
-                            <Button size="sm" variant="secondary" onClick={() => sendPreviewEmail(a)} disabled={sendingRef === a.reference}>
+                            <Button size="sm" variant="secondary" onClick={() => sendPreviewEmail(a)} disabled={sendingRef === a.reference || !qaOf(a).canSend} title={qaOf(a).canSend ? undefined : "Kvalitetskontrollen tillåter inte utskick"}>
                               {sendingRef === a.reference ? <Loader2 className="h-4 w-4 animate-spin" /> : <Mail className="h-4 w-4" />}
                               Skicka preview
                             </Button>
