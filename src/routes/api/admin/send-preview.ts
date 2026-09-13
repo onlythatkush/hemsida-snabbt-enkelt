@@ -179,7 +179,8 @@ export const Route = createFileRoute('/api/admin/send-preview')({
           try { app = await loadApplication(reference) }
           catch (e) {
             console.error('send-preview: preview read failed', e)
-            return Response.json({ error: 'Kunde inte läsa ansökan' }, { status: 500 })
+            return Response.json({ error: 'Kunde inte läsa ansökan', detail: String((e as any)?.message || e).slice(0, 200) }, { status: 500 })
+
           }
           if (!app) return Response.json({ error: 'Ansökan hittades inte' }, { status: 404 })
           const rendered = await renderPreviewEmail(app)
