@@ -212,33 +212,13 @@ export const Route = createFileRoute('/api/admin/send-preview')({
 
         // Load the application (prefer the same Postgres connection the rest of admin uses).
         let app: AppRow | null = null
-        const dbUrl = databaseUrl()
-        if (dbUrl) {
-          const sql = postgres(dbUrl, { max: 1, prepare: false })
-          try {
-            const rows = await sql`
-              SELECT reference, company, name, email, preview_url, qa_status, qa_report, qa_accepted_at
-              FROM public.project_applications
-              WHERE reference = ${reference}
-              LIMIT 1
-            `
-            app = (rows as any[])[0] || null
-          } catch (e) {
-            console.error('send-preview: db read failed', e)
-            return Response.json({ error: 'Kunde inte läsa ansökan' }, { status: 500 })
-          } finally {
-            await sql.end({ timeout: 5 })
-          }
-        } else {
-          const provider = emailProvider()
-          if (!provider.ok) return Response.json({ error: 'Database not configured' }, { status: 500 })
-          const { data } = await provider.client
-            .from('project_applications')
-            .select('reference, company, name, email, preview_url, qa_status, qa_report, qa_accepted_at')
-            .eq('reference', reference)
-            .maybeSingle()
-          app = (data as any) || null
+        try {
+          app = await loadApplication(reference)
+        } catch (e) {
+          console.error('send-preview: db read failed', e)
+          return Response.json({ error: 'Kunde inte läsa ansökan' }, { status: 500 })
         }
+
 
         if (!app) return Response.json({ error: 'Ansökan hittades inte' }, { status: 404 })
         if (!app.preview_url) {
