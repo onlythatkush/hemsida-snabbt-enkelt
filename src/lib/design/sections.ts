@@ -216,6 +216,95 @@ const PROCESS_BY_INDUSTRY: Partial<Record<IndustryId, SectionItem[]>> = {
   ],
 };
 
+/**
+ * Industry-appropriate labels. Generic craft wording ("Genuint hantverk",
+ * "Bilder från oss") is only used where it is actually true for the business.
+ */
+const HIGHLIGHT_BY_INDUSTRY: Partial<Record<IndustryId, { eyebrow: string; title: string; body: string }>> = {
+  automotive: {
+    eyebrow: "Standarden",
+    title: "Bilar i toppskick",
+    body: "Varje bil kontrolleras, rengörs och tankas innan den lämnas ut. Du kör iväg i en bil som känns ny.",
+  },
+  realestate: {
+    eyebrow: "Vårt arbetssätt",
+    title: "Trygg affär hela vägen",
+    body: "Vi förbereder, marknadsför och följer upp — så att du vet var affären står i varje läge.",
+  },
+  legal: {
+    eyebrow: "Vårt löfte",
+    title: "Tydliga besked",
+    body: "Du får raka svar, tydliga villkor och en kontaktperson som känner ditt ärende.",
+  },
+  consulting: {
+    eyebrow: "Vårt arbetssätt",
+    title: "Från plan till resultat",
+    body: "Vi arbetar nära er verksamhet och mäter det som faktiskt gör skillnad.",
+  },
+  construction: {
+    eyebrow: "På plats",
+    title: "Utfört fackmässigt",
+    body: "Rätt material, hållna tider och en arbetsplats som är städad när vi går hem.",
+  },
+  fitness: {
+    eyebrow: "Träningen",
+    title: "Framsteg som håller",
+    body: "Upplägg som passar din vardag, med uppföljning så att du ser resultat över tid.",
+  },
+  beauty: {
+    eyebrow: "Hos oss",
+    title: "Omsorg i varje behandling",
+    body: "Vi tar oss tid, lyssnar in vad du vill ha och arbetar med produkter vi står för.",
+  },
+  health: {
+    eyebrow: "Vår omsorg",
+    title: "Trygg vård i din takt",
+    body: "Vi möter dig där du är och förklarar varje steg innan vi går vidare.",
+  },
+  hospitality: {
+    eyebrow: "Vistelsen",
+    title: "Lugnet du kom för",
+    body: "Personligt bemötande, rena rum och små detaljer som gör skillnad.",
+  },
+};
+
+const GALLERY_TITLE: Partial<Record<IndustryId, { eyebrow: string; title: string }>> = {
+  automotive: { eyebrow: "Flottan", title: "Bilarna" },
+  realestate: { eyebrow: "Objekt", title: "Ur vårt utbud" },
+  construction: { eyebrow: "Referenser", title: "Utförda jobb" },
+  photography: { eyebrow: "Portfolio", title: "Utvalda bilder" },
+  beauty: { eyebrow: "Resultat", title: "Före och efter" },
+  fitness: { eyebrow: "I gymmet", title: "Träningen hos oss" },
+  hospitality: { eyebrow: "Miljöer", title: "Hos oss" },
+  restaurant: { eyebrow: "Från köket", title: "Det vi serverar" },
+  bakery: { eyebrow: "Från bageriet", title: "Dagens bak" },
+  cafe: { eyebrow: "I caféet", title: "Fikat hos oss" },
+};
+
+const RENTAL_HIGHLIGHT = {
+  eyebrow: "Uthyrningen",
+  title: "Hyr enkelt, kör tryggt",
+  body: "Försäkring, vägassistans och fria mil ingår i upplägget. Du bokar, vi gör bilen redo.",
+};
+
+const ABOUT_POINTS: Partial<Record<IndustryId, string[]>> = {
+  automotive: ["Bilar i toppskick", "Privat & företag", "Snabb bokning"],
+  realestate: ["Kostnadsfri värdering", "Lokal marknadskännedom", "Trygg affär"],
+  legal: ["Tydliga villkor", "Erfaren rådgivning", "Snabb återkoppling"],
+  consulting: ["Konkreta åtgärder", "Mätbara resultat", "Nära samarbete"],
+  construction: ["Fast pris", "Hållna tider", "Städat efter oss"],
+  cleaning: ["Fasta tider", "Egna produkter", "Nöjd-kund-garanti"],
+  fitness: ["Personligt upplägg", "Uppföljning", "Träna när du vill"],
+  beauty: ["Personlig konsultation", "Produkter vi står för", "Enkel bokning"],
+  health: ["Trygg vård", "Korta väntetider", "Tydlig information"],
+  bakery: ["Bakat på plats", "Egna recept", "Beställ till fest"],
+  cafe: ["Nybryggt kaffe", "Hembakat", "Nära dig"],
+  restaurant: ["Säsongens råvaror", "Boka bord enkelt", "Mat att dela"],
+  hospitality: ["Personligt bemötande", "Hemlagad frukost", "Lugnt läge"],
+};
+
+const ABOUT_POINTS_DEFAULT = ["Personlig kontakt", "Tydliga besked", "Trygg leverans"];
+
 /** Luxury car rental has nothing to do with a workshop, so it gets its own offer. */
 const RENTAL_OFFER = {
   eyebrow: "Vår flotta",
