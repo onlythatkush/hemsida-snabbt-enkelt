@@ -502,12 +502,13 @@ function Admin() {
                             </Button>
                             <Button variant="outline" className="w-full" onClick={() => sendPreviewEmail(a)} disabled={sendingRef === a.reference || !qaOf(a).canSend}>
                               {sendingRef === a.reference ? <Loader2 className="h-4 w-4 animate-spin" /> : <Mail className="h-4 w-4" />}
-                              Skicka preview
+                              {a.status === "changes" ? "Skicka uppdaterad preview" : "Skicka preview"}
                             </Button>
                           </>
                         )}
 
                         <PreviewMailLog reference={a.reference} adminKey={savedKey} version={logVersion} />
+                        <RevisionTimeline reference={a.reference} adminKey={savedKey} version={logVersion} />
 
                         {!!a.file_names?.length && (
                           <div>
