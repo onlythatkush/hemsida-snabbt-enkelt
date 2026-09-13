@@ -5,7 +5,13 @@ export type FamilyId =
   | "bold-modern"
   | "soft-wellness"
   | "fresh-retail"
-  | "night-premium";
+  | "night-premium"
+  | "cinematic-auto"
+  | "industrial-trade"
+  | "calm-wellness"
+  | "editorial-b2b"
+  | "estate-modern"
+  | "kinetic-fitness";
 
 export type IndustryId =
   | "bakery"
