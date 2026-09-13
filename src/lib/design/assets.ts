@@ -17,7 +17,8 @@ const UI_ASSET_RE =
   /(vercel|lovable|supabase|netlify|cloudflare|github|dashboard|instrumentpanel|adminpanel|admin[\s_-]?panel|console|backend|deploy|analytics|localhost|browser|webbl[äa]sare|figma|wireframe|error|fel(?:medd|kod)|faktura|kvitto)/i;
 // Apple/Android/Windows default screenshot filenames, e.g. "Screenshot_2026-09-13-22-12".
 const SCREENSHOT_NAME_RE = /^(sk[äa]rmavbild|screenshot|screen[\s_-]?shot|bild)[\s_-]?\d{2,4}[-_ ]\d{1,2}/i;
-const GENERIC_CAMERA_RE = /^(img|dsc|pxl|image)[-_ ]?\d{3,}/i;
+const GENERIC_CAMERA_RE = /(?:^|[-_ ])(img|dsc|pxl|image)[-_ ]?\d{3,}/i;
+const AUTOMOTIVE_MEDIA_RE = /(bil|bilar|car|cars|fordon|vehicle|porsche|ferrari|mercedes|bmw|audi|tesla|range[ _-]?rover|lamborghini|mclaren|volvo)/i;
 
 /**
  * Generic camera filenames such as IMG_0370.png are ambiguous: they can be a
@@ -32,6 +33,11 @@ function isUnclassifiedGenericImage(name: string): boolean {
   return !SHOWCASE_RE.test(n) && !HERO_RE.test(n) && !LOGO_RE.test(n);
 }
 
+function isSafeAutomotiveMedia(name: string): boolean {
+  const n = String(name || "");
+  return AUTOMOTIVE_MEDIA_RE.test(n) || LOGO_RE.test(n);
+}
+
 export function isScreenshotLike(name: string): boolean {
   const n = String(name || "");
   return SCREENSHOT_RE.test(n) || SCREENSHOT_NAME_RE.test(n) || UI_ASSET_RE.test(n);
@@ -43,7 +49,7 @@ export function isScreenshotLike(name: string): boolean {
  * few to feature blocks, the rest to the gallery, documents to the file list.
  * Screenshot/UI-like uploads are rejected and never rendered.
  */
-export function planAssets(fileNames: string[]): {
+export function planAssets(fileNames: string[], industry?: string): {
   images: SpecImage[];
   logoIndex: number | null;
   photoCount: number;
@@ -60,7 +66,11 @@ export function planAssets(fileNames: string[]): {
       docs.push({ path, name, role: "doc" });
       continue;
     }
-    if (isScreenshotLike(name) || isUnclassifiedGenericImage(name)) {
+    if (
+      isScreenshotLike(name) ||
+      isUnclassifiedGenericImage(name) ||
+      (industry === "automotive" && !isSafeAutomotiveMedia(name))
+    ) {
       rejects.push({ path, name, role: "reject" });
       continue;
     }
