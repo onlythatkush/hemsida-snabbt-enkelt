@@ -173,6 +173,10 @@ export type Database = {
           phone: string
           preview_token: string | null
           preview_url: string | null
+          qa_accepted_at: string | null
+          qa_report: Json | null
+          qa_score: number | null
+          qa_status: string | null
           reference: string
           social_links: string | null
           status: string
@@ -197,6 +201,10 @@ export type Database = {
           phone: string
           preview_token?: string | null
           preview_url?: string | null
+          qa_accepted_at?: string | null
+          qa_report?: Json | null
+          qa_score?: number | null
+          qa_status?: string | null
           reference: string
           social_links?: string | null
           status?: string
@@ -221,6 +229,10 @@ export type Database = {
           phone?: string
           preview_token?: string | null
           preview_url?: string | null
+          qa_accepted_at?: string | null
+          qa_report?: Json | null
+          qa_score?: number | null
+          qa_status?: string | null
           reference?: string
           social_links?: string | null
           status?: string
