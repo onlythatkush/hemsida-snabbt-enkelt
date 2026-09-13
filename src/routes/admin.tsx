@@ -239,9 +239,12 @@ function Admin() {
         throw new Error(
           body?.missingEnv
             ? `${body.error} Saknad konfiguration: ${body.missingEnv}`
-            : body?.error || "Kunde inte skicka previewmailet",
+            : body?.detail
+              ? `${body.error} (${body.detail})`
+              : body?.error || "Kunde inte skicka previewmailet",
         );
       }
+
       toast.success(`Previewmail skickat till ${body.recipient}`);
       setLogVersion((v) => v + 1);
     } catch (e: any) {
