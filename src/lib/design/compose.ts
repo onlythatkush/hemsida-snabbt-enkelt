@@ -73,7 +73,7 @@ export function composeDesignSpec(app: ApplicationInput, override?: { family?: F
   const type = tuneTypography(familyDef.type, tone);
   const shape = tuneShape(familyDef.shape, tone);
 
-  const sections = buildSections({
+  const built = buildSections({
     industry,
     tone,
     local,
@@ -85,17 +85,26 @@ export function composeDesignSpec(app: ApplicationInput, override?: { family?: F
     seed,
   });
 
-  return {
+  const variation = buildVariation(chosen, seed, built.map((s) => s.id));
+  const sections = [...built].sort(
+    (a, b) => variation.sectionOrder.indexOf(a.id) - variation.sectionOrder.indexOf(b.id),
+  );
+  const tokens = buildTokens(type, shape, tone);
+
+  const spec: DesignSpec = {
     version: DESIGN_SPEC_VERSION,
     generatedAt: new Date().toISOString(),
     seed,
     family: chosen,
-    variant: palette.mode,
+    variant: variation.id,
     industry,
     tone,
     palette,
     type,
     shape,
+    motif: familyDef.motif,
+    tokens,
+    variation,
     brand: {
       company: app.company,
       tagline: tagline(industry, seed),
@@ -113,4 +122,7 @@ export function composeDesignSpec(app: ApplicationInput, override?: { family?: F
     fonts: familyDef.fonts,
     stockSet: stockSetFor(industry),
   };
+
+  spec.qa = evaluateQuality(spec);
+  return spec;
 }
