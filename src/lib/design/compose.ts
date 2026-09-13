@@ -11,7 +11,7 @@ import { buildTokens } from "./tokens";
 import type { ApplicationInput, ArtDirection, DesignSpec, FamilyId } from "./types";
 import { buildVariation } from "./variants";
 
-export const DESIGN_SPEC_VERSION = 4;
+export const DESIGN_SPEC_VERSION = 5;
 
 function hashSeed(input: string) {
   let hash = 2166136261;
