@@ -75,7 +75,16 @@ export function composeDesignSpec(
 
   const art = analyzeArt(industry, description, app.extra_requests, app.website_type);
 
-  const chosen = override?.family || chooseFamily(industry, tone, seed, photoCount, art).family;
+  let chosen = override?.family || chooseFamily(industry, tone, seed, photoCount, art).family;
+  // A customer reply asking for a lighter/darker expression must actually change
+  // the page, so switch to the best-scoring family in the requested mode.
+  if (!override?.family && directives?.mode && FAMILIES[chosen].base.mode !== directives.mode) {
+    const scores = chooseFamily(industry, tone, seed, photoCount, art).scores;
+    const best = Object.entries(scores)
+      .filter(([id]) => FAMILIES[id as FamilyId].base.mode === directives.mode)
+      .sort((a, b) => b[1] - a[1])[0]?.[0] as FamilyId | undefined;
+    if (best) chosen = best;
+  }
   const familyDef = FAMILIES[chosen];
   // Pale colours make poor primaries; the strongest colour leads, pale ones become tints.
   const allColors = extractColors(app.colors);
