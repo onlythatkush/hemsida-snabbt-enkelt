@@ -179,6 +179,8 @@ export function composeDesignSpec(
     fonts: familyDef.fonts,
     stockSet: stockSetFor(industry),
     art,
+    // Admin-only record of what the customer asked for. Never rendered publicly.
+    ...(directives ? { directives, revisionNotes: directives.summary } : {}),
   };
 
   spec.qa = evaluateQuality(spec);
