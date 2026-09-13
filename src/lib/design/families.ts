@@ -1,5 +1,5 @@
 import { adjust, ensureContrast, hexToHsl, hslToHex, readableOn, withLightness } from "./color";
-import type { FamilyId, IndustryId, Palette, Shape, Tone, Typography } from "./types";
+import type { FamilyId, IndustryId, Motif, Palette, Shape, Tone, Typography } from "./types";
 
 export type FamilyDef = {
   id: FamilyId;
@@ -7,6 +7,7 @@ export type FamilyDef = {
   base: { primary: string; accent: string; bg: string; surface: string; ink: string; mode: "light" | "dark" };
   type: Typography;
   shape: Shape;
+  motif: Motif;
   fonts: string[];
   /** Positive affinity per industry. */
   industries: Partial<Record<IndustryId, number>>;
@@ -18,6 +19,8 @@ const SERIF = "'Fraunces', 'Iowan Old Style', Georgia, serif";
 const SERIF_ELEGANT = "'Playfair Display', Georgia, serif";
 const GROTESK = "'Inter', system-ui, -apple-system, sans-serif";
 const DISPLAY = "'Space Grotesk', 'Inter', system-ui, sans-serif";
+
+const motif = (m: Motif): Motif => m;
 
 export const FAMILIES: Record<FamilyId, FamilyDef> = {
   "warm-craft": {
