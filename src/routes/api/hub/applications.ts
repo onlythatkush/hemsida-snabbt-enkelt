@@ -1,17 +1,16 @@
+import { createClient } from '@supabase/supabase-js'
 import { createFileRoute } from '@tanstack/react-router'
-import postgres from 'postgres'
 
 const REFERENCE_PATTERN = /^[A-Z0-9-]{4,40}$/
 const MAX_ROWS = 20
 
-function databaseUrl() {
-  return (
-    process.env.POSTGRES_URL ||
-    process.env.STORAGE_POSTGRES_URL ||
-    process.env.STORAGE_DATABASE_URL ||
-    process.env.DATABASE_URL ||
-    process.env.SUPABASE_DB_URL
-  )
+function client() {
+  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SECRET_KEY
+  if (!supabaseUrl || !serviceKey) return null
+  return createClient<any>(supabaseUrl, serviceKey, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  })
 }
 
 export const Route = createFileRoute('/api/hub/applications')({
@@ -38,37 +37,31 @@ export const Route = createFileRoute('/api/hub/applications')({
           return Response.json({ error: 'Invalid reference format' }, { status: 400 })
         }
 
-        const connection = databaseUrl()
-        if (!connection) {
-          console.error(`[hub] ${path} 500 server_misconfigured: database url missing`)
+        const supabase = client()
+        if (!supabase) {
+          console.error(`[hub] ${path} 500 server_misconfigured: supabase credentials missing`)
           return Response.json({ error: 'Server misconfigured' }, { status: 500 })
         }
 
-        const sql = postgres(connection, { max: 1, prepare: false })
         try {
-          const rows = reference
-            ? await sql`
-                SELECT id, reference, status, created_at, updated_at,
-                       (preview_url IS NOT NULL AND preview_url <> '') AS has_preview
-                FROM public.project_applications
-                WHERE reference = ${reference}
-                LIMIT 1
-              `
-            : await sql`
-                SELECT id, reference, status, created_at, updated_at,
-                       (preview_url IS NOT NULL AND preview_url <> '') AS has_preview
-                FROM public.project_applications
-                ORDER BY created_at DESC
-                LIMIT ${MAX_ROWS}
-              `
+          let query = supabase
+            .from('project_applications')
+            .select('id, reference, status, created_at, updated_at, preview_url')
+            .order('created_at', { ascending: false })
+            .limit(reference ? 1 : MAX_ROWS)
 
-          const applications = rows.map((row: any) => ({
+          if (reference) query = query.eq('reference', reference)
+
+          const { data, error } = await query
+          if (error) throw error
+
+          const applications = (data ?? []).map((row: any) => ({
             id: row.id,
             reference: row.reference,
             status: row.status,
             created_at: row.created_at,
             updated_at: row.updated_at,
-            has_preview: Boolean(row.has_preview),
+            has_preview: Boolean(row.preview_url && row.preview_url !== ''),
           }))
 
           console.log(
@@ -80,8 +73,6 @@ export const Route = createFileRoute('/api/hub/applications')({
         } catch (error) {
           console.error(`[hub] ${path} 500 query_failed`, error)
           return Response.json({ error: 'Failed to load applications' }, { status: 500 })
-        } finally {
-          await sql.end()
         }
       },
     },
