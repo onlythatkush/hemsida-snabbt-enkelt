@@ -18,6 +18,7 @@ import { Route as PortfolioSlugRouteImport } from './routes/portfolio.$slug'
 import { Route as KundPreviewReferenceRouteImport } from './routes/kund-preview.$reference'
 import { Route as EmailUnsubscribeRouteImport } from './routes/email/unsubscribe'
 import { Route as LovableEmailSuppressionRouteImport } from './routes/lovable/email/suppression'
+import { Route as ApiPublicInboundEmailRouteImport } from './routes/api/public/inbound-email'
 import { Route as ApiPublicHealthRouteImport } from './routes/api/public/health'
 import { Route as ApiPublicContactRouteImport } from './routes/api/public/contact'
 import { Route as ApiPublicApplicationFilesRouteImport } from './routes/api/public/application-files'
@@ -74,6 +75,11 @@ const EmailUnsubscribeRoute = EmailUnsubscribeRouteImport.update({
 const LovableEmailSuppressionRoute = LovableEmailSuppressionRouteImport.update({
   id: '/lovable/email/suppression',
   path: '/lovable/email/suppression',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicInboundEmailRoute = ApiPublicInboundEmailRouteImport.update({
+  id: '/api/public/inbound-email',
+  path: '/api/public/inbound-email',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiPublicHealthRoute = ApiPublicHealthRouteImport.update({
@@ -159,6 +165,7 @@ export interface FileRoutesByFullPath {
   '/api/public/application-files': typeof ApiPublicApplicationFilesRoute
   '/api/public/contact': typeof ApiPublicContactRoute
   '/api/public/health': typeof ApiPublicHealthRoute
+  '/api/public/inbound-email': typeof ApiPublicInboundEmailRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/api/public/project-preview/$reference': typeof ApiPublicProjectPreviewReferenceRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
@@ -182,6 +189,7 @@ export interface FileRoutesByTo {
   '/api/public/application-files': typeof ApiPublicApplicationFilesRoute
   '/api/public/contact': typeof ApiPublicContactRoute
   '/api/public/health': typeof ApiPublicHealthRoute
+  '/api/public/inbound-email': typeof ApiPublicInboundEmailRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/api/public/project-preview/$reference': typeof ApiPublicProjectPreviewReferenceRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
@@ -206,6 +214,7 @@ export interface FileRoutesById {
   '/api/public/application-files': typeof ApiPublicApplicationFilesRoute
   '/api/public/contact': typeof ApiPublicContactRoute
   '/api/public/health': typeof ApiPublicHealthRoute
+  '/api/public/inbound-email': typeof ApiPublicInboundEmailRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/api/public/project-preview/$reference': typeof ApiPublicProjectPreviewReferenceRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
@@ -231,6 +240,7 @@ export interface FileRouteTypes {
     | '/api/public/application-files'
     | '/api/public/contact'
     | '/api/public/health'
+    | '/api/public/inbound-email'
     | '/lovable/email/suppression'
     | '/api/public/project-preview/$reference'
     | '/lovable/email/queue/process'
@@ -254,6 +264,7 @@ export interface FileRouteTypes {
     | '/api/public/application-files'
     | '/api/public/contact'
     | '/api/public/health'
+    | '/api/public/inbound-email'
     | '/lovable/email/suppression'
     | '/api/public/project-preview/$reference'
     | '/lovable/email/queue/process'
@@ -277,6 +288,7 @@ export interface FileRouteTypes {
     | '/api/public/application-files'
     | '/api/public/contact'
     | '/api/public/health'
+    | '/api/public/inbound-email'
     | '/lovable/email/suppression'
     | '/api/public/project-preview/$reference'
     | '/lovable/email/queue/process'
@@ -301,6 +313,7 @@ export interface RootRouteChildren {
   ApiPublicApplicationFilesRoute: typeof ApiPublicApplicationFilesRoute
   ApiPublicContactRoute: typeof ApiPublicContactRoute
   ApiPublicHealthRoute: typeof ApiPublicHealthRoute
+  ApiPublicInboundEmailRoute: typeof ApiPublicInboundEmailRoute
   LovableEmailSuppressionRoute: typeof LovableEmailSuppressionRoute
   ApiPublicProjectPreviewReferenceRoute: typeof ApiPublicProjectPreviewReferenceRoute
   LovableEmailQueueProcessRoute: typeof LovableEmailQueueProcessRoute
@@ -371,6 +384,13 @@ declare module '@tanstack/react-router' {
       path: '/lovable/email/suppression'
       fullPath: '/lovable/email/suppression'
       preLoaderRoute: typeof LovableEmailSuppressionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/inbound-email': {
+      id: '/api/public/inbound-email'
+      path: '/api/public/inbound-email'
+      fullPath: '/api/public/inbound-email'
+      preLoaderRoute: typeof ApiPublicInboundEmailRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/health': {
@@ -477,6 +497,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicApplicationFilesRoute: ApiPublicApplicationFilesRoute,
   ApiPublicContactRoute: ApiPublicContactRoute,
   ApiPublicHealthRoute: ApiPublicHealthRoute,
+  ApiPublicInboundEmailRoute: ApiPublicInboundEmailRoute,
   LovableEmailSuppressionRoute: LovableEmailSuppressionRoute,
   ApiPublicProjectPreviewReferenceRoute: ApiPublicProjectPreviewReferenceRoute,
   LovableEmailQueueProcessRoute: LovableEmailQueueProcessRoute,
