@@ -17,6 +17,20 @@ const UI_ASSET_RE =
   /(vercel|lovable|supabase|netlify|cloudflare|github|dashboard|instrumentpanel|adminpanel|admin[\s_-]?panel|console|backend|deploy|analytics|localhost|browser|webbl[äa]sare|figma|wireframe|error|fel(?:medd|kod)|faktura|kvitto)/i;
 // Apple/Android/Windows default screenshot filenames, e.g. "Screenshot_2026-09-13-22-12".
 const SCREENSHOT_NAME_RE = /^(sk[äa]rmavbild|screenshot|screen[\s_-]?shot|bild)[\s_-]?\d{2,4}[-_ ]\d{1,2}/i;
+const GENERIC_CAMERA_RE = /^(img|dsc|pxl|image)[-_ ]?\d{3,}/i;
+
+/**
+ * Generic camera filenames such as IMG_0370.png are ambiguous: they can be a
+ * legitimate photo or a screenshot exported from a phone. For automatic site
+ * generation we fail closed and quarantine them unless the filename itself
+ * clearly describes business media (car/product/team/etc). This prevents an
+ * internal/admin screenshot from ever becoming public website content.
+ */
+function isUnclassifiedGenericImage(name: string): boolean {
+  const n = String(name || "");
+  if (!GENERIC_CAMERA_RE.test(n)) return false;
+  return !SHOWCASE_RE.test(n) && !HERO_RE.test(n) && !LOGO_RE.test(n);
+}
 
 export function isScreenshotLike(name: string): boolean {
   const n = String(name || "");
@@ -46,7 +60,7 @@ export function planAssets(fileNames: string[]): {
       docs.push({ path, name, role: "doc" });
       continue;
     }
-    if (isScreenshotLike(name)) {
+    if (isScreenshotLike(name) || isUnclassifiedGenericImage(name)) {
       rejects.push({ path, name, role: "reject" });
       continue;
     }
