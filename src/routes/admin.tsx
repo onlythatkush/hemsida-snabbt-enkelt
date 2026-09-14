@@ -885,3 +885,64 @@ function Info({ label, value }: { label: string; value: string }) {
     </div>
   );
 }
+
+function EmailHealth({ adminKey }: { adminKey: string }) {
+  const [health, setHealth] = useState<any | null>(null);
+  const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      try {
+        const res = await fetch("/api/admin/email-health", { headers: { "x-admin-key": adminKey } });
+        if (!res.ok) throw new Error("fel");
+        const body = await res.json();
+        if (active) setHealth(body);
+      } catch {
+        if (active) setHealth({ error: true });
+      }
+    })();
+    return () => { active = false; };
+  }, [adminKey]);
+
+  if (!health) return null;
+
+  const rows: { label: string; ok: boolean; hint?: string }[] = health.error
+    ? [{ label: "Kunde inte läsa e-poststatus", ok: false }]
+    : [
+        { label: "Utskick konfigurerat", ok: !!health.sendingConfigured, hint: health.sender },
+        { label: "Nyckel för inkommande svar", ok: !!health.inboundSecretConfigured, hint: "INBOUND_EMAIL_WEBHOOK_SECRET" },
+        { label: "Mottagningsadress redo", ok: !!health.receivingEndpointReady, hint: health.receivingEndpoint },
+        { label: "Databas redo", ok: !!health.schema?.ready },
+        { label: "Skickar ny version automatiskt", ok: !!health.autoSendRevisions },
+      ];
+  const allOk = rows.every((r) => r.ok);
+
+  return (
+    <Card className="mb-6">
+      <CardContent className="pt-5">
+        <button type="button" onClick={() => setOpen((v) => !v)} className="flex w-full items-center justify-between gap-3 text-left">
+          <span className="flex items-center gap-2 text-sm font-medium">
+            <span className={`h-2.5 w-2.5 rounded-full ${allOk ? "bg-emerald-500" : "bg-amber-500"}`} />
+            E-postflöde {allOk ? "klart" : "behöver åtgärd"}
+          </span>
+          <span className="text-xs text-muted-foreground">{open ? "Dölj" : "Visa"}</span>
+        </button>
+        {open && (
+          <ul className="mt-3 space-y-2">
+            {rows.map((r) => (
+              <li key={r.label} className="flex flex-wrap items-center gap-2 text-sm">
+                <span className={`h-2 w-2 shrink-0 rounded-full ${r.ok ? "bg-emerald-500" : "bg-amber-500"}`} />
+                <span>{r.label}</span>
+                {r.hint && <span className="text-xs text-muted-foreground break-all">{r.hint}</span>}
+              </li>
+            ))}
+            {health.replyAddressExample && (
+              <li className="text-xs text-muted-foreground break-all">Svarsadress: {health.replyAddressExample}</li>
+            )}
+          </ul>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
