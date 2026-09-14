@@ -55,7 +55,7 @@ export const Route = createFileRoute('/api/admin/applications')({
                 .limit(50),
               supabase
                 .from('customer_change_requests')
-                .select('id, raw_text, directives, status, revision, received_at, matched_via, error')
+                .select('id, raw_text, directives, status, revision, received_at, matched_via, error, intent, intent_reason, subject')
                 .eq('reference', timeline)
                 .order('received_at', { ascending: false })
                 .limit(20),
