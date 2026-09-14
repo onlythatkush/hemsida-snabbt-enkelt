@@ -93,15 +93,15 @@ describe('hub end-to-end (synthetic, no real mail)', () => {
     const reply = 'Hej! Behåll svart och rött men lägg till mer blått och gör rubriken mindre.'
     const routed = routeByRules(reply)
     expect(routed.category).toBe('design_changes')
-    expect(routed.extracted.addColors.length).toBeGreaterThan(0)
-    expect(routed.extracted.headingScale).toBeLessThan(1)
+    expect(routed.extracted.directives.addColors.length).toBeGreaterThan(0)
+    expect(routed.extracted.directives.headingScale).toBeLessThan(1)
 
     // 3) Revision job produces a real new version.
     const { sql, state } = makeSql()
     const out = await runRevisionJob(sql, {
       app: application,
       changeRequestId: 'cr-1',
-      directives: routed.extracted,
+      directives: routed.extracted.directives,
       summary: routed.extracted.summary,
       origin: 'https://dinwebbpartner.com',
       mailAllowed: true,
@@ -118,7 +118,7 @@ describe('hub end-to-end (synthetic, no real mail)', () => {
     const again = await runRevisionJob(sql, {
       app: application,
       changeRequestId: 'cr-1',
-      directives: routed.extracted,
+      directives: routed.extracted.directives,
       summary: routed.extracted.summary,
       origin: 'https://dinwebbpartner.com',
       mailAllowed: true,
@@ -130,7 +130,7 @@ describe('hub end-to-end (synthetic, no real mail)', () => {
     const second = await runRevisionJob(sql, {
       app: application,
       changeRequestId: 'cr-2',
-      directives: routeByRules('Gör den mörkare tack').extracted,
+      directives: routeByRules('Gör den mörkare tack').extracted.directives,
       summary: ['mörkt läge'],
       origin: 'https://dinwebbpartner.com',
       mailAllowed: true,
