@@ -907,34 +907,40 @@ function EmailHealth({ adminKey }: { adminKey: string }) {
 
   if (!health) return null;
 
-  const rows: { label: string; ok: boolean; hint?: string }[] = health.error
-    ? [{ label: "Kunde inte läsa e-poststatus", ok: false }]
-    : [
-        { label: "Utskick konfigurerat", ok: !!health.sendingConfigured, hint: health.sender },
-        { label: "Nyckel för inkommande svar", ok: !!health.inboundSecretConfigured, hint: "INBOUND_EMAIL_WEBHOOK_SECRET" },
-        { label: "Mottagningsadress redo", ok: !!health.receivingEndpointReady, hint: health.receivingEndpoint },
-        { label: "Databas redo", ok: !!health.schema?.ready },
-        { label: "Skickar ny version automatiskt", ok: !!health.autoSendRevisions },
-      ];
-  const allOk = rows.every((r) => r.ok);
+  type HealthCheck = { id: string; label: string; status: "green" | "yellow" | "red"; detail?: string; action?: string };
+  const checks: HealthCheck[] = health.error
+    ? [{ id: "error", label: "Kunde inte läsa e-poststatus", status: "red" }]
+    : (health.checks || []);
+  const overall: "green" | "yellow" | "red" = health.error
+    ? "red"
+    : checks.some((c) => c.status === "red")
+      ? "red"
+      : checks.some((c) => c.status === "yellow")
+        ? "yellow"
+        : "green";
+  const dot = (s: string) => (s === "green" ? "bg-emerald-500" : s === "yellow" ? "bg-amber-500" : "bg-red-500");
+  const headline = overall === "green" ? "klart" : overall === "yellow" ? "fungerar med varningar" : "behöver åtgärd";
 
   return (
     <Card className="mb-6">
       <CardContent className="pt-5">
         <button type="button" onClick={() => setOpen((v) => !v)} className="flex w-full items-center justify-between gap-3 text-left">
           <span className="flex items-center gap-2 text-sm font-medium">
-            <span className={`h-2.5 w-2.5 rounded-full ${allOk ? "bg-emerald-500" : "bg-amber-500"}`} />
-            E-postflöde {allOk ? "klart" : "behöver åtgärd"}
+            <span className={`h-2.5 w-2.5 rounded-full ${dot(overall)}`} />
+            E-postflöde {headline}
           </span>
           <span className="text-xs text-muted-foreground">{open ? "Dölj" : "Visa"}</span>
         </button>
         {open && (
-          <ul className="mt-3 space-y-2">
-            {rows.map((r) => (
-              <li key={r.label} className="flex flex-wrap items-center gap-2 text-sm">
-                <span className={`h-2 w-2 shrink-0 rounded-full ${r.ok ? "bg-emerald-500" : "bg-amber-500"}`} />
-                <span>{r.label}</span>
-                {r.hint && <span className="text-xs text-muted-foreground break-all">{r.hint}</span>}
+          <ul className="mt-3 space-y-3">
+            {checks.map((c) => (
+              <li key={c.id} className="flex gap-2 text-sm">
+                <span className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${dot(c.status)}`} />
+                <span className="min-w-0">
+                  <span className="block">{c.label}</span>
+                  {c.detail && <span className="block text-xs text-muted-foreground break-words">{c.detail}</span>}
+                  {c.action && <span className="block text-xs text-amber-600 break-words">Åtgärd: {c.action}</span>}
+                </span>
               </li>
             ))}
             {health.replyAddressExample && (
@@ -946,3 +952,4 @@ function EmailHealth({ adminKey }: { adminKey: string }) {
     </Card>
   );
 }
+
