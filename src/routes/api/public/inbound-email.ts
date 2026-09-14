@@ -5,7 +5,9 @@ import { cleanReplyText, parseRevisionRequest } from '@/lib/revision/parse'
 import { classifyReply } from '@/lib/revision/intent'
 import { matchInboundReference } from '@/lib/revision/match'
 import { verifyWebhookSignature } from '@/lib/revision/webhook'
-import type { InboundEmail } from '@/lib/revision/types'
+import { resolveInboundEmail } from '@/lib/revision/inbound'
+
+export { normalizeInbound } from '@/lib/revision/inbound'
 
 function databaseUrl() {
   return (
@@ -15,31 +17,6 @@ function databaseUrl() {
     process.env.DATABASE_URL ||
     process.env.SUPABASE_DB_URL
   )
-}
-
-function asArray(value: unknown): string[] {
-  if (Array.isArray(value)) return value.map((v) => String(v))
-  if (typeof value === 'string' && value.trim()) return value.split(/[,\s]+/).filter(Boolean)
-  return []
-}
-
-/** Normalises Resend / generic inbound payloads into our provider-agnostic shape. */
-export function normalizeInbound(payload: any): InboundEmail {
-  const d = payload?.data ?? payload ?? {}
-  const headers = d.headers ?? {}
-  const header = (name: string) =>
-    headers[name] ?? headers[name.toLowerCase()] ?? headers[name.toUpperCase()] ?? null
-  return {
-    messageId: d.message_id ?? d.messageId ?? header('Message-Id') ?? null,
-    inReplyTo: d.in_reply_to ?? d.inReplyTo ?? header('In-Reply-To') ?? null,
-    references: asArray(d.references ?? header('References')),
-    to: asArray(d.to),
-    cc: asArray(d.cc),
-    from: typeof d.from === 'string' ? d.from : (d.from?.address ?? null),
-    subject: d.subject ?? null,
-    text: d.text ?? null,
-    html: d.html ?? null,
-  }
 }
 
 /** Production databases may predate the review-loop migration. */
@@ -53,6 +30,33 @@ async function ensureColumns(sql: any) {
     await sql`ALTER TABLE public.project_applications ADD COLUMN IF NOT EXISTS review_note TEXT`
   } catch {
     /* schema is normally managed by migrations */
+  }
+}
+
+/**
+ * Reuses the exact same admin send path (QA gate, logging, reply-to, provider
+ * rules) instead of duplicating sending logic. Requires ADMIN_ACCESS_KEY on the
+ * server; without it the revision simply waits for an admin click.
+ */
+async function autoSendRevision(origin: string, reference: string) {
+  const key = process.env.ADMIN_ACCESS_KEY
+  if (!key) return { sent: false, reason: 'admin_key_missing' }
+  if (String(process.env.AUTO_SEND_REVISIONS || '').toLowerCase() === 'false') {
+    return { sent: false, reason: 'auto_send_disabled' }
+  }
+  if (/^TEST-/i.test(reference)) return { sent: false, reason: 'test_reference' }
+  try {
+    const res = await fetch(`${origin}/api/admin/send-preview`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-admin-key': key },
+      body: JSON.stringify({ reference }),
+    })
+    const body = (await res.json().catch(() => ({}))) as any
+    if (!res.ok) return { sent: false, reason: `send_failed_${res.status}`, detail: String(body?.error || '').slice(0, 200) }
+    return { sent: true, messageId: body?.messageId ?? null }
+  } catch (e) {
+    console.error('[inbound-email] auto send failed', e)
+    return { sent: false, reason: 'send_request_failed' }
   }
 }
 
@@ -81,7 +85,14 @@ export const Route = createFileRoute('/api/public/inbound-email')({
 
         let payload: any
         try { payload = JSON.parse(raw) } catch { return Response.json({ error: 'Invalid payload' }, { status: 400 }) }
-        const email = normalizeInbound(payload)
+
+        const eventType = String(payload?.type || payload?.event || 'email.received')
+        if (eventType && !/received|inbound/i.test(eventType)) {
+          return Response.json({ ok: true, ignored: eventType }, { status: 202 })
+        }
+
+        // Metadata-only webhooks are completed from the provider API first.
+        const { email, fetched, bodyMissing } = await resolveInboundEmail(payload)
         if (!email.messageId) return Response.json({ error: 'Missing message id' }, { status: 400 })
 
         const url = databaseUrl()
@@ -107,7 +118,9 @@ export const Route = createFileRoute('/api/public/inbound-email')({
           }
 
           const body = cleanReplyText(email.text || email.html || '')
-          const intent = classifyReply(body)
+          const intent = bodyMissing
+            ? { intent: 'unclear' as const, reason: 'Mejlets innehåll kunde inte hämtas – läs svaret manuellt', signals: [] as string[] }
+            : classifyReply(body)
           const directives = parseRevisionRequest(body)
 
           // Idempotency: the same provider message can only ever create one row.
@@ -122,6 +135,7 @@ export const Route = createFileRoute('/api/public/inbound-email')({
             RETURNING id
           `
           if (!inserted.length) {
+            // Duplicate webhook delivery: never a second revision, never a second email.
             return Response.json({ ok: true, duplicate: true, reference: match.reference })
           }
           const changeRequestId = (inserted[0] as any).id
@@ -135,7 +149,7 @@ export const Route = createFileRoute('/api/public/inbound-email')({
           await sql`
             INSERT INTO public.application_events (reference, event_type, label, details)
             VALUES (${match.reference}, 'customer_replied', ${replyLabel},
-                    ${sql.json({ matchedVia: match.via, intent: intent.intent, reason: intent.reason, summary: directives.summary } as any)})
+                    ${sql.json({ matchedVia: match.via, intent: intent.intent, reason: intent.reason, summary: directives.summary, bodyFetched: fetched, bodyMissing } as any)})
           `
 
           const found = await sql`SELECT * FROM public.project_applications WHERE reference = ${match.reference} LIMIT 1`
@@ -147,6 +161,7 @@ export const Route = createFileRoute('/api/public/inbound-email')({
 
           // B) Clear approval: stop the revision loop. No later delivery step here.
           if (intent.intent === 'approved') {
+            const approvedRevision = Number(app.design_spec?.revision) || Number(app.design_revision) || 1
             await sql`
               UPDATE public.project_applications
               SET status = 'approved',
@@ -158,14 +173,14 @@ export const Route = createFileRoute('/api/public/inbound-email')({
             `
             await sql`
               UPDATE public.customer_change_requests
-              SET status = 'approved', processed_at = now() WHERE id = ${changeRequestId}
+              SET status = 'approved', revision = ${approvedRevision}, processed_at = now() WHERE id = ${changeRequestId}
             `
             await sql`
               INSERT INTO public.application_events (reference, event_type, label, details)
-              VALUES (${app.reference}, 'customer_approved', 'Godkänd av kund',
-                      ${sql.json({ signals: intent.signals } as any)})
+              VALUES (${app.reference}, 'customer_approved', ${'Godkänd av kund (version ' + approvedRevision + ')'},
+                      ${sql.json({ signals: intent.signals, revision: approvedRevision } as any)})
             `
-            return Response.json({ ok: true, reference: app.reference, intent: 'approved' })
+            return Response.json({ ok: true, reference: app.reference, intent: 'approved', revision: approvedRevision })
           }
 
           // Anything not clearly an approval and not clearly a change request is
@@ -245,7 +260,22 @@ export const Route = createFileRoute('/api/public/inbound-email')({
                     ${sql.json({ revision, family: spec.family, qaStatus: qa?.status, qaScore: qa?.score, summary: directives.summary } as any)})
           `
 
-          // Never auto-send. Admin decides, and the QA gate still applies.
+          // Automatic re-review: only a QA-ready revision is mailed back to the
+          // customer. Anything else waits for an admin decision.
+          let autoSend: any = { sent: false, reason: qa?.status === 'ready' ? 'not_attempted' : `qa_${qa?.status ?? 'unknown'}` }
+          if (qa?.status === 'ready') {
+            autoSend = await autoSendRevision(origin, app.reference)
+            await sql`
+              INSERT INTO public.application_events (reference, event_type, label, details)
+              VALUES (${app.reference}, ${autoSend.sent ? 'preview_autosent' : 'preview_send_pending'},
+                      ${autoSend.sent ? 'Ny version mejlad till kund automatiskt' : 'Ny version väntar på admin för utskick'},
+                      ${sql.json({ revision, ...autoSend } as any)})
+            `
+            if (autoSend.sent) {
+              await sql`UPDATE public.customer_change_requests SET status = 'sent' WHERE id = ${changeRequestId}`
+            }
+          }
+
           return Response.json({
             ok: true,
             reference: app.reference,
@@ -253,6 +283,8 @@ export const Route = createFileRoute('/api/public/inbound-email')({
             revision,
             qaStatus: qa?.status,
             qaScore: qa?.score,
+            autoSent: autoSend.sent === true,
+            autoSendReason: autoSend.sent ? undefined : autoSend.reason,
             directives: directives.summary,
           })
         } catch (error) {
