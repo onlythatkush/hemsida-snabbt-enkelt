@@ -350,6 +350,18 @@ export const Route = createFileRoute('/api/admin/send-preview')({
               provider_message_id: out.id ?? messageId,
               sent_at: new Date().toISOString(),
             })
+            if (logClient) {
+              const revision = (app as any).design_revision ?? (app as any).design_spec?.revision ?? null
+              await logClient
+                .from('application_events')
+                .insert({
+                  reference: app.reference,
+                  event_type: 'preview_sent',
+                  label: revision ? `Previewmail skickat (version ${revision})` : 'Previewmail skickat',
+                  details: { messageId: out.id ?? messageId, provider: 'resend', revision },
+                })
+                .then(() => undefined, () => undefined)
+            }
             return Response.json({ success: true, recipient, messageId: out.id ?? messageId, provider: 'resend' })
           } catch (e) {
             console.error('send-preview: resend request failed', e)
