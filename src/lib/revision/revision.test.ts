@@ -2,6 +2,7 @@ import { describe, expect, test } from "bun:test";
 import { matchInboundReference } from "./match";
 import { parseRevisionRequest, cleanReplyText } from "./parse";
 import { verifyWebhookSignature } from "./webhook";
+import { classifyReply } from "./intent";
 import { composeDesignSpec } from "@/lib/design/compose";
 
 const app = {
