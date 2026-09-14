@@ -46,26 +46,26 @@ export const Route = createFileRoute('/api/admin/applications')({
             if (!/^[A-Z0-9-]{4,40}$/.test(timeline)) {
               return Response.json({ error: 'Invalid reference' }, { status: 400 })
             }
-            const [events, requests] = await Promise.all([
-              supabase
-                .from('application_events')
-                .select('*')
-                .eq('reference', timeline)
-                .order('created_at', { ascending: false })
-                .limit(50),
-              supabase
-                .from('customer_change_requests')
-                .select('*')
-                .eq('reference', timeline)
-                .order('received_at', { ascending: false })
-                .limit(20),
-            ])
-            // Missing tables must never break the admin panel.
-            return Response.json({
-              events: events.error ? [] : events.data || [],
-              changeRequests: requests.error ? [] : requests.data || [],
-            })
+            // Read over the unified hub connection — the same database the
+            // writes use — so the timeline can never report a "missing" table.
+            try {
+              const data = await withHub(async (sql) => {
+                const safe = async (q: Promise<any>) => { try { return await q } catch { return [] } }
+                const [events, changeRequests, versions, jobs] = await Promise.all([
+                  safe(sql`SELECT * FROM public.application_events WHERE reference = ${timeline} ORDER BY created_at DESC LIMIT 80`),
+                  safe(sql`SELECT * FROM public.customer_change_requests WHERE reference = ${timeline} ORDER BY received_at DESC LIMIT 30`),
+                  safe(listVersions(sql, timeline)),
+                  safe(sql`SELECT id, status, revision, retry_count, last_error, created_at, finished_at FROM public.revision_jobs WHERE reference = ${timeline} ORDER BY created_at DESC LIMIT 20`),
+                ])
+                return { events, changeRequests, versions, jobs }
+              })
+              return Response.json(data)
+            } catch (e) {
+              console.error('applications: timeline read failed', e)
+              return Response.json({ events: [], changeRequests: [], versions: [], jobs: [] })
+            }
           }
+
 
           if (file) {
             if (!file.startsWith('ORD-') || file.includes('..')) {
