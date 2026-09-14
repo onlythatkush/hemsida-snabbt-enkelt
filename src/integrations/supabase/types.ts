@@ -48,6 +48,8 @@ export type Database = {
           error: string | null
           from_email: string | null
           id: string
+          intent: string | null
+          intent_reason: string | null
           matched_via: string | null
           message_id: string
           processed_at: string | null
@@ -56,6 +58,7 @@ export type Database = {
           reference: string
           revision: number | null
           status: string
+          subject: string | null
         }
         Insert: {
           created_at?: string
@@ -63,6 +66,8 @@ export type Database = {
           error?: string | null
           from_email?: string | null
           id?: string
+          intent?: string | null
+          intent_reason?: string | null
           matched_via?: string | null
           message_id: string
           processed_at?: string | null
@@ -71,6 +76,7 @@ export type Database = {
           reference: string
           revision?: number | null
           status?: string
+          subject?: string | null
         }
         Update: {
           created_at?: string
@@ -78,6 +84,8 @@ export type Database = {
           error?: string | null
           from_email?: string | null
           id?: string
+          intent?: string | null
+          intent_reason?: string | null
           matched_via?: string | null
           message_id?: string
           processed_at?: string | null
@@ -86,6 +94,7 @@ export type Database = {
           reference?: string
           revision?: number | null
           status?: string
+          subject?: string | null
         }
         Relationships: []
       }
@@ -236,9 +245,11 @@ export type Database = {
           colors: string | null
           company: string
           created_at: string
+          customer_approved_at: string | null
           description: string
           design_family: string | null
           design_locked: boolean
+          design_revision: number | null
           design_spec: Json | null
           email: string
           extra_requests: string | null
@@ -253,6 +264,7 @@ export type Database = {
           qa_score: number | null
           qa_status: string | null
           reference: string
+          review_note: string | null
           social_links: string | null
           status: string
           updated_at: string
@@ -264,9 +276,11 @@ export type Database = {
           colors?: string | null
           company: string
           created_at?: string
+          customer_approved_at?: string | null
           description: string
           design_family?: string | null
           design_locked?: boolean
+          design_revision?: number | null
           design_spec?: Json | null
           email: string
           extra_requests?: string | null
@@ -281,6 +295,7 @@ export type Database = {
           qa_score?: number | null
           qa_status?: string | null
           reference: string
+          review_note?: string | null
           social_links?: string | null
           status?: string
           updated_at?: string
@@ -292,9 +307,11 @@ export type Database = {
           colors?: string | null
           company?: string
           created_at?: string
+          customer_approved_at?: string | null
           description?: string
           design_family?: string | null
           design_locked?: boolean
+          design_revision?: number | null
           design_spec?: Json | null
           email?: string
           extra_requests?: string | null
@@ -309,6 +326,7 @@ export type Database = {
           qa_score?: number | null
           qa_status?: string | null
           reference?: string
+          review_note?: string | null
           social_links?: string | null
           status?: string
           updated_at?: string
