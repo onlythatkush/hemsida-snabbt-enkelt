@@ -5,6 +5,20 @@ export const Route = createFileRoute('/api/public/health')({
     handlers: {
       GET: async () => {
         const present = (name: string) => Boolean(process.env[name])
+
+        let resendStatus: number | null = null
+        const resendKey = process.env.RESEND_API_KEY
+        if (resendKey) {
+          try {
+            const res = await fetch('https://api.resend.com/domains', {
+              headers: { Authorization: `Bearer ${resendKey}` },
+            })
+            resendStatus = res.status
+          } catch {
+            resendStatus = 0
+          }
+        }
+
         return Response.json({
           ok: true,
           env: {
@@ -20,6 +34,13 @@ export const Route = createFileRoute('/api/public/health')({
             STORAGE_POSTGRES_URL: present('STORAGE_POSTGRES_URL'),
             STORAGE_DATABASE_URL: present('STORAGE_DATABASE_URL'),
             DATABASE_URL: present('DATABASE_URL'),
+            RESEND_API_KEY: present('RESEND_API_KEY'),
+            INBOUND_EMAIL_WEBHOOK_SECRET: present('INBOUND_EMAIL_WEBHOOK_SECRET'),
+          },
+          email: {
+            resendStatus,
+            resendAuthenticated: resendStatus === 200,
+            inboundSignatureConfigured: present('INBOUND_EMAIL_WEBHOOK_SECRET'),
           },
         })
       },
