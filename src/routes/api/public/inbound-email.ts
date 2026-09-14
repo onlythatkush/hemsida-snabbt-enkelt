@@ -66,6 +66,7 @@ export const Route = createFileRoute('/api/public/inbound-email')({
         // Metadata-only webhooks are completed from the provider API first.
         const { email, fetched, bodyMissing } = await resolveInboundEmail(payload)
         if (!email.messageId) return Response.json({ error: 'Missing message id' }, { status: 400 })
+        const inboundMessageId: string = email.messageId
 
         try {
           return await withHub(async (sql) => {
@@ -105,7 +106,7 @@ export const Route = createFileRoute('/api/public/inbound-email')({
                 (reference, raw_text, directives, from_email, message_id, matched_via, status,
                  intent, intent_reason, subject, category, confidence, classifier, extracted, routing)
               VALUES (${match.reference}, ${body}, ${sql.json(directives as any)}, ${email.from ?? null},
-                      ${email.messageId}, ${match.via}, 'received',
+                      ${inboundMessageId}, ${match.via}, 'received',
                       ${routed.intent}, ${routed.reason}, ${email.subject ?? null},
                       ${routed.category}, ${routed.confidence}, ${routed.classifier},
                       ${sql.json({ summary: routed.extracted.summary, questions: routed.extracted.questions } as any)},
@@ -242,7 +243,7 @@ export const Route = createFileRoute('/api/public/inbound-email')({
               await sql`
                 UPDATE public.customer_change_requests
                 SET status=${groundable ? 'answered' : 'needs_review'}, processed_at=now(),
-                    answered_at=${mail.sent ? sql`now()` : null}
+                    answered_at=${mail.sent ? new Date() : null}
                 WHERE id=${changeRequestId}
               `
               return Response.json({ ok: true, reference: app.reference, category: routed.category, answered: groundable && mail.sent === true })
