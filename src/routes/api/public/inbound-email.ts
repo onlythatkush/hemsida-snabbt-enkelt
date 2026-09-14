@@ -269,185 +269,23 @@ export const Route = createFileRoute('/api/public/inbound-email')({
             }
 
             // ---------- A) design_changes: real regeneration ----------
-            const job = await claimJob(sql, {
-              reference: app.reference,
+            const outcome = await runRevisionJob(sql, {
+              app,
               changeRequestId,
-              idempotencyKey: `revision-${changeRequestId}`,
+              directives,
+              summary: safeSummary(routed.extracted.summary),
+              origin: new URL(request.url).origin,
+              mailAllowed,
+              source: 'customer_reply',
             })
-            if (!job) {
-              return Response.json({ ok: true, reference: app.reference, duplicateJob: true })
-            }
-
-            try {
-              const revision = await nextRevision(
-                sql,
-                app.reference,
-                Math.max(Number(app.design_spec?.revision) || 0, Number(app.design_revision) || 0),
-              )
-              const spec = composeDesignSpec(
-                {
-                  reference: app.reference,
-                  company: app.company,
-                  description: app.description,
-                  website_type: app.website_type,
-                  colors: app.colors,
-                  extra_requests: app.extra_requests,
-                  social_links: app.social_links,
-                  address: app.address,
-                  email: app.email,
-                  phone: app.phone,
-                  file_names: Array.isArray(app.file_names) ? app.file_names : [],
-                },
-                { revision, directives },
-              )
-
-              const token: string =
-                app.preview_token && String(app.preview_token).length >= 32
-                  ? String(app.preview_token)
-                  : crypto.randomUUID().replaceAll('-', '') + crypto.randomUUID().replaceAll('-', '')
-              const origin = new URL(request.url).origin
-              const previewUrl =
-                `${origin}/kund-preview/${encodeURIComponent(app.reference)}?token=${token}` +
-                `&v=${revision}-${Date.now().toString(36)}`
-
-              const qa = spec.qa
-              await recordDesignVersion(sql, {
-                reference: app.reference,
-                revision,
-                designSpec: spec,
-                designFamily: spec.family,
-                designVersion: DESIGN_SPEC_VERSION,
-                previewUrl,
-                qaStatus: qa?.status ?? null,
-                qaScore: qa?.score ?? null,
-                qaReport: qa ? { ...qa, designVersion: DESIGN_SPEC_VERSION, revision } : null,
-                source: 'customer_reply',
-                changeRequestId,
-              })
-
-              await sql`
-                UPDATE public.project_applications
-                SET preview_token=${token},
-                    preview_url=${previewUrl},
-                    design_spec=${sql.json(spec as any)},
-                    design_family=${spec.family},
-                    design_revision=${revision},
-                    qa_status=${qa?.status ?? null},
-                    qa_score=${qa?.score ?? null},
-                    qa_report=${qa ? sql.json({ ...qa, designVersion: DESIGN_SPEC_VERSION, revision } as any) : null},
-                    qa_accepted_at=NULL,
-                    review_note=${directives.unparsed ? 'Ändringarna kunde inte tolkas fullt ut – läs kundsvaret' : null},
-                    status='changes',
-                    updated_at=now()
-                WHERE reference=${app.reference}
-              `
-              await sql`
-                UPDATE public.customer_change_requests
-                SET status='applied', revision=${revision}, processed_at=now() WHERE id=${changeRequestId}
-              `
-              await logEvent(sql, app.reference, 'revision_generated', `Ny version ${revision} skapad`, {
-                revision, family: spec.family, qaStatus: qa?.status, qaScore: qa?.score,
-                summary: routed.extracted.summary, jobId: job.id, retryCount: job.retryCount,
-              })
-
-              // 1) Acknowledge the change request with what we actually extracted.
-              if (mailAllowed) {
-                await sendHubEmail(sql, {
-                  reference: app.reference,
-                  kind: 'change_received',
-                  templateKey: 'change-received',
-                  data: {
-                    eyebrow: 'Ändringar mottagna',
-                    heading: 'Tack — vi har tagit emot dina ändringar',
-                    intro: 'Vi har läst ditt svar och arbetar nu på en ny version av sidan. Du får ett nytt mail så snart den är klar att titta på.',
-                    name: app.name,
-                    company: String(app.company || '').replace('[TEST] ', ''),
-                    reference: app.reference,
-                    bulletsTitle: 'Det här har vi tolkat',
-                    bullets: safeSummary(routed.extracted.summary).length
-                      ? safeSummary(routed.extracted.summary)
-                      : ['Vi går igenom ditt svar manuellt för att inte missa något.'],
-                  },
-                  recipient: app.email,
-                  company: app.company,
-                  revision,
-                  changeRequestId,
-                  idempotencyKey: `changeack-${changeRequestId}`,
-                })
-              }
-
-              // 2) Only a QA-ready revision is mailed back to the customer.
-              let autoSend: any = { sent: false, reason: `qa_${qa?.status ?? 'unknown'}` }
-              if (qa?.status === 'ready') {
-                if (!mailAllowed) {
-                  autoSend = { sent: false, reason: 'test_reference' }
-                } else {
-                  autoSend = await sendHubEmail(sql, {
-                    reference: app.reference,
-                    kind: 'preview_ready',
-                    templateKey: 'preview-ready',
-                    data: {
-                      name: app.name,
-                      company: String(app.company || '').replace('[TEST] ', ''),
-                      previewUrl,
-                      reference: app.reference,
-                    },
-                    recipient: app.email,
-                    company: app.company,
-                    previewUrl,
-                    revision,
-                    changeRequestId,
-                    idempotencyKey: `preview-${app.reference}-r${revision}`,
-                  })
-                }
-                if (autoSend.sent) {
-                  await sql`UPDATE public.customer_change_requests SET status='sent' WHERE id=${changeRequestId}`
-                } else {
-                  await logEvent(sql, app.reference, 'preview_send_pending', 'Ny version väntar på admin för utskick', {
-                    revision, reason: autoSend.reason,
-                  })
-                }
-              } else {
-                await logEvent(
-                  sql,
-                  app.reference,
-                  qa?.status === 'blocked' ? 'preview_blocked' : 'preview_needs_admin',
-                  qa?.status === 'blocked'
-                    ? `Version ${revision} blockerad av kvalitetskontrollen`
-                    : `Version ${revision} har varningar och kräver admingodkännande`,
-                  { revision, qaStatus: qa?.status, qaScore: qa?.score },
-                )
-              }
-
-              await finishJob(sql, job.id, qa?.status === 'blocked' ? 'needs_review' : 'succeeded', {
-                revision,
-                detail: { qaStatus: qa?.status ?? null, autoSent: autoSend.sent === true },
-              })
-
-              return Response.json({
-                ok: true,
-                reference: app.reference,
-                category: 'design_changes',
-                revision,
-                qaStatus: qa?.status,
-                qaScore: qa?.score,
-                autoSent: autoSend.sent === true,
-                autoSendReason: autoSend.sent ? undefined : autoSend.reason,
-                directives: routed.extracted.summary,
-              })
-            } catch (jobError) {
-              console.error('[inbound-email] revision job failed', jobError)
-              await finishJob(sql, job.id, 'failed', { lastError: String((jobError as any)?.message || jobError) })
-              await sql`
-                UPDATE public.customer_change_requests
-                SET status='failed', last_error=${String((jobError as any)?.message || jobError).slice(0, 400)}
-                WHERE id=${changeRequestId}
-              `.catch(() => undefined)
-              await logEvent(sql, app.reference, 'revision_failed', 'Ny version kunde inte skapas', {
-                error: String((jobError as any)?.message || jobError).slice(0, 300),
-              })
-              return Response.json({ error: 'Revision failed' }, { status: 500 })
-            }
+            if (!outcome.ok) return Response.json({ error: 'Revision failed' }, { status: 500 })
+            return Response.json({
+              ok: true,
+              reference: app.reference,
+              category: 'design_changes',
+              ...outcome,
+              directives: routed.extracted.summary,
+            })
           })
         } catch (error) {
           console.error('[inbound-email] processing failed', error)
