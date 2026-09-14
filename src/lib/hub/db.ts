@@ -28,6 +28,7 @@ export function hubSql(): HubSql {
 }
 
 let schemaEnsured = false
+let schemaAttempts = 0
 
 /**
  * Idempotent self-healing schema bootstrap.
@@ -159,7 +160,11 @@ export async function ensureHubSchema(sql: HubSql) {
 
     schemaEnsured = true
   } catch (e) {
-    console.error('[hub] schema bootstrap failed', e)
+    // A restricted role (or a race with a concurrent bootstrap) must not make
+    // every request retry DDL forever — the health check reports the real state.
+    schemaAttempts += 1
+    if (schemaAttempts >= 3) schemaEnsured = true
+    console.error('[hub] schema bootstrap failed', (e as any)?.message || e)
   }
 }
 
