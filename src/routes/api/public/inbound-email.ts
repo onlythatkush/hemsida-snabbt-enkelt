@@ -278,7 +278,6 @@ export const Route = createFileRoute('/api/public/inbound-email')({
             })
             if (!outcome.ok) return Response.json({ error: 'Revision failed' }, { status: 500 })
             return Response.json({
-              ok: true,
               reference: app.reference,
               category: 'design_changes',
               ...outcome,
