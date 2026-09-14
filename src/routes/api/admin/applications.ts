@@ -3,6 +3,8 @@ import { createFileRoute } from '@tanstack/react-router'
 import { z } from 'zod'
 import postgres from 'postgres'
 import { DESIGN_SPEC_VERSION, composeDesignSpec } from '@/lib/design/compose'
+import { withHub } from '@/lib/hub/db'
+import { listVersions, nextRevision, recordDesignVersion } from '@/lib/hub/versions'
 
 const createPreviewSchema = z.object({
   reference: z.string().min(4).max(40),
@@ -113,6 +115,7 @@ export const Route = createFileRoute('/api/admin/applications')({
             await sql`ALTER TABLE public.project_applications ADD COLUMN IF NOT EXISTS qa_score INTEGER`
             await sql`ALTER TABLE public.project_applications ADD COLUMN IF NOT EXISTS qa_report JSONB`
             await sql`ALTER TABLE public.project_applications ADD COLUMN IF NOT EXISTS qa_accepted_at TIMESTAMPTZ`
+            await sql`ALTER TABLE public.project_applications ADD COLUMN IF NOT EXISTS design_revision INTEGER`
           } catch { /* schema managed by migrations */ }
 
 
@@ -130,8 +133,12 @@ export const Route = createFileRoute('/api/admin/applications')({
           // Always compose a fresh spec from the current customer application.
           // Every press of "Gör ny hemsida" is a new, deterministic revision of
           // the design — never a reuse of the previously stored spec.
-          const previousRevision = Number(app.design_spec?.revision) || 0
-          const revision = previousRevision + 1
+          const previousRevision = Math.max(
+            Number(app.design_spec?.revision) || 0,
+            Number(app.design_revision) || 0,
+          )
+          // Derived from the immutable history first so a revision number is never reused.
+          const revision = await nextRevision(sql, app.reference, previousRevision).catch(() => previousRevision + 1)
 
           const spec = composeDesignSpec(
             {
@@ -169,6 +176,7 @@ export const Route = createFileRoute('/api/admin/applications')({
                 preview_url = ${versionedPreviewUrl},
                 design_spec = ${sql.json(spec as any)},
                 design_family = ${spec.family},
+                design_revision = ${revision},
                 qa_status = ${qa?.status ?? null},
                 qa_score = ${qa?.score ?? null},
                 qa_report = ${qa ? sql.json({ ...qa, designVersion: DESIGN_SPEC_VERSION, revision } as any) : null},
@@ -178,6 +186,19 @@ export const Route = createFileRoute('/api/admin/applications')({
             WHERE reference = ${input.reference}
             RETURNING *
           `
+          await recordDesignVersion(sql, {
+            reference: app.reference,
+            revision,
+            designSpec: spec,
+            designFamily: spec.family,
+            designVersion: DESIGN_SPEC_VERSION,
+            previewUrl: versionedPreviewUrl,
+            qaStatus: qa?.status ?? null,
+            qaScore: qa?.score ?? null,
+            qaReport: qa ? { ...qa, designVersion: DESIGN_SPEC_VERSION, revision } : null,
+            source: 'admin',
+          }).catch((e) => console.error('applications: version history insert failed', e))
+
           await sql`
             INSERT INTO public.application_events (reference, event_type, label, details)
             VALUES (${input.reference}, 'revision_generated', ${'Ny version ' + revision + ' skapad i admin'},
