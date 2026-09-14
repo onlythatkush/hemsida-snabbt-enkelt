@@ -7,6 +7,7 @@ import { z } from 'zod'
 import { TEMPLATES } from '@/lib/email-templates/registry'
 import { previewSendGate } from '@/lib/design/quality'
 import { getUnsubscribeToken } from '@/lib/unsubscribe-token.server'
+import { replyAddressFor } from '@/lib/email/reply-address'
 
 const SITE_NAME = 'Din Webbpartner'
 const SENDER_DOMAIN = 'notify.dinwebbpartner.com'
@@ -313,7 +314,9 @@ export const Route = createFileRoute('/api/admin/send-preview')({
             configuredFrom && !/resend\.dev/i.test(configuredFrom)
               ? configuredFrom
               : `${SITE_NAME} <preview@${FROM_DOMAIN}>`
-          const replyTo = `reply+${app.reference}@${FROM_DOMAIN}`
+          // Replies land on the dedicated inbound subdomain so MX records on the
+          // main domain (normal business mail) stay untouched.
+          const replyTo = replyAddressFor(app.reference)
           const logId = logClient
             ? await logSend(logClient, {
                 reference: app.reference,
