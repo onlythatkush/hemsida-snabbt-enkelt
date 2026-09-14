@@ -26,6 +26,7 @@ import { Route as ApiPublicApplicationRouteImport } from './routes/api/public/ap
 import { Route as ApiHubApplicationsRouteImport } from './routes/api/hub/applications'
 import { Route as ApiAdminSendPreviewRouteImport } from './routes/api/admin/send-preview'
 import { Route as ApiAdminSeedTestGalleryRouteImport } from './routes/api/admin/seed-test-gallery'
+import { Route as ApiAdminEmailHealthRouteImport } from './routes/api/admin/email-health'
 import { Route as ApiAdminApplicationsRouteImport } from './routes/api/admin/applications'
 import { Route as LovableEmailTransactionalSendRouteImport } from './routes/lovable/email/transactional/send'
 import { Route as LovableEmailTransactionalPreviewRouteImport } from './routes/lovable/email/transactional/preview'
@@ -118,6 +119,11 @@ const ApiAdminSeedTestGalleryRoute = ApiAdminSeedTestGalleryRouteImport.update({
   path: '/api/admin/seed-test-gallery',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAdminEmailHealthRoute = ApiAdminEmailHealthRouteImport.update({
+  id: '/api/admin/email-health',
+  path: '/api/admin/email-health',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiAdminApplicationsRoute = ApiAdminApplicationsRouteImport.update({
   id: '/api/admin/applications',
   path: '/api/admin/applications',
@@ -158,6 +164,7 @@ export interface FileRoutesByFullPath {
   '/kund-preview/$reference': typeof KundPreviewReferenceRoute
   '/portfolio/$slug': typeof PortfolioSlugRoute
   '/api/admin/applications': typeof ApiAdminApplicationsRoute
+  '/api/admin/email-health': typeof ApiAdminEmailHealthRoute
   '/api/admin/seed-test-gallery': typeof ApiAdminSeedTestGalleryRoute
   '/api/admin/send-preview': typeof ApiAdminSendPreviewRoute
   '/api/hub/applications': typeof ApiHubApplicationsRoute
@@ -182,6 +189,7 @@ export interface FileRoutesByTo {
   '/kund-preview/$reference': typeof KundPreviewReferenceRoute
   '/portfolio/$slug': typeof PortfolioSlugRoute
   '/api/admin/applications': typeof ApiAdminApplicationsRoute
+  '/api/admin/email-health': typeof ApiAdminEmailHealthRoute
   '/api/admin/seed-test-gallery': typeof ApiAdminSeedTestGalleryRoute
   '/api/admin/send-preview': typeof ApiAdminSendPreviewRoute
   '/api/hub/applications': typeof ApiHubApplicationsRoute
@@ -207,6 +215,7 @@ export interface FileRoutesById {
   '/kund-preview/$reference': typeof KundPreviewReferenceRoute
   '/portfolio/$slug': typeof PortfolioSlugRoute
   '/api/admin/applications': typeof ApiAdminApplicationsRoute
+  '/api/admin/email-health': typeof ApiAdminEmailHealthRoute
   '/api/admin/seed-test-gallery': typeof ApiAdminSeedTestGalleryRoute
   '/api/admin/send-preview': typeof ApiAdminSendPreviewRoute
   '/api/hub/applications': typeof ApiHubApplicationsRoute
@@ -233,6 +242,7 @@ export interface FileRouteTypes {
     | '/kund-preview/$reference'
     | '/portfolio/$slug'
     | '/api/admin/applications'
+    | '/api/admin/email-health'
     | '/api/admin/seed-test-gallery'
     | '/api/admin/send-preview'
     | '/api/hub/applications'
@@ -257,6 +267,7 @@ export interface FileRouteTypes {
     | '/kund-preview/$reference'
     | '/portfolio/$slug'
     | '/api/admin/applications'
+    | '/api/admin/email-health'
     | '/api/admin/seed-test-gallery'
     | '/api/admin/send-preview'
     | '/api/hub/applications'
@@ -281,6 +292,7 @@ export interface FileRouteTypes {
     | '/kund-preview/$reference'
     | '/portfolio/$slug'
     | '/api/admin/applications'
+    | '/api/admin/email-health'
     | '/api/admin/seed-test-gallery'
     | '/api/admin/send-preview'
     | '/api/hub/applications'
@@ -306,6 +318,7 @@ export interface RootRouteChildren {
   KundPreviewReferenceRoute: typeof KundPreviewReferenceRoute
   PortfolioSlugRoute: typeof PortfolioSlugRoute
   ApiAdminApplicationsRoute: typeof ApiAdminApplicationsRoute
+  ApiAdminEmailHealthRoute: typeof ApiAdminEmailHealthRoute
   ApiAdminSeedTestGalleryRoute: typeof ApiAdminSeedTestGalleryRoute
   ApiAdminSendPreviewRoute: typeof ApiAdminSendPreviewRoute
   ApiHubApplicationsRoute: typeof ApiHubApplicationsRoute
@@ -442,6 +455,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAdminSeedTestGalleryRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/admin/email-health': {
+      id: '/api/admin/email-health'
+      path: '/api/admin/email-health'
+      fullPath: '/api/admin/email-health'
+      preLoaderRoute: typeof ApiAdminEmailHealthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/admin/applications': {
       id: '/api/admin/applications'
       path: '/api/admin/applications'
@@ -490,6 +510,7 @@ const rootRouteChildren: RootRouteChildren = {
   KundPreviewReferenceRoute: KundPreviewReferenceRoute,
   PortfolioSlugRoute: PortfolioSlugRoute,
   ApiAdminApplicationsRoute: ApiAdminApplicationsRoute,
+  ApiAdminEmailHealthRoute: ApiAdminEmailHealthRoute,
   ApiAdminSeedTestGalleryRoute: ApiAdminSeedTestGalleryRoute,
   ApiAdminSendPreviewRoute: ApiAdminSendPreviewRoute,
   ApiHubApplicationsRoute: ApiHubApplicationsRoute,
