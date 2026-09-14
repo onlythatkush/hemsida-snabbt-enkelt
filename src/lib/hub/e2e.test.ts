@@ -44,7 +44,7 @@ function makeSql() {
       return Promise.resolve([{ id: `v${revision}` }])
     }
     if (text.includes('UPDATE public.revision_jobs')) {
-      const job = [...state.jobs.values()].find((j) => j.id === values[3])
+      const job = [...state.jobs.values()].find((j) => j.id === values[values.length - 1])
       if (job) job.status = values[0]
       return Promise.resolve([])
     }

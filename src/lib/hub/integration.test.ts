@@ -35,7 +35,7 @@ function makeSql(seed: Partial<{ columns: { table_name: string; column_name: str
       return Promise.resolve([{ id: key, retry_count: retry }])
     }
     if (text.includes('UPDATE public.revision_jobs')) {
-      const job = state.jobs.get(values[3])
+      const job = state.jobs.get(values[values.length - 1])
       if (job) job.status = values[0]
       return Promise.resolve([])
     }
