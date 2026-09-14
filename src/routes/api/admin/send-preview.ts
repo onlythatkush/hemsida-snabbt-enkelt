@@ -302,11 +302,18 @@ export const Route = createFileRoute('/api/admin/send-preview')({
         const subject = typeof entry.subject === 'function' ? entry.subject(data) : entry.subject
         const messageId = crypto.randomUUID()
 
-        // Fallback provider: Resend (used when the Lovable sender domain is not verified).
+        // Primary provider: Resend on the verified dinwebbpartner.com domain.
         const resendKey = process.env.RESEND_API_KEY
         const logClient = provider.ok ? provider.client : null
         if (resendKey) {
-          const from = process.env.RESEND_FROM || 'Din Webbpartner <onboarding@resend.dev>'
+          // Never fall back to the unverified resend.dev testing sender — it 403s
+          // for every recipient except the Resend account owner.
+          const configuredFrom = (process.env.RESEND_FROM || '').trim()
+          const from =
+            configuredFrom && !/resend\.dev/i.test(configuredFrom)
+              ? configuredFrom
+              : `${SITE_NAME} <preview@${FROM_DOMAIN}>`
+          const replyTo = `reply+${app.reference}@${FROM_DOMAIN}`
           const logId = logClient
             ? await logSend(logClient, {
                 reference: app.reference,
@@ -325,14 +332,18 @@ export const Route = createFileRoute('/api/admin/send-preview')({
                 'Content-Type': 'application/json',
                 Authorization: `Bearer ${resendKey}`,
               },
-              body: JSON.stringify({ from, to: [recipient], subject, html, text }),
+              body: JSON.stringify({ from, to: [recipient], reply_to: replyTo, subject, html, text }),
             })
             if (!res.ok) {
-              const body = await res.text()
+              const body = (await res.text()).slice(0, 400)
               console.error(`send-preview: resend failed [${res.status}]: ${body}`)
               await updateLog(logClient, logId, { status: 'failed', error_message: `Resend ${res.status}: ${body}`.slice(0, 500) })
-              return Response.json({ error: `Resend: ${res.status} ${body}` }, { status: 502 })
+              return Response.json(
+                { error: `E-post kunde inte skickas (Resend ${res.status})`, detail: body, sender: from },
+                { status: 502 },
+              )
             }
+
             const out = (await res.json()) as { id?: string }
             await updateLog(logClient, logId, {
               status: 'sent',
