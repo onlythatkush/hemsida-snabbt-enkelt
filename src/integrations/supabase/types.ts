@@ -43,58 +43,130 @@ export type Database = {
       }
       customer_change_requests: {
         Row: {
+          answered_at: string | null
+          category: string | null
+          classifier: string | null
+          confidence: number | null
           created_at: string
           directives: Json | null
           error: string | null
+          extracted: Json | null
           from_email: string | null
           id: string
           intent: string | null
           intent_reason: string | null
+          last_error: string | null
           matched_via: string | null
           message_id: string
           processed_at: string | null
           raw_text: string
           received_at: string
           reference: string
+          retry_count: number
           revision: number | null
+          routing: string | null
           status: string
           subject: string | null
         }
         Insert: {
+          answered_at?: string | null
+          category?: string | null
+          classifier?: string | null
+          confidence?: number | null
           created_at?: string
           directives?: Json | null
           error?: string | null
+          extracted?: Json | null
           from_email?: string | null
           id?: string
           intent?: string | null
           intent_reason?: string | null
+          last_error?: string | null
           matched_via?: string | null
           message_id: string
           processed_at?: string | null
           raw_text: string
           received_at?: string
           reference: string
+          retry_count?: number
           revision?: number | null
+          routing?: string | null
           status?: string
           subject?: string | null
         }
         Update: {
+          answered_at?: string | null
+          category?: string | null
+          classifier?: string | null
+          confidence?: number | null
           created_at?: string
           directives?: Json | null
           error?: string | null
+          extracted?: Json | null
           from_email?: string | null
           id?: string
           intent?: string | null
           intent_reason?: string | null
+          last_error?: string | null
           matched_via?: string | null
           message_id?: string
           processed_at?: string | null
           raw_text?: string
           received_at?: string
           reference?: string
+          retry_count?: number
           revision?: number | null
+          routing?: string | null
           status?: string
           subject?: string | null
+        }
+        Relationships: []
+      }
+      design_versions: {
+        Row: {
+          change_request_id: string | null
+          created_at: string
+          design_family: string | null
+          design_spec: Json
+          design_version: number | null
+          id: string
+          preview_url: string | null
+          qa_report: Json | null
+          qa_score: number | null
+          qa_status: string | null
+          reference: string
+          revision: number
+          source: string
+        }
+        Insert: {
+          change_request_id?: string | null
+          created_at?: string
+          design_family?: string | null
+          design_spec: Json
+          design_version?: number | null
+          id?: string
+          preview_url?: string | null
+          qa_report?: Json | null
+          qa_score?: number | null
+          qa_status?: string | null
+          reference: string
+          revision: number
+          source?: string
+        }
+        Update: {
+          change_request_id?: string | null
+          created_at?: string
+          design_family?: string | null
+          design_spec?: Json
+          design_version?: number | null
+          id?: string
+          preview_url?: string | null
+          qa_report?: Json | null
+          qa_score?: number | null
+          qa_status?: string | null
+          reference?: string
+          revision?: number
+          source?: string
         }
         Relationships: []
       }
@@ -187,51 +259,63 @@ export type Database = {
       }
       preview_email_log: {
         Row: {
+          change_request_id: string | null
           company: string | null
           created_at: string
           delivered_at: string | null
           error_message: string | null
           id: string
+          idempotency_key: string | null
+          kind: string
           metadata: Json | null
           preview_url: string | null
           provider: string
           provider_message_id: string | null
           recipient: string
           reference: string
+          revision: number | null
           sender: string | null
           sent_at: string | null
           status: string
           updated_at: string
         }
         Insert: {
+          change_request_id?: string | null
           company?: string | null
           created_at?: string
           delivered_at?: string | null
           error_message?: string | null
           id?: string
+          idempotency_key?: string | null
+          kind?: string
           metadata?: Json | null
           preview_url?: string | null
           provider: string
           provider_message_id?: string | null
           recipient: string
           reference: string
+          revision?: number | null
           sender?: string | null
           sent_at?: string | null
           status?: string
           updated_at?: string
         }
         Update: {
+          change_request_id?: string | null
           company?: string | null
           created_at?: string
           delivered_at?: string | null
           error_message?: string | null
           id?: string
+          idempotency_key?: string | null
+          kind?: string
           metadata?: Json | null
           preview_url?: string | null
           provider?: string
           provider_message_id?: string | null
           recipient?: string
           reference?: string
+          revision?: number | null
           sender?: string | null
           sent_at?: string | null
           status?: string
@@ -242,6 +326,7 @@ export type Database = {
       project_applications: {
         Row: {
           address: string | null
+          approved_revision: number | null
           colors: string | null
           company: string
           created_at: string
@@ -273,6 +358,7 @@ export type Database = {
         }
         Insert: {
           address?: string | null
+          approved_revision?: number | null
           colors?: string | null
           company: string
           created_at?: string
@@ -304,6 +390,7 @@ export type Database = {
         }
         Update: {
           address?: string | null
+          approved_revision?: number | null
           colors?: string | null
           company?: string
           created_at?: string
@@ -332,6 +419,57 @@ export type Database = {
           updated_at?: string
           wants_support?: boolean
           website_type?: string
+        }
+        Relationships: []
+      }
+      revision_jobs: {
+        Row: {
+          change_request_id: string | null
+          created_at: string
+          detail: Json | null
+          finished_at: string | null
+          id: string
+          idempotency_key: string | null
+          kind: string
+          last_error: string | null
+          reference: string
+          retry_count: number
+          revision: number | null
+          started_at: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          change_request_id?: string | null
+          created_at?: string
+          detail?: Json | null
+          finished_at?: string | null
+          id?: string
+          idempotency_key?: string | null
+          kind?: string
+          last_error?: string | null
+          reference: string
+          retry_count?: number
+          revision?: number | null
+          started_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          change_request_id?: string | null
+          created_at?: string
+          detail?: Json | null
+          finished_at?: string | null
+          id?: string
+          idempotency_key?: string | null
+          kind?: string
+          last_error?: string | null
+          reference?: string
+          retry_count?: number
+          revision?: number | null
+          started_at?: string | null
+          status?: string
+          updated_at?: string
         }
         Relationships: []
       }

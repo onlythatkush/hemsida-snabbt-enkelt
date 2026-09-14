@@ -8,6 +8,9 @@ import { TEMPLATES } from '@/lib/email-templates/registry'
 import { previewSendGate } from '@/lib/design/quality'
 import { getUnsubscribeToken } from '@/lib/unsubscribe-token.server'
 import { replyAddressFor } from '@/lib/email/reply-address'
+import { withHub } from '@/lib/hub/db'
+import { hubSender, sendHubEmail } from '@/lib/hub/mail'
+
 
 const SITE_NAME = 'Din Webbpartner'
 const SENDER_DOMAIN = 'notify.dinwebbpartner.com'
@@ -188,34 +191,35 @@ export const Route = createFileRoute('/api/admin/send-preview')({
           return Response.json({ subject: rendered.subject, html: rendered.html, text: rendered.text })
         }
 
-        const provider = emailProvider()
-        if (!provider.ok) return Response.json({ error: 'Database not configured' }, { status: 500 })
-
-        let query = provider.client
-          .from('preview_email_log')
-          .select('id, reference, company, recipient, preview_url, sender, provider, provider_message_id, status, error_message, sent_at, delivered_at, created_at, updated_at')
-          .order('created_at', { ascending: false })
-          .limit(reference ? 20 : 100)
-        if (reference) query = query.eq('reference', reference)
-
-        const { data, error } = await query
-        if (error) {
-          const code = String((error as any)?.code || '')
-          const message = String((error as any)?.message || '')
-          // The log table may not exist yet in an environment that has not run
-          // the migration. That must not break the admin panel.
-          if (code === 'PGRST205' || code === '42P01' || /preview_email_log/i.test(message)) {
-            console.warn('send-preview: preview_email_log missing', code)
+        // Mail history is read over the SAME Postgres connection the rest of the
+        // hub uses. Reading it over the Data API is what produced the production
+        // PGRST205 "preview_email_log missing" error: the two paths resolved to
+        // different databases.
+        try {
+          const rows = await withHub(async (sql) =>
+            reference
+              ? sql`SELECT id, reference, company, recipient, preview_url, sender, provider, provider_message_id,
+                           status, kind, revision, error_message, sent_at, delivered_at, created_at, updated_at
+                    FROM public.preview_email_log WHERE upper(reference) = ${reference}
+                    ORDER BY created_at DESC LIMIT 40`
+              : sql`SELECT id, reference, company, recipient, preview_url, sender, provider, provider_message_id,
+                           status, kind, revision, error_message, sent_at, delivered_at, created_at, updated_at
+                    FROM public.preview_email_log ORDER BY created_at DESC LIMIT 100`,
+          )
+          const logs = (rows as any[]).map((row) => ({
+            ...row,
+            recipient_masked: maskEmail(String(row.recipient || '')),
+          }))
+          return Response.json({ logs })
+        } catch (e) {
+          const message = String((e as any)?.message || e)
+          if (/relation .*preview_email_log.* does not exist/i.test(message)) {
             return Response.json({ logs: [], unavailable: 'preview_email_log saknas i databasen' })
           }
-          console.error('send-preview: history read failed', error)
-          return Response.json({ error: 'Kunde inte läsa mailhistorik' }, { status: 500 })
+          console.error('send-preview: history read failed', e)
+          return Response.json({ error: 'Kunde inte läsa mailhistorik', detail: message.slice(0, 200) }, { status: 500 })
         }
-        const logs = (data || []).map((row: any) => ({
-          ...row,
-          recipient_masked: maskEmail(String(row.recipient || '')),
-        }))
-        return Response.json({ logs })
+
       },
       POST: async ({ request }) => {
         if (!authorized(request)) return Response.json({ error: 'Unauthorized' }, { status: 401 })
@@ -304,74 +308,41 @@ export const Route = createFileRoute('/api/admin/send-preview')({
         const messageId = crypto.randomUUID()
 
         // Primary provider: Resend on the verified dinwebbpartner.com domain.
+        // Sending, logging and the timeline event all go through the unified hub
+        // database path, so the admin panel can never lose a send record again.
         const resendKey = process.env.RESEND_API_KEY
-        const logClient = provider.ok ? provider.client : null
         if (resendKey) {
-          // Never fall back to the unverified resend.dev testing sender — it 403s
-          // for every recipient except the Resend account owner.
-          const configuredFrom = (process.env.RESEND_FROM || '').trim()
-          const from =
-            configuredFrom && !/resend\.dev/i.test(configuredFrom)
-              ? configuredFrom
-              : `${SITE_NAME} <preview@${FROM_DOMAIN}>`
-          // Replies land on the dedicated inbound subdomain so MX records on the
-          // main domain (normal business mail) stay untouched.
-          const replyTo = replyAddressFor(app.reference)
-          const logId = logClient
-            ? await logSend(logClient, {
-                reference: app.reference,
-                company: app.company ?? null,
-                recipient,
-                preview_url: app.preview_url ?? null,
-                sender: from,
-                provider: 'resend',
-                status: 'queued',
-              })
-            : null
+          const revision = (app as any).design_revision ?? (app as any).design_spec?.revision ?? null
           try {
-            const res = await fetch('https://api.resend.com/emails', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${resendKey}`,
-              },
-              body: JSON.stringify({ from, to: [recipient], reply_to: replyTo, subject, html, text }),
-            })
-            if (!res.ok) {
-              const body = (await res.text()).slice(0, 400)
-              console.error(`send-preview: resend failed [${res.status}]: ${body}`)
-              await updateLog(logClient, logId, { status: 'failed', error_message: `Resend ${res.status}: ${body}`.slice(0, 500) })
+            const result = await withHub((sql) =>
+              sendHubEmail(sql, {
+                reference: app!.reference,
+                kind: 'preview_ready',
+                templateKey: 'preview-ready',
+                data,
+                recipient,
+                company: app!.company,
+                previewUrl: app!.preview_url,
+                revision,
+                idempotencyKey: `preview-${app!.reference}-r${revision ?? 0}-${messageId}`,
+              }),
+            )
+            if (!result.sent) {
               return Response.json(
-                { error: `E-post kunde inte skickas (Resend ${res.status})`, detail: body, sender: from },
-                { status: 502 },
+                { error: 'E-post kunde inte skickas', detail: result.reason, sender: hubSender() },
+                { status: result.reason?.startsWith('resend_') ? 502 : 500 },
               )
             }
-
-            const out = (await res.json()) as { id?: string }
-            await updateLog(logClient, logId, {
-              status: 'sent',
-              provider_message_id: out.id ?? messageId,
-              sent_at: new Date().toISOString(),
-            })
-            if (logClient) {
-              const revision = (app as any).design_revision ?? (app as any).design_spec?.revision ?? null
-              await logClient
-                .from('application_events')
-                .insert({
-                  reference: app.reference,
-                  event_type: 'preview_sent',
-                  label: revision ? `Previewmail skickat (version ${revision})` : 'Previewmail skickat',
-                  details: { messageId: out.id ?? messageId, provider: 'resend', revision },
-                })
-                .then(() => undefined, () => undefined)
-            }
-            return Response.json({ success: true, recipient, messageId: out.id ?? messageId, provider: 'resend' })
+            return Response.json({ success: true, recipient, messageId: result.messageId ?? messageId, provider: 'resend' })
           } catch (e) {
-            console.error('send-preview: resend request failed', e)
-            await updateLog(logClient, logId, { status: 'failed', error_message: 'Resend request failed' })
-            return Response.json({ error: 'Kunde inte skicka previewmailet via Resend' }, { status: 500 })
+            console.error('send-preview: resend send failed', e)
+            return Response.json(
+              { error: 'Kunde inte skicka previewmailet via Resend', detail: String((e as any)?.message || e).slice(0, 200) },
+              { status: 500 },
+            )
           }
         }
+
 
         if (!provider.ok) {
           return Response.json(

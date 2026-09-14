@@ -1,62 +1,31 @@
 import { createFileRoute } from '@tanstack/react-router'
-import postgres from 'postgres'
 import { DESIGN_SPEC_VERSION, composeDesignSpec } from '@/lib/design/compose'
-import { cleanReplyText, parseRevisionRequest } from '@/lib/revision/parse'
-import { classifyReply } from '@/lib/revision/intent'
+import { cleanReplyText } from '@/lib/revision/parse'
+import { routeInbound } from '@/lib/revision/router'
 import { matchInboundReference } from '@/lib/revision/match'
 import { verifyWebhookSignature } from '@/lib/revision/webhook'
 import { resolveInboundEmail } from '@/lib/revision/inbound'
+import { logEvent, withHub, type HubSql } from '@/lib/hub/db'
+import { claimJob, finishJob } from '@/lib/hub/jobs'
+import { nextRevision, recordDesignVersion } from '@/lib/hub/versions'
+import { sendHubEmail } from '@/lib/hub/mail'
 
 export { normalizeInbound } from '@/lib/revision/inbound'
 
-function databaseUrl() {
-  return (
-    process.env.POSTGRES_URL ||
-    process.env.STORAGE_POSTGRES_URL ||
-    process.env.STORAGE_DATABASE_URL ||
-    process.env.DATABASE_URL ||
-    process.env.SUPABASE_DB_URL
-  )
+const TEST_REF = /^TEST-/i
+
+/** Short, sanitised description of what the system actually extracted. */
+function safeSummary(summary: string[]): string[] {
+  return summary.filter(Boolean).map((s) => String(s).slice(0, 120)).slice(0, 6)
 }
 
-/** Production databases may predate the review-loop migration. */
-async function ensureColumns(sql: any) {
-  try {
-    await sql`ALTER TABLE public.customer_change_requests ADD COLUMN IF NOT EXISTS intent TEXT`
-    await sql`ALTER TABLE public.customer_change_requests ADD COLUMN IF NOT EXISTS intent_reason TEXT`
-    await sql`ALTER TABLE public.customer_change_requests ADD COLUMN IF NOT EXISTS subject TEXT`
-    await sql`ALTER TABLE public.project_applications ADD COLUMN IF NOT EXISTS design_revision INTEGER`
-    await sql`ALTER TABLE public.project_applications ADD COLUMN IF NOT EXISTS customer_approved_at TIMESTAMPTZ`
-    await sql`ALTER TABLE public.project_applications ADD COLUMN IF NOT EXISTS review_note TEXT`
-  } catch {
-    /* schema is normally managed by migrations */
-  }
-}
-
-/**
- * Reuses the exact same admin send path (QA gate, logging, reply-to, provider
- * rules) instead of duplicating sending logic. Requires ADMIN_ACCESS_KEY on the
- * server; without it the revision simply waits for an admin click.
- */
-async function autoSendRevision(origin: string, reference: string) {
-  const key = process.env.ADMIN_ACCESS_KEY
-  if (!key) return { sent: false, reason: 'admin_key_missing' }
-  if (String(process.env.AUTO_SEND_REVISIONS || '').toLowerCase() === 'false') {
-    return { sent: false, reason: 'auto_send_disabled' }
-  }
-  if (/^TEST-/i.test(reference)) return { sent: false, reason: 'test_reference' }
-  try {
-    const res = await fetch(`${origin}/api/admin/send-preview`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-admin-key': key },
-      body: JSON.stringify({ reference }),
-    })
-    const body = (await res.json().catch(() => ({}))) as any
-    if (!res.ok) return { sent: false, reason: `send_failed_${res.status}`, detail: String(body?.error || '').slice(0, 200) }
-    return { sent: true, messageId: body?.messageId ?? null }
-  } catch (e) {
-    console.error('[inbound-email] auto send failed', e)
-    return { sent: false, reason: 'send_request_failed' }
+function statusLabel(status: string | null | undefined) {
+  switch (status) {
+    case 'approved': return 'Godkänd av dig'
+    case 'changes': return 'Ny version på gång'
+    case 'reviewing': return 'Under granskning hos oss'
+    case 'preview': return 'Förhandsvisning skickad'
+    default: return 'Pågående'
   }
 }
 
@@ -77,7 +46,10 @@ export const Route = createFileRoute('/api/public/inbound-email')({
         if (!verified.ok) {
           if (verified.reason === 'missing_secret') {
             console.error('[inbound-email] INBOUND_EMAIL_WEBHOOK_SECRET is not configured')
-            return Response.json({ error: 'Inbound email not configured', missingEnv: 'INBOUND_EMAIL_WEBHOOK_SECRET' }, { status: 500 })
+            return Response.json(
+              { error: 'Inbound email not configured', missingEnv: 'INBOUND_EMAIL_WEBHOOK_SECRET' },
+              { status: 500 },
+            )
           }
           console.warn('[inbound-email] rejected payload:', verified.reason)
           return Response.json({ error: 'Invalid signature' }, { status: 401 })
@@ -94,207 +66,407 @@ export const Route = createFileRoute('/api/public/inbound-email')({
         // Metadata-only webhooks are completed from the provider API first.
         const { email, fetched, bodyMissing } = await resolveInboundEmail(payload)
         if (!email.messageId) return Response.json({ error: 'Missing message id' }, { status: 400 })
-
-        const url = databaseUrl()
-        if (!url) return Response.json({ error: 'Database not configured' }, { status: 500 })
-        const sql = postgres(url, { max: 1, prepare: false })
+        const inboundMessageId: string = email.messageId
 
         try {
-          await ensureColumns(sql)
+          return await withHub(async (sql) => {
+            // Only message ids we actually sent may resolve a thread.
+            const sent = await sql<{ provider_message_id: string; reference: string }[]>`
+              SELECT provider_message_id, reference FROM public.preview_email_log
+              WHERE provider_message_id IS NOT NULL
+              ORDER BY created_at DESC LIMIT 500
+            `.catch(() => [] as { provider_message_id: string; reference: string }[])
+            const threadLookup: Record<string, string> = {}
+            for (const row of sent) threadLookup[row.provider_message_id] = row.reference
 
-          // Only message ids we actually sent may resolve a thread.
-          const sent = await sql<{ provider_message_id: string; reference: string }[]>`
-            SELECT provider_message_id, reference FROM public.preview_email_log
-            WHERE provider_message_id IS NOT NULL
-            ORDER BY created_at DESC LIMIT 500
-          `.catch(() => [] as { provider_message_id: string; reference: string }[])
-          const threadLookup: Record<string, string> = {}
-          for (const row of sent) threadLookup[row.provider_message_id] = row.reference
-
-          const match = matchInboundReference(email, threadLookup)
-          if (!match) {
-            console.warn('[inbound-email] no reference match for message')
-            return Response.json({ ok: true, matched: false }, { status: 202 })
-          }
-
-          const body = cleanReplyText(email.text || email.html || '')
-          const intent = bodyMissing
-            ? { intent: 'unclear' as const, reason: 'Mejlets innehåll kunde inte hämtas – läs svaret manuellt', signals: [] as string[] }
-            : classifyReply(body)
-          const directives = parseRevisionRequest(body)
-
-          // Idempotency: the same provider message can only ever create one row.
-          const inserted = await sql`
-            INSERT INTO public.customer_change_requests
-              (reference, raw_text, directives, from_email, message_id, matched_via, status,
-               intent, intent_reason, subject)
-            VALUES (${match.reference}, ${body}, ${sql.json(directives as any)}, ${email.from ?? null},
-                    ${email.messageId}, ${match.via}, 'received',
-                    ${intent.intent}, ${intent.reason}, ${email.subject ?? null})
-            ON CONFLICT (message_id) DO NOTHING
-            RETURNING id
-          `
-          if (!inserted.length) {
-            // Duplicate webhook delivery: never a second revision, never a second email.
-            return Response.json({ ok: true, duplicate: true, reference: match.reference })
-          }
-          const changeRequestId = (inserted[0] as any).id
-
-          const replyLabel =
-            intent.intent === 'approved'
-              ? 'Kunden godkände designen'
-              : intent.intent === 'changes'
-                ? 'Kunden svarade med ändringar'
-                : 'Kundsvar behöver granskas'
-          await sql`
-            INSERT INTO public.application_events (reference, event_type, label, details)
-            VALUES (${match.reference}, 'customer_replied', ${replyLabel},
-                    ${sql.json({ matchedVia: match.via, intent: intent.intent, reason: intent.reason, summary: directives.summary, bodyFetched: fetched, bodyMissing } as any)})
-          `
-
-          const found = await sql`SELECT * FROM public.project_applications WHERE reference = ${match.reference} LIMIT 1`
-          if (!found.length) {
-            await sql`UPDATE public.customer_change_requests SET status = 'failed', error = 'application_not_found' WHERE id = ${changeRequestId}`
-            return Response.json({ ok: true, matched: false, reference: match.reference }, { status: 202 })
-          }
-          const app = found[0] as any
-
-          // B) Clear approval: stop the revision loop. No later delivery step here.
-          if (intent.intent === 'approved') {
-            const approvedRevision = Number(app.design_spec?.revision) || Number(app.design_revision) || 1
-            await sql`
-              UPDATE public.project_applications
-              SET status = 'approved',
-                  customer_approved_at = now(),
-                  design_locked = true,
-                  review_note = NULL,
-                  updated_at = now()
-              WHERE reference = ${app.reference}
-            `
-            await sql`
-              UPDATE public.customer_change_requests
-              SET status = 'approved', revision = ${approvedRevision}, processed_at = now() WHERE id = ${changeRequestId}
-            `
-            await sql`
-              INSERT INTO public.application_events (reference, event_type, label, details)
-              VALUES (${app.reference}, 'customer_approved', ${'Godkänd av kund (version ' + approvedRevision + ')'},
-                      ${sql.json({ signals: intent.signals, revision: approvedRevision } as any)})
-            `
-            return Response.json({ ok: true, reference: app.reference, intent: 'approved', revision: approvedRevision })
-          }
-
-          // Anything not clearly an approval and not clearly a change request is
-          // never acted on automatically — a human reads it first.
-          if (intent.intent === 'unclear') {
-            await sql`
-              UPDATE public.project_applications
-              SET review_note = ${intent.reason}, status = 'reviewing', updated_at = now()
-              WHERE reference = ${app.reference}
-            `
-            await sql`
-              UPDATE public.customer_change_requests
-              SET status = 'needs_review', processed_at = now() WHERE id = ${changeRequestId}
-            `
-            return Response.json({ ok: true, reference: app.reference, intent: 'unclear' })
-          }
-
-          if (app.design_locked) {
-            await sql`UPDATE public.customer_change_requests SET status = 'skipped', error = 'design_locked' WHERE id = ${changeRequestId}`
-            return Response.json({ ok: true, reference: match.reference, skipped: 'design_locked' })
-          }
-
-          // A) Change request: build the next design revision automatically.
-          const revision = (Number(app.design_spec?.revision) || Number(app.design_revision) || 0) + 1
-          const spec = composeDesignSpec(
-            {
-              reference: app.reference,
-              company: app.company,
-              description: app.description,
-              website_type: app.website_type,
-              colors: app.colors,
-              extra_requests: app.extra_requests,
-              social_links: app.social_links,
-              address: app.address,
-              email: app.email,
-              phone: app.phone,
-              file_names: Array.isArray(app.file_names) ? app.file_names : [],
-            },
-            { revision, directives },
-          )
-
-          const token: string =
-            app.preview_token && String(app.preview_token).length >= 32
-              ? String(app.preview_token)
-              : crypto.randomUUID().replaceAll('-', '') + crypto.randomUUID().replaceAll('-', '')
-          const origin = new URL(request.url).origin
-          const previewUrl =
-            `${origin}/kund-preview/${encodeURIComponent(app.reference)}?token=${token}` +
-            `&v=${revision}-${Date.now().toString(36)}`
-
-          const qa = spec.qa
-          await sql`
-            UPDATE public.project_applications
-            SET preview_token = ${token},
-                preview_url = ${previewUrl},
-                design_spec = ${sql.json(spec as any)},
-                design_family = ${spec.family},
-                design_revision = ${revision},
-                qa_status = ${qa?.status ?? null},
-                qa_score = ${qa?.score ?? null},
-                qa_report = ${qa ? sql.json({ ...qa, designVersion: DESIGN_SPEC_VERSION, revision } as any) : null},
-                qa_accepted_at = NULL,
-                review_note = ${directives.unparsed ? 'Ändringarna kunde inte tolkas fullt ut – läs kundsvaret' : null},
-                status = 'changes',
-                updated_at = now()
-            WHERE reference = ${app.reference}
-          `
-
-          await sql`
-            UPDATE public.customer_change_requests
-            SET status = 'applied', revision = ${revision}, processed_at = now()
-            WHERE id = ${changeRequestId}
-          `
-          await sql`
-            INSERT INTO public.application_events (reference, event_type, label, details)
-            VALUES (${app.reference}, 'revision_generated', ${'Ny version ' + revision + ' skapad'},
-                    ${sql.json({ revision, family: spec.family, qaStatus: qa?.status, qaScore: qa?.score, summary: directives.summary } as any)})
-          `
-
-          // Automatic re-review: only a QA-ready revision is mailed back to the
-          // customer. Anything else waits for an admin decision.
-          let autoSend: any = { sent: false, reason: qa?.status === 'ready' ? 'not_attempted' : `qa_${qa?.status ?? 'unknown'}` }
-          if (qa?.status === 'ready') {
-            autoSend = await autoSendRevision(origin, app.reference)
-            await sql`
-              INSERT INTO public.application_events (reference, event_type, label, details)
-              VALUES (${app.reference}, ${autoSend.sent ? 'preview_autosent' : 'preview_send_pending'},
-                      ${autoSend.sent ? 'Ny version mejlad till kund automatiskt' : 'Ny version väntar på admin för utskick'},
-                      ${sql.json({ revision, ...autoSend } as any)})
-            `
-            if (autoSend.sent) {
-              await sql`UPDATE public.customer_change_requests SET status = 'sent' WHERE id = ${changeRequestId}`
+            const match = matchInboundReference(email, threadLookup)
+            if (!match) {
+              console.warn('[inbound-email] no reference match for message')
+              return Response.json({ ok: true, matched: false }, { status: 202 })
             }
-          }
 
-          return Response.json({
-            ok: true,
-            reference: app.reference,
-            intent: 'changes',
-            revision,
-            qaStatus: qa?.status,
-            qaScore: qa?.score,
-            autoSent: autoSend.sent === true,
-            autoSendReason: autoSend.sent ? undefined : autoSend.reason,
-            directives: directives.summary,
+            const body = cleanReplyText(email.text || email.html || '')
+            const routed = bodyMissing
+              ? {
+                  category: 'unclear' as const,
+                  intent: 'unclear' as const,
+                  confidence: 0,
+                  reason: 'Mejlets innehåll kunde inte hämtas – läs svaret manuellt',
+                  classifier: 'rules' as const,
+                  signals: [] as string[],
+                  routing: 'needs_review' as const,
+                  extracted: { directives: { unparsed: true, summary: [] } as any, summary: [], questions: [] },
+                }
+              : await routeInbound(body, email.subject)
+            const directives = routed.extracted.directives
+
+            // Idempotency: the same provider message can only ever create one row.
+            const inserted = await sql`
+              INSERT INTO public.customer_change_requests
+                (reference, raw_text, directives, from_email, message_id, matched_via, status,
+                 intent, intent_reason, subject, category, confidence, classifier, extracted, routing)
+              VALUES (${match.reference}, ${body}, ${sql.json(directives as any)}, ${email.from ?? null},
+                      ${inboundMessageId}, ${match.via}, 'received',
+                      ${routed.intent}, ${routed.reason}, ${email.subject ?? null},
+                      ${routed.category}, ${routed.confidence}, ${routed.classifier},
+                      ${sql.json({ summary: routed.extracted.summary, questions: routed.extracted.questions } as any)},
+                      ${routed.routing})
+              ON CONFLICT (message_id) DO NOTHING
+              RETURNING id
+            `
+            if (!inserted.length) {
+              // Duplicate webhook delivery: never a second revision, never a second email.
+              return Response.json({ ok: true, duplicate: true, reference: match.reference })
+            }
+            const changeRequestId = (inserted[0] as any).id as string
+
+            await logEvent(sql, match.reference, 'customer_replied', replyLabel(routed.category), {
+              matchedVia: match.via,
+              category: routed.category,
+              confidence: routed.confidence,
+              reason: routed.reason,
+              routing: routed.routing,
+              summary: routed.extracted.summary,
+              questions: routed.extracted.questions,
+              bodyFetched: fetched,
+              bodyMissing,
+            })
+
+            const found = await sql`SELECT * FROM public.project_applications WHERE upper(reference) = ${match.reference.toUpperCase()} LIMIT 1`
+            if (!found.length) {
+              await sql`UPDATE public.customer_change_requests SET status='failed', error='application_not_found', last_error='application_not_found' WHERE id=${changeRequestId}`
+              return Response.json({ ok: true, matched: false, reference: match.reference }, { status: 202 })
+            }
+            const app = found[0] as any
+            const mailAllowed = !TEST_REF.test(app.reference)
+
+            // ---------- B) Explicit approval: stop the design loop ----------
+            if (routed.category === 'design_approved') {
+              const approvedRevision = Number(app.design_spec?.revision) || Number(app.design_revision) || 1
+              await sql`
+                UPDATE public.project_applications
+                SET status='approved', customer_approved_at=now(), approved_revision=${approvedRevision},
+                    design_locked=true, review_note=NULL, updated_at=now()
+                WHERE reference=${app.reference}
+              `
+              await sql`
+                UPDATE public.customer_change_requests
+                SET status='approved', revision=${approvedRevision}, processed_at=now() WHERE id=${changeRequestId}
+              `
+              await logEvent(sql, app.reference, 'customer_approved', `Godkänd av kund (version ${approvedRevision})`, {
+                signals: routed.signals, revision: approvedRevision, confidence: routed.confidence,
+              })
+
+              let mail: any = { sent: false, reason: 'test_reference' }
+              if (mailAllowed) {
+                mail = await sendHubEmail(sql, {
+                  reference: app.reference,
+                  kind: 'approval_confirmed',
+                  templateKey: 'approval-confirmed',
+                  data: {
+                    eyebrow: 'Godkänt',
+                    heading: `Tack — version ${approvedRevision} är registrerad som godkänd`,
+                    intro: 'Vi har registrerat ditt godkännande och stoppat vidare designändringar. Vi hör av oss med nästa steg.',
+                    name: app.name,
+                    company: String(app.company || '').replace('[TEST] ', ''),
+                    reference: app.reference,
+                  },
+                  recipient: app.email,
+                  company: app.company,
+                  revision: approvedRevision,
+                  changeRequestId,
+                  idempotencyKey: `approval-${app.reference}-${approvedRevision}-${changeRequestId}`,
+                })
+              }
+              return Response.json({ ok: true, reference: app.reference, category: 'design_approved', revision: approvedRevision, mailed: mail.sent === true })
+            }
+
+            // ---------- C) Questions ----------
+            if (routed.category.startsWith('question')) {
+              const groundable = routed.routing === 'auto_answer' && routed.category === 'question_process'
+              await sql`
+                UPDATE public.project_applications
+                SET review_note=${groundable ? null : routed.reason}, status=${groundable ? app.status : 'reviewing'}, updated_at=now()
+                WHERE reference=${app.reference}
+              `
+              const currentRevision = Number(app.design_spec?.revision) || Number(app.design_revision) || 1
+              let mail: any = { sent: false, reason: 'test_reference' }
+              if (mailAllowed) {
+                mail = groundable
+                  ? await sendHubEmail(sql, {
+                      reference: app.reference,
+                      kind: 'question_answer',
+                      templateKey: 'question-answer',
+                      data: {
+                        eyebrow: 'Svar',
+                        heading: 'Så ligger ditt projekt till just nu',
+                        intro: 'Tack för din fråga! Här är aktuell status för ditt hemsideprojekt.',
+                        name: app.name,
+                        company: String(app.company || '').replace('[TEST] ', ''),
+                        reference: app.reference,
+                        bulletsTitle: 'Status',
+                        bullets: [
+                          `Status: ${statusLabel(app.status)}`,
+                          `Senaste version: ${currentRevision}`,
+                          app.preview_url ? 'Din senaste förhandsvisning finns kvar på länken nedan.' : 'Förhandsvisningen skickas så snart den är klar.',
+                          'När du är nöjd svarar du bara på mailet med "jag godkänner".',
+                        ],
+                        ctaUrl: app.preview_url || undefined,
+                        ctaLabel: 'Se din hemsida',
+                        outro: 'Har du fler frågor är det bara att svara på det här mailet.',
+                      },
+                      recipient: app.email,
+                      company: app.company,
+                      previewUrl: app.preview_url,
+                      revision: currentRevision,
+                      changeRequestId,
+                      idempotencyKey: `qanswer-${changeRequestId}`,
+                    })
+                  : await sendHubEmail(sql, {
+                      reference: app.reference,
+                      kind: 'question_ack',
+                      templateKey: 'question-ack',
+                      data: {
+                        eyebrow: 'Fråga mottagen',
+                        heading: 'Vi har tagit emot din fråga',
+                        intro: 'Tack för ditt meddelande! En av oss läser igenom det och återkommer personligen så snart som möjligt.',
+                        name: app.name,
+                        company: String(app.company || '').replace('[TEST] ', ''),
+                        reference: app.reference,
+                      },
+                      recipient: app.email,
+                      company: app.company,
+                      changeRequestId,
+                      idempotencyKey: `qack-${changeRequestId}`,
+                    })
+              }
+              await sql`
+                UPDATE public.customer_change_requests
+                SET status=${groundable ? 'answered' : 'needs_review'}, processed_at=now(),
+                    answered_at=${mail.sent ? new Date() : null}
+                WHERE id=${changeRequestId}
+              `
+              return Response.json({ ok: true, reference: app.reference, category: routed.category, answered: groundable && mail.sent === true })
+            }
+
+            // ---------- D) Unclear: never acted on automatically ----------
+            if (routed.category === 'unclear' || routed.routing === 'needs_review') {
+              await sql`
+                UPDATE public.project_applications
+                SET review_note=${routed.reason}, status='reviewing', updated_at=now()
+                WHERE reference=${app.reference}
+              `
+              await sql`
+                UPDATE public.customer_change_requests
+                SET status='needs_review', processed_at=now() WHERE id=${changeRequestId}
+              `
+              return Response.json({ ok: true, reference: app.reference, category: routed.category, needsReview: true })
+            }
+
+            if (app.design_locked) {
+              await sql`UPDATE public.customer_change_requests SET status='skipped', error='design_locked' WHERE id=${changeRequestId}`
+              return Response.json({ ok: true, reference: match.reference, skipped: 'design_locked' })
+            }
+
+            // ---------- A) design_changes: real regeneration ----------
+            const job = await claimJob(sql, {
+              reference: app.reference,
+              changeRequestId,
+              idempotencyKey: `revision-${changeRequestId}`,
+            })
+            if (!job) {
+              return Response.json({ ok: true, reference: app.reference, duplicateJob: true })
+            }
+
+            try {
+              const revision = await nextRevision(
+                sql,
+                app.reference,
+                Math.max(Number(app.design_spec?.revision) || 0, Number(app.design_revision) || 0),
+              )
+              const spec = composeDesignSpec(
+                {
+                  reference: app.reference,
+                  company: app.company,
+                  description: app.description,
+                  website_type: app.website_type,
+                  colors: app.colors,
+                  extra_requests: app.extra_requests,
+                  social_links: app.social_links,
+                  address: app.address,
+                  email: app.email,
+                  phone: app.phone,
+                  file_names: Array.isArray(app.file_names) ? app.file_names : [],
+                },
+                { revision, directives },
+              )
+
+              const token: string =
+                app.preview_token && String(app.preview_token).length >= 32
+                  ? String(app.preview_token)
+                  : crypto.randomUUID().replaceAll('-', '') + crypto.randomUUID().replaceAll('-', '')
+              const origin = new URL(request.url).origin
+              const previewUrl =
+                `${origin}/kund-preview/${encodeURIComponent(app.reference)}?token=${token}` +
+                `&v=${revision}-${Date.now().toString(36)}`
+
+              const qa = spec.qa
+              await recordDesignVersion(sql, {
+                reference: app.reference,
+                revision,
+                designSpec: spec,
+                designFamily: spec.family,
+                designVersion: DESIGN_SPEC_VERSION,
+                previewUrl,
+                qaStatus: qa?.status ?? null,
+                qaScore: qa?.score ?? null,
+                qaReport: qa ? { ...qa, designVersion: DESIGN_SPEC_VERSION, revision } : null,
+                source: 'customer_reply',
+                changeRequestId,
+              })
+
+              await sql`
+                UPDATE public.project_applications
+                SET preview_token=${token},
+                    preview_url=${previewUrl},
+                    design_spec=${sql.json(spec as any)},
+                    design_family=${spec.family},
+                    design_revision=${revision},
+                    qa_status=${qa?.status ?? null},
+                    qa_score=${qa?.score ?? null},
+                    qa_report=${qa ? sql.json({ ...qa, designVersion: DESIGN_SPEC_VERSION, revision } as any) : null},
+                    qa_accepted_at=NULL,
+                    review_note=${directives.unparsed ? 'Ändringarna kunde inte tolkas fullt ut – läs kundsvaret' : null},
+                    status='changes',
+                    updated_at=now()
+                WHERE reference=${app.reference}
+              `
+              await sql`
+                UPDATE public.customer_change_requests
+                SET status='applied', revision=${revision}, processed_at=now() WHERE id=${changeRequestId}
+              `
+              await logEvent(sql, app.reference, 'revision_generated', `Ny version ${revision} skapad`, {
+                revision, family: spec.family, qaStatus: qa?.status, qaScore: qa?.score,
+                summary: routed.extracted.summary, jobId: job.id, retryCount: job.retryCount,
+              })
+
+              // 1) Acknowledge the change request with what we actually extracted.
+              if (mailAllowed) {
+                await sendHubEmail(sql, {
+                  reference: app.reference,
+                  kind: 'change_received',
+                  templateKey: 'change-received',
+                  data: {
+                    eyebrow: 'Ändringar mottagna',
+                    heading: 'Tack — vi har tagit emot dina ändringar',
+                    intro: 'Vi har läst ditt svar och arbetar nu på en ny version av sidan. Du får ett nytt mail så snart den är klar att titta på.',
+                    name: app.name,
+                    company: String(app.company || '').replace('[TEST] ', ''),
+                    reference: app.reference,
+                    bulletsTitle: 'Det här har vi tolkat',
+                    bullets: safeSummary(routed.extracted.summary).length
+                      ? safeSummary(routed.extracted.summary)
+                      : ['Vi går igenom ditt svar manuellt för att inte missa något.'],
+                  },
+                  recipient: app.email,
+                  company: app.company,
+                  revision,
+                  changeRequestId,
+                  idempotencyKey: `changeack-${changeRequestId}`,
+                })
+              }
+
+              // 2) Only a QA-ready revision is mailed back to the customer.
+              let autoSend: any = { sent: false, reason: `qa_${qa?.status ?? 'unknown'}` }
+              if (qa?.status === 'ready') {
+                if (!mailAllowed) {
+                  autoSend = { sent: false, reason: 'test_reference' }
+                } else {
+                  autoSend = await sendHubEmail(sql, {
+                    reference: app.reference,
+                    kind: 'preview_ready',
+                    templateKey: 'preview-ready',
+                    data: {
+                      name: app.name,
+                      company: String(app.company || '').replace('[TEST] ', ''),
+                      previewUrl,
+                      reference: app.reference,
+                    },
+                    recipient: app.email,
+                    company: app.company,
+                    previewUrl,
+                    revision,
+                    changeRequestId,
+                    idempotencyKey: `preview-${app.reference}-r${revision}`,
+                  })
+                }
+                if (autoSend.sent) {
+                  await sql`UPDATE public.customer_change_requests SET status='sent' WHERE id=${changeRequestId}`
+                } else {
+                  await logEvent(sql, app.reference, 'preview_send_pending', 'Ny version väntar på admin för utskick', {
+                    revision, reason: autoSend.reason,
+                  })
+                }
+              } else {
+                await logEvent(
+                  sql,
+                  app.reference,
+                  qa?.status === 'blocked' ? 'preview_blocked' : 'preview_needs_admin',
+                  qa?.status === 'blocked'
+                    ? `Version ${revision} blockerad av kvalitetskontrollen`
+                    : `Version ${revision} har varningar och kräver admingodkännande`,
+                  { revision, qaStatus: qa?.status, qaScore: qa?.score },
+                )
+              }
+
+              await finishJob(sql, job.id, qa?.status === 'blocked' ? 'needs_review' : 'succeeded', {
+                revision,
+                detail: { qaStatus: qa?.status ?? null, autoSent: autoSend.sent === true },
+              })
+
+              return Response.json({
+                ok: true,
+                reference: app.reference,
+                category: 'design_changes',
+                revision,
+                qaStatus: qa?.status,
+                qaScore: qa?.score,
+                autoSent: autoSend.sent === true,
+                autoSendReason: autoSend.sent ? undefined : autoSend.reason,
+                directives: routed.extracted.summary,
+              })
+            } catch (jobError) {
+              console.error('[inbound-email] revision job failed', jobError)
+              await finishJob(sql, job.id, 'failed', { lastError: String((jobError as any)?.message || jobError) })
+              await sql`
+                UPDATE public.customer_change_requests
+                SET status='failed', last_error=${String((jobError as any)?.message || jobError).slice(0, 400)}
+                WHERE id=${changeRequestId}
+              `.catch(() => undefined)
+              await logEvent(sql, app.reference, 'revision_failed', 'Ny version kunde inte skapas', {
+                error: String((jobError as any)?.message || jobError).slice(0, 300),
+              })
+              return Response.json({ error: 'Revision failed' }, { status: 500 })
+            }
           })
         } catch (error) {
           console.error('[inbound-email] processing failed', error)
           // Retry-safe: the provider may redeliver; idempotency guards duplicates.
           return Response.json({ error: 'Processing failed' }, { status: 500 })
-        } finally {
-          await sql.end()
         }
       },
     },
   },
 })
+
+function replyLabel(category: string) {
+  switch (category) {
+    case 'design_approved': return 'Kunden godkände designen'
+    case 'design_changes': return 'Kunden svarade med ändringar'
+    case 'question_design': return 'Fråga om designen'
+    case 'question_process': return 'Fråga om processen'
+    case 'question_payment': return 'Fråga om betalning'
+    case 'question_other': return 'Övrig fråga från kunden'
+    default: return 'Kundsvar behöver granskas'
+  }
+}
