@@ -29,3 +29,12 @@
 - [ ] Designa lösningen modellagnostiskt så olika AI-modeller kan användas för olika uppgifter vid behov.
 
 <!-- redeploy resend preview flow 2026-09-12 -->
+
+## Produktionshärdning av hubben (pågår)
+- [ ] Enhetlig DB-väg + preview_email_log (PGRST205)
+- [ ] Migration: design_versions, revision_jobs, utökade kolumner
+- [ ] AI-router för inkommande kundsvar
+- [ ] Immutable designversioner + QA-gate i loopen
+- [ ] Kundkvittens/automails med idempotency
+- [ ] Inbound-härdning + health check
+- [ ] Retry/recovery + integrationstester
