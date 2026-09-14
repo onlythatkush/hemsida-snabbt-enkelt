@@ -78,7 +78,7 @@ export async function sendHubEmail(
     VALUES (${input.reference}, ${input.company ?? null}, ${recipient}, ${input.previewUrl ?? null},
             ${sender}, 'resend', 'queued', ${input.kind}, ${input.revision ?? null},
             ${input.changeRequestId ?? null}, ${input.idempotencyKey})
-    ON CONFLICT (idempotency_key) DO NOTHING
+    ON CONFLICT DO NOTHING
     RETURNING id
   `
   if (!inserted.length) return { sent: false, duplicate: true, reason: 'duplicate' }
