@@ -728,6 +728,8 @@ const categoryLabels: Record<string, string> = {
   unclear: "Oklart – granska",
 };
 
+const qaLabels: Record<string, string> = { ready: "klar", review: "granska", blocked: "blockerad" };
+
 const jobStatusLabels: Record<string, string> = {
   queued: "I kö",
   processing: "Pågår",

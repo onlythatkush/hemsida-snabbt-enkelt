@@ -70,7 +70,7 @@ export const Route = createFileRoute('/api/admin/reprocess')({
             if (outcome.duplicateJob) {
               return Response.json({ ok: true, skipped: 'already_processed' })
             }
-            return Response.json({ ok: true, ...outcome })
+            return Response.json({ ...outcome, ok: true })
           })
         } catch (error) {
           console.error('[admin/reprocess] failed', error)
