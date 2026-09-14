@@ -27,15 +27,153 @@ export function hubSql(): HubSql {
   return postgres(url, { max: 1, prepare: false })
 }
 
+let schemaEnsured = false
+
+/**
+ * Idempotent self-healing schema bootstrap.
+ *
+ * The runtime database (Coolify/Vercel Postgres) is not the same instance the
+ * migration tooling reaches, which is exactly how production ended up missing
+ * `preview_email_log`. Every hub connection therefore makes sure the tables and
+ * columns it needs exist. All statements are IF NOT EXISTS and run once per
+ * process.
+ */
+export async function ensureHubSchema(sql: HubSql) {
+  if (schemaEnsured) return
+  try {
+    await sql`
+      CREATE TABLE IF NOT EXISTS public.application_events (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        reference TEXT NOT NULL,
+        event_type TEXT NOT NULL,
+        label TEXT NOT NULL,
+        details JSONB,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+      )`
+    await sql`CREATE INDEX IF NOT EXISTS application_events_reference_idx ON public.application_events (reference, created_at DESC)`
+
+    await sql`
+      CREATE TABLE IF NOT EXISTS public.preview_email_log (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        reference TEXT NOT NULL,
+        company TEXT,
+        recipient TEXT NOT NULL,
+        preview_url TEXT,
+        sender TEXT,
+        provider TEXT NOT NULL,
+        provider_message_id TEXT,
+        status TEXT NOT NULL DEFAULT 'queued',
+        error_message TEXT,
+        metadata JSONB,
+        sent_at TIMESTAMPTZ,
+        delivered_at TIMESTAMPTZ,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+        updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+      )`
+    await sql`ALTER TABLE public.preview_email_log ADD COLUMN IF NOT EXISTS kind TEXT`
+    await sql`ALTER TABLE public.preview_email_log ADD COLUMN IF NOT EXISTS revision INTEGER`
+    await sql`ALTER TABLE public.preview_email_log ADD COLUMN IF NOT EXISTS change_request_id UUID`
+    await sql`ALTER TABLE public.preview_email_log ADD COLUMN IF NOT EXISTS idempotency_key TEXT`
+    await sql`CREATE UNIQUE INDEX IF NOT EXISTS preview_email_log_idempotency_key_idx ON public.preview_email_log (idempotency_key) WHERE idempotency_key IS NOT NULL`
+
+    await sql`
+      CREATE TABLE IF NOT EXISTS public.customer_change_requests (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        reference TEXT NOT NULL,
+        raw_text TEXT NOT NULL,
+        directives JSONB,
+        from_email TEXT,
+        message_id TEXT NOT NULL,
+        matched_via TEXT,
+        status TEXT NOT NULL DEFAULT 'received',
+        error TEXT,
+        revision INTEGER,
+        subject TEXT,
+        intent TEXT,
+        intent_reason TEXT,
+        received_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+        processed_at TIMESTAMPTZ,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+      )`
+    for (const stmt of [
+      sql`ALTER TABLE public.customer_change_requests ADD COLUMN IF NOT EXISTS category TEXT`,
+      sql`ALTER TABLE public.customer_change_requests ADD COLUMN IF NOT EXISTS confidence NUMERIC`,
+      sql`ALTER TABLE public.customer_change_requests ADD COLUMN IF NOT EXISTS classifier TEXT`,
+      sql`ALTER TABLE public.customer_change_requests ADD COLUMN IF NOT EXISTS extracted JSONB`,
+      sql`ALTER TABLE public.customer_change_requests ADD COLUMN IF NOT EXISTS routing TEXT`,
+      sql`ALTER TABLE public.customer_change_requests ADD COLUMN IF NOT EXISTS retry_count INTEGER NOT NULL DEFAULT 0`,
+      sql`ALTER TABLE public.customer_change_requests ADD COLUMN IF NOT EXISTS last_error TEXT`,
+      sql`ALTER TABLE public.customer_change_requests ADD COLUMN IF NOT EXISTS answered_at TIMESTAMPTZ`,
+      sql`ALTER TABLE public.customer_change_requests ADD COLUMN IF NOT EXISTS subject TEXT`,
+    ]) await stmt
+    await sql`CREATE UNIQUE INDEX IF NOT EXISTS customer_change_requests_message_id_idx ON public.customer_change_requests (message_id)`
+
+    await sql`
+      CREATE TABLE IF NOT EXISTS public.design_versions (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        reference TEXT NOT NULL,
+        revision INTEGER NOT NULL,
+        design_spec JSONB NOT NULL,
+        design_family TEXT,
+        design_version INTEGER,
+        preview_url TEXT,
+        qa_status TEXT,
+        qa_score INTEGER,
+        qa_report JSONB,
+        source TEXT NOT NULL DEFAULT 'admin',
+        change_request_id UUID,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+      )`
+    await sql`CREATE UNIQUE INDEX IF NOT EXISTS design_versions_reference_revision_idx ON public.design_versions (reference, revision)`
+
+    await sql`
+      CREATE TABLE IF NOT EXISTS public.revision_jobs (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        reference TEXT NOT NULL,
+        change_request_id UUID,
+        kind TEXT NOT NULL DEFAULT 'design_revision',
+        status TEXT NOT NULL DEFAULT 'queued',
+        revision INTEGER,
+        retry_count INTEGER NOT NULL DEFAULT 0,
+        last_error TEXT,
+        detail JSONB,
+        idempotency_key TEXT,
+        started_at TIMESTAMPTZ,
+        finished_at TIMESTAMPTZ,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+        updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+      )`
+    await sql`CREATE UNIQUE INDEX IF NOT EXISTS revision_jobs_idempotency_key_idx ON public.revision_jobs (idempotency_key) WHERE idempotency_key IS NOT NULL`
+
+    // project_applications is created by the submission flow — only extend it.
+    for (const stmt of [
+      sql`ALTER TABLE IF EXISTS public.project_applications ADD COLUMN IF NOT EXISTS design_revision INTEGER`,
+      sql`ALTER TABLE IF EXISTS public.project_applications ADD COLUMN IF NOT EXISTS customer_approved_at TIMESTAMPTZ`,
+      sql`ALTER TABLE IF EXISTS public.project_applications ADD COLUMN IF NOT EXISTS approved_revision INTEGER`,
+      sql`ALTER TABLE IF EXISTS public.project_applications ADD COLUMN IF NOT EXISTS review_note TEXT`,
+      sql`ALTER TABLE IF EXISTS public.project_applications ADD COLUMN IF NOT EXISTS qa_status TEXT`,
+      sql`ALTER TABLE IF EXISTS public.project_applications ADD COLUMN IF NOT EXISTS qa_score INTEGER`,
+      sql`ALTER TABLE IF EXISTS public.project_applications ADD COLUMN IF NOT EXISTS qa_report JSONB`,
+      sql`ALTER TABLE IF EXISTS public.project_applications ADD COLUMN IF NOT EXISTS qa_accepted_at TIMESTAMPTZ`,
+    ]) await stmt
+
+    schemaEnsured = true
+  } catch (e) {
+    console.error('[hub] schema bootstrap failed', e)
+  }
+}
+
 /** Runs `fn` with a short-lived connection that is always closed. */
 export async function withHub<T>(fn: (sql: HubSql) => Promise<T>): Promise<T> {
   const sql = hubSql()
   try {
+    await ensureHubSchema(sql)
     return await fn(sql)
   } finally {
     await sql.end({ timeout: 5 }).catch(() => undefined)
   }
 }
+
 
 /** Tables every runtime path depends on. Used by the health check. */
 export const REQUIRED_TABLES = [
