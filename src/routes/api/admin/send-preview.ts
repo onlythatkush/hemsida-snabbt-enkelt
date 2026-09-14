@@ -431,3 +431,5 @@ export const Route = createFileRoute('/api/admin/send-preview')({
     },
   },
 })
+
+// Hub mail logging uses the direct Postgres path only (see src/lib/hub/db.ts).
