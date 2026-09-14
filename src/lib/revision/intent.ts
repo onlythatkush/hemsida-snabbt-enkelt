@@ -80,6 +80,15 @@ const CHANGE_PHRASES = [
   "logotyp",
 ];
 
+/** Phrases that explicitly say no change is wanted. */
+const NEGATED_CHANGE_PHRASES = [
+  "inga ändringar",
+  "ingen ändring",
+  "inget att ändra",
+  "inget som behöver ändras",
+  "behöver inte ändras",
+];
+
 /** Negations that cancel a would-be approval, e.g. "ser bra ut men ändra ...". */
 const APPROVAL_BLOCKERS = [" men ", " dock ", " förutom ", " fast ", "en sak", "ett önskemål"];
 
@@ -95,7 +104,9 @@ export function classifyReply(raw: string | null | undefined): IntentResult {
   }
 
   const approvals = APPROVAL_PHRASES.filter((p) => text.includes(p));
-  const changes = CHANGE_PHRASES.filter((p) => text.includes(p));
+  // "inga ändringar" must not be read as a change request.
+  const withoutNegations = NEGATED_CHANGE_PHRASES.reduce((acc, p) => acc.split(p).join(" "), text);
+  const changes = CHANGE_PHRASES.filter((p) => withoutNegations.includes(p));
   const blockers = APPROVAL_BLOCKERS.filter((p) => text.includes(p));
 
   if (changes.length) {
