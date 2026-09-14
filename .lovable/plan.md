@@ -1,50 +1,111 @@
-# Design Engine v2
+# Produktionshärdning av hubben
 
-Lyfter kundernas förhandsvisningar till en genomgående hög nivå — utan att röra beställningsflödet, adminpanelen, databasen, mail eller referenskoder.
+## Grundorsak till PGRST205
 
-## Vad kunden märker
+Ordrar, ändringsförfrågningar och händelser läses via en direkt databasanslutning
+(`POSTGRES_URL` → … → `SUPABASE_DB_URL`), medan mejlloggen (`preview_email_log`)
+läses och skrivs via Data API:t med service role-nyckeln. I produktion pekar de två
+vägarna inte på samma databas, så mejlloggen "saknas" (PGRST205) trots att tabellen
+finns i migrationerna.
 
-- Varje genererad sida känns egenbyggd för just den branschen: bilhandlare får mörk, filmisk lyx; bageri behåller den varma Isola Sweets-nivån; hantverkare får robust och tydligt; skönhet/hälsa får lugnt och luftigt.
-- Två kunder i samma bransch får inte identiska sidor — rubrikstil, sektionsordning, bildkomposition och detaljer varierar.
-- Kundens egna bilder och logotyp används först och placeras medvetet (hero, utvalda block, galleri) i stället för att bara fyllas på.
-- Mobilen är utgångspunkten: inga överlappande texter, ingen sidledsscroll, inga jätterubriker som spräcker skärmen, alltid läsbar kontrast.
-- Förhandsvisningssidan visar bara kundens egen sajt — inget internt gränssnitt syns runt om eller bakom.
+Åtgärd: all hubb-data går genom **en** databasväg. Mejlloggen läses/skrivs med samma
+anslutning som ordrarna, och migrationerna körs mot den databasen.
 
-## Så byggs det
+## 1. Schema (idempotent migration)
 
-### 1. Starkare designgrund (`src/lib/design/`)
+Går igenom varje tabell/kolumn som körkoden faktiskt använder och säkrar dem:
 
-- `tokens.ts` (ny): en genomräknad tokenmodell — typografisk skala (clamp-baserad, mobilsäker), spacing-rytm, radier, skuggnivåer, kontrastregler, CTA-hierarki (primär/sekundär/länk) och bildbehandling (ratio, beskärning, overlay-styrka, filter).
-- `families.ts`: utökas till premiumfamiljer med egen karaktär i stället för gemensam mall — `cinematic-auto` (lyx/bil), `warm-craft` (bageri/café/mat), `industrial-trade` (bygg/VVS/el), `calm-wellness` (skönhet/hälsa), `editorial-b2b` (konsult/B2B), `estate-modern` (fastighet), `night-premium` (restaurang/hospitality), `kinetic-fitness` (träning). Varje familj får egna sektionsrecept, bildbehandling och rubrikbeteende.
-- `variants.ts` (ny): deterministisk variation från kundens referens/seed — väljer hero-typ, sektionsordning, kortstil och accentanvändning inom familjens ramar, så sidor inte blir kloner men fortfarande reproducerbara.
-- `compose.ts`: kopplar ihop brief → bransch/ton → familj → tokens → variant → sektioner. Samma in­data ger samma resultat som idag (befintliga sparade `design_spec` fortsätter fungera).
+- `project_applications` – alla design-/QA-/review-kolumner
+- `preview_email_log` – utökas med `kind`, `revision`, `idempotency_key` (unik),
+  `change_request_id`, index på `reference`, `provider_message_id`
+- `customer_change_requests` – utökas med `category`, `confidence`, `extracted`,
+  `routing`, `retry_count`, `last_error`, `answered_at`
+- `application_events` – index på `reference, created_at`
+- **ny** `design_versions` – immutable historik: `reference`, `revision`,
+  `design_spec`, `design_family`, `preview_url`, `qa_status`, `qa_score`,
+  `qa_report`, `created_at`. Unik på (reference, revision). Skrivs aldrig över.
+- **ny** `revision_jobs` – `reference`, `change_request_id`, `status`
+  (queued/processing/succeeded/failed/needs_review), `retry_count`, `last_error`,
+  `idempotency_key` unik, tidsstämplar
 
-### 2. Kundens material först
+Alla tabeller får GRANT + RLS med service role-policy (ingen publik åtkomst).
 
-- `assets.ts` (ny): klassar uppladdat material (logotyp, hero-kandidat, produkt/miljö, dokument), bedömer hur många bilder som finns och bygger en plan för var de ska användas. Logotyp renderas i header/footer i stället för att hamna i galleriet. Stockbilder fyller bara det som saknas.
+## 2. Hubben som orkestrator
 
-### 3. Renderare (`src/components/preview/`)
+Timeline per `reference` byggs av `application_events` + härledda rader från
+design_versions, mejllogg och kundsvar. Händelsetyper täcker: ansökan mottagen,
+filer, designversion skapad, QA-resultat, mail skickat/misslyckat, kundsvar,
+AI-tolkning, ändringsjobb (kö/start/klar/fel/retry), godkännande, manuell åtgärd.
+Adminvyn behåller nuvarande utseende – timelinen fylls med fler poster och
+versionshistorik, ingen redesign.
 
-- Delas upp i `PreviewRenderer.tsx` + `sections/`-block så nya sektionstyper kan läggas till utan att skriva om filen.
-- Strikta responsregler i ett gemensamt lager: clamp på all rubrikstorlek, min-width-skydd mot överflöd, ordbrytning för långa företagsnamn, bildratio i stället för fasta höjder, säkra overlays för textkontrast.
+## 3. AI-router för inkommande svar
 
-### 4. Kvalitetsport (`src/lib/design/quality.ts`, ny)
+Ny modul `src/lib/revision/router.ts`:
 
-- Kör strukturella kontroller på en färdig spec: finns hero med bild, finns CTA, finns kontaktuppgifter, kontrast på text mot bakgrund/overlay, rubriklängd kontra mobilbredd, sektionsantal och bildtäckning.
-- Returnerar poäng + lista med anmärkningar. Sparas i `design_spec.qa` och visas i admin som grön/gul/röd status. Blockerar inget i det befintliga produktionsflödet.
+1. Deterministisk regelmotor först (svenska fraser) → kategori + confidence + reason.
+2. Är signalen svag anropas Lovable AI (redan tillgänglig nyckel) för klassificering
+   i kategorierna `design_changes`, `design_approved`, `question_design`,
+   `question_process`, `question_payment`, `question_other`, `unclear`.
+3. **Godkännande får endast sättas av den deterministiska regeln vid explicit
+   godkännande utan reservation.** AI:n kan aldrig ensam godkänna.
+4. Allt sparas: originaltext, kategori, confidence, reason, extraherad data, routing.
+   Låg confidence → `needs_review`.
 
-### 5. Isolerad kundpreview
+## 4. Designloop med immutable versioner
 
-- `/kund-preview/$reference` renderas helt fristående utan projektets globala bakgrund, header eller adminrelaterad UI. Endast en diskret liten Din Webbpartner-rad ovanför sidan (som idag), inget internt.
+`design_changes` → skapar `revision_jobs`-rad → kör befintliga generatorn
+(`composeDesignSpec`) → ny rad i `design_versions` (aldrig överskrivning) → QA →
+- `ready`: preview uppdateras och mejlas automatiskt
+- `review`: väntar på admin
+- `blocked`: mejlas aldrig, orsak visas i admin
 
-### 6. Förberett för Hub
+Obegränsat antal revisioner; `project_applications` pekar bara på senaste versionen
+medan historiken ligger kvar.
 
-- `src/lib/design/index.ts` exporterar ett tydligt API: `composeDesignSpec`, `evaluateQuality`, `FAMILIES`, `listFamilies()`. Familjer och referensdesigner läggs till som data — ingen ändring i genereringslogiken krävs.
+## 5. Kundkommunikation
 
-## Vad som inte rörs
+Nya svenska mallar i samma visuella system som previewmejlet:
 
-Beställningsformulär, `api/public/*`, admin-API:er, mailutskick, referenskoder, databasstruktur (utom att `design_spec` får ett `qa`-fält), domäner och hemligheter. Ingen publicering görs.
+- `change-received` – kvittens med säker sammanfattning av det systemet extraherat
+- `approval-confirmed` – bekräftar att version X registrerats som godkänd
+- `question-ack` – kvittens på fråga som går till manuell granskning
+- `question-answer` – automatsvar endast när svaret kan grundas i orderdata
+  (status, version, vad som händer härnäst); annars kvittens + needs_review
 
-## Kontroll innan klart
+Varje utskick loggas med provider message id, kind, revision, status, tidsstämplar
+och idempotency key (samma nyckel skickar aldrig två mejl).
 
-Typkontroll och bygge, regenerering av testgalleriets 20 fall lokalt, samt mobilgranskning (375 px) av flera previews — bland annat Isola Sweets och Premium Cars — med kontroll av överflöd, kontrast och rubrikbrytning.
+## 6. Inbound
+
+Behåller och härdar: Resend `email.received`-format, hämtning av mejltext via
+Resend API när webhooken bara har metadata, plus-adressmatchning
+`reply+REF@reply.dinwebbpartner.com`, trådfallback, signaturverifiering och
+duplikatskydd på `message_id`.
+
+## 7. Health check som verkligen testar
+
+`/api/admin/email-health` byggs ut till aktiva prov och returnerar grönt/gult/rött
+plus åtgärdstext per punkt: databasanslutning, varje förväntad tabell/kolumn,
+migrationsstatus, `RESEND_API_KEY` (verifieras mot Resend API), avsändardomän,
+`INBOUND_EMAIL_WEBHOOK_SECRET`, inbound-endpoint (self-probe), förväntad MX/
+mottagardomän, generatorn (torrkörning av `composeDesignSpec` + QA) och mejlloggen.
+Inget "redo" utan att underliggande prov gått igenom.
+
+## 8. Fel och recovery
+
+`revision_jobs` och mejlloggen får enhetliga statusar, `retry_count`, `last_error`
+och tidsstämplar. Admin får en retry-åtgärd som använder idempotency key, så en
+omkörning aldrig ger dubbla versioner eller dubbla mejl.
+
+## Tester
+
+Integrationstester för: saknad tabell, duplicerad webhook, metadata-only-mejl,
+plus-adressmatchning, design_changes → ny version → QA → mejl, explicit
+godkännande, tvetydig text, frågerouting samt retry/idempotens. Därefter
+typkontroll, hela testsviten och bygge.
+
+## Vad som inte görs
+
+Betalning, domänleverans och senare leveranssteg aktiveras inte – routern kan
+klassificera frågor om dem och datamodellen är förberedd.
