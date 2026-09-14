@@ -43,7 +43,20 @@ async function syncPreviewLog(
 ): Promise<void> {
   if (!messageId || typeof messageId !== 'string') return
   try {
-    await supabase.from('preview_email_log').update(patch).eq('provider_message_id', messageId)
+    // Same direct Postgres connection as the rest of the hub, so the log can
+    // never point at a different database than project_applications.
+    const { withHub } = await import('@/lib/hub/db')
+    await withHub(async (sql) => {
+      await sql`
+        UPDATE public.preview_email_log
+        SET status = COALESCE(${(patch as any).status ?? null}, status),
+            error_message = COALESCE(${(patch as any).error_message ?? null}, error_message),
+            delivered_at = COALESCE(${(patch as any).delivered_at ?? null}::timestamptz, delivered_at),
+            sent_at = COALESCE(${(patch as any).sent_at ?? null}::timestamptz, sent_at),
+            updated_at = now()
+        WHERE provider_message_id = ${messageId}
+      `
+    })
   } catch (error) {
     console.warn('Failed to sync preview_email_log', { messageId, error })
   }

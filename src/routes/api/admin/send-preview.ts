@@ -72,22 +72,46 @@ type LogRow = {
   sent_at?: string | null
 }
 
-/** Never store secrets here — only routing metadata and provider ids. */
-async function logSend(client: any, row: LogRow): Promise<string | null> {
+/**
+ * Never store secrets here — only routing metadata and provider ids.
+ *
+ * Writes go through the same direct Postgres connection as project_applications.
+ * The old Data API path resolved to a different database in production, which
+ * is what produced PGRST205 "public.preview_email_log not found".
+ */
+async function logSend(row: LogRow): Promise<string | null> {
   try {
-    const { data, error } = await client.from('preview_email_log').insert(row).select('id').single()
-    if (error) throw error
-    return (data?.id as string) ?? null
+    return await withHub(async (sql) => {
+      const rows = await sql<{ id: string }[]>`
+        INSERT INTO public.preview_email_log
+          (reference, company, recipient, preview_url, sender, provider, provider_message_id, status, error_message, sent_at)
+        VALUES (${row.reference}, ${row.company ?? null}, ${row.recipient}, ${row.preview_url ?? null},
+                ${row.sender ?? null}, ${row.provider}, ${row.provider_message_id ?? null},
+                ${row.status}, ${row.error_message ?? null}, ${row.sent_at ?? null})
+        RETURNING id
+      `
+      return rows[0]?.id ?? null
+    })
   } catch (e) {
     console.error('send-preview: log insert failed', e)
     return null
   }
 }
 
-async function updateLog(client: any, id: string | null, patch: Partial<LogRow>) {
+async function updateLog(id: string | null, patch: Partial<LogRow>) {
   if (!id) return
   try {
-    await client.from('preview_email_log').update(patch).eq('id', id)
+    await withHub(async (sql) => {
+      await sql`
+        UPDATE public.preview_email_log
+        SET status = COALESCE(${patch.status ?? null}, status),
+            error_message = COALESCE(${patch.error_message ?? null}, error_message),
+            provider_message_id = COALESCE(${patch.provider_message_id ?? null}, provider_message_id),
+            sent_at = COALESCE(${patch.sent_at ?? null}::timestamptz, sent_at),
+            updated_at = now()
+        WHERE id = ${id}
+      `
+    })
   } catch (e) {
     console.error('send-preview: log update failed', e)
   }
@@ -351,7 +375,7 @@ export const Route = createFileRoute('/api/admin/send-preview')({
           )
         }
 
-        const queueLogId = await logSend(provider.client, {
+        const queueLogId = await logSend({
           reference: app.reference,
           company: app.company ?? null,
           recipient,
@@ -390,10 +414,10 @@ export const Route = createFileRoute('/api/admin/send-preview')({
             },
           })
           if (error) throw error
-          await updateLog(provider.client, queueLogId, { status: 'sent', sent_at: new Date().toISOString() })
+          await updateLog(queueLogId, { status: 'sent', sent_at: new Date().toISOString() })
         } catch (e) {
           console.error('send-preview: enqueue failed', e)
-          await updateLog(provider.client, queueLogId, { status: 'failed', error_message: 'Kunde inte köa previewmailet' })
+          await updateLog(queueLogId, { status: 'failed', error_message: 'Kunde inte köa previewmailet' })
           return Response.json({ error: 'Kunde inte skicka previewmailet' }, { status: 500 })
         }
 
