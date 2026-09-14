@@ -113,3 +113,27 @@ describe("webhook auth", () => {
     expect(r).toEqual({ ok: false, reason: "timestamp_out_of_tolerance" });
   });
 });
+
+// --- Design review loop -----------------------------------------------------
+
+describe("classifyReply", () => {
+  test("tydligt godkännande", () => {
+    expect(classifyReply("Hej! Jag godkänner designen, den ser jättebra ut.").intent).toBe("approved");
+    expect(classifyReply("Perfekt som den är, inga ändringar.").intent).toBe("approved");
+  });
+
+  test("ändringsönskemål", () => {
+    expect(classifyReply("Behåll röd/svart men lägg till mer blått").intent).toBe("changes");
+    expect(classifyReply("Kan ni göra rubriken mindre?").intent).toBe("changes");
+  });
+
+  test("positivt men med reservation räknas aldrig som godkännande", () => {
+    const r = classifyReply("Ser bra ut men jag återkommer");
+    expect(r.intent).toBe("unclear");
+  });
+
+  test("oklart svar blir aldrig godkännande", () => {
+    expect(classifyReply("Tack för mailet.").intent).toBe("unclear");
+    expect(classifyReply("").intent).toBe("unclear");
+  });
+});

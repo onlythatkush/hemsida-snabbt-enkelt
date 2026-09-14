@@ -49,13 +49,13 @@ export const Route = createFileRoute('/api/admin/applications')({
             const [events, requests] = await Promise.all([
               supabase
                 .from('application_events')
-                .select('id, event_type, label, details, created_at')
+                .select('*')
                 .eq('reference', timeline)
                 .order('created_at', { ascending: false })
                 .limit(50),
               supabase
                 .from('customer_change_requests')
-                .select('id, raw_text, directives, status, revision, received_at, matched_via, error, intent, intent_reason, subject')
+                .select('*')
                 .eq('reference', timeline)
                 .order('received_at', { ascending: false })
                 .limit(20),
