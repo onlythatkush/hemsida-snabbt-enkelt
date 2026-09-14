@@ -313,7 +313,9 @@ export const Route = createFileRoute('/api/admin/send-preview')({
             configuredFrom && !/resend\.dev/i.test(configuredFrom)
               ? configuredFrom
               : `${SITE_NAME} <preview@${FROM_DOMAIN}>`
-          const replyTo = `reply+${app.reference}@${FROM_DOMAIN}`
+          // Replies land on the dedicated inbound subdomain so MX records on the
+          // main domain (normal business mail) stay untouched.
+          const replyTo = replyAddressFor(app.reference)
           const logId = logClient
             ? await logSend(logClient, {
                 reference: app.reference,
