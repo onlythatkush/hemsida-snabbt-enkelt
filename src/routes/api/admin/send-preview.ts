@@ -188,34 +188,35 @@ export const Route = createFileRoute('/api/admin/send-preview')({
           return Response.json({ subject: rendered.subject, html: rendered.html, text: rendered.text })
         }
 
-        const provider = emailProvider()
-        if (!provider.ok) return Response.json({ error: 'Database not configured' }, { status: 500 })
-
-        let query = provider.client
-          .from('preview_email_log')
-          .select('id, reference, company, recipient, preview_url, sender, provider, provider_message_id, status, error_message, sent_at, delivered_at, created_at, updated_at')
-          .order('created_at', { ascending: false })
-          .limit(reference ? 20 : 100)
-        if (reference) query = query.eq('reference', reference)
-
-        const { data, error } = await query
-        if (error) {
-          const code = String((error as any)?.code || '')
-          const message = String((error as any)?.message || '')
-          // The log table may not exist yet in an environment that has not run
-          // the migration. That must not break the admin panel.
-          if (code === 'PGRST205' || code === '42P01' || /preview_email_log/i.test(message)) {
-            console.warn('send-preview: preview_email_log missing', code)
+        // Mail history is read over the SAME Postgres connection the rest of the
+        // hub uses. Reading it over the Data API is what produced the production
+        // PGRST205 "preview_email_log missing" error: the two paths resolved to
+        // different databases.
+        try {
+          const rows = await withHub(async (sql) =>
+            reference
+              ? sql`SELECT id, reference, company, recipient, preview_url, sender, provider, provider_message_id,
+                           status, kind, revision, error_message, sent_at, delivered_at, created_at, updated_at
+                    FROM public.preview_email_log WHERE upper(reference) = ${reference}
+                    ORDER BY created_at DESC LIMIT 40`
+              : sql`SELECT id, reference, company, recipient, preview_url, sender, provider, provider_message_id,
+                           status, kind, revision, error_message, sent_at, delivered_at, created_at, updated_at
+                    FROM public.preview_email_log ORDER BY created_at DESC LIMIT 100`,
+          )
+          const logs = (rows as any[]).map((row) => ({
+            ...row,
+            recipient_masked: maskEmail(String(row.recipient || '')),
+          }))
+          return Response.json({ logs })
+        } catch (e) {
+          const message = String((e as any)?.message || e)
+          if (/relation .*preview_email_log.* does not exist/i.test(message)) {
             return Response.json({ logs: [], unavailable: 'preview_email_log saknas i databasen' })
           }
-          console.error('send-preview: history read failed', error)
-          return Response.json({ error: 'Kunde inte läsa mailhistorik' }, { status: 500 })
+          console.error('send-preview: history read failed', e)
+          return Response.json({ error: 'Kunde inte läsa mailhistorik', detail: message.slice(0, 200) }, { status: 500 })
         }
-        const logs = (data || []).map((row: any) => ({
-          ...row,
-          recipient_masked: maskEmail(String(row.recipient || '')),
-        }))
-        return Response.json({ logs })
+
       },
       POST: async ({ request }) => {
         if (!authorized(request)) return Response.json({ error: 'Unauthorized' }, { status: 401 })
