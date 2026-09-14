@@ -374,6 +374,8 @@ function Admin() {
             </Button>
           </div>
 
+          <EmailHealth adminKey={savedKey} />
+
           {showGallery && (
             <Card className="mb-8">
               <CardContent className="pt-6">
