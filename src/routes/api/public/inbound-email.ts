@@ -2,6 +2,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import postgres from 'postgres'
 import { DESIGN_SPEC_VERSION, composeDesignSpec } from '@/lib/design/compose'
 import { cleanReplyText, parseRevisionRequest } from '@/lib/revision/parse'
+import { classifyReply } from '@/lib/revision/intent'
 import { matchInboundReference } from '@/lib/revision/match'
 import { verifyWebhookSignature } from '@/lib/revision/webhook'
 import type { InboundEmail } from '@/lib/revision/types'
@@ -41,6 +42,20 @@ export function normalizeInbound(payload: any): InboundEmail {
   }
 }
 
+/** Production databases may predate the review-loop migration. */
+async function ensureColumns(sql: any) {
+  try {
+    await sql`ALTER TABLE public.customer_change_requests ADD COLUMN IF NOT EXISTS intent TEXT`
+    await sql`ALTER TABLE public.customer_change_requests ADD COLUMN IF NOT EXISTS intent_reason TEXT`
+    await sql`ALTER TABLE public.customer_change_requests ADD COLUMN IF NOT EXISTS subject TEXT`
+    await sql`ALTER TABLE public.project_applications ADD COLUMN IF NOT EXISTS design_revision INTEGER`
+    await sql`ALTER TABLE public.project_applications ADD COLUMN IF NOT EXISTS customer_approved_at TIMESTAMPTZ`
+    await sql`ALTER TABLE public.project_applications ADD COLUMN IF NOT EXISTS review_note TEXT`
+  } catch {
+    /* schema is normally managed by migrations */
+  }
+}
+
 export const Route = createFileRoute('/api/public/inbound-email')({
   server: {
     handlers: {
@@ -74,14 +89,16 @@ export const Route = createFileRoute('/api/public/inbound-email')({
         const sql = postgres(url, { max: 1, prepare: false })
 
         try {
+          await ensureColumns(sql)
+
           // Only message ids we actually sent may resolve a thread.
-          const sent = await sql<{ provider_id: string; reference: string }[]>`
-            SELECT provider_id, reference FROM public.preview_email_log
-            WHERE provider_id IS NOT NULL
+          const sent = await sql<{ provider_message_id: string; reference: string }[]>`
+            SELECT provider_message_id, reference FROM public.preview_email_log
+            WHERE provider_message_id IS NOT NULL
             ORDER BY created_at DESC LIMIT 500
-          `.catch(() => [] as { provider_id: string; reference: string }[])
+          `.catch(() => [] as { provider_message_id: string; reference: string }[])
           const threadLookup: Record<string, string> = {}
-          for (const row of sent) threadLookup[row.provider_id] = row.reference
+          for (const row of sent) threadLookup[row.provider_message_id] = row.reference
 
           const match = matchInboundReference(email, threadLookup)
           if (!match) {
@@ -90,14 +107,17 @@ export const Route = createFileRoute('/api/public/inbound-email')({
           }
 
           const body = cleanReplyText(email.text || email.html || '')
+          const intent = classifyReply(body)
           const directives = parseRevisionRequest(body)
 
           // Idempotency: the same provider message can only ever create one row.
           const inserted = await sql`
             INSERT INTO public.customer_change_requests
-              (reference, raw_text, directives, from_email, message_id, matched_via, status)
+              (reference, raw_text, directives, from_email, message_id, matched_via, status,
+               intent, intent_reason, subject)
             VALUES (${match.reference}, ${body}, ${sql.json(directives as any)}, ${email.from ?? null},
-                    ${email.messageId}, ${match.via}, 'received')
+                    ${email.messageId}, ${match.via}, 'received',
+                    ${intent.intent}, ${intent.reason}, ${email.subject ?? null})
             ON CONFLICT (message_id) DO NOTHING
             RETURNING id
           `
@@ -106,10 +126,16 @@ export const Route = createFileRoute('/api/public/inbound-email')({
           }
           const changeRequestId = (inserted[0] as any).id
 
+          const replyLabel =
+            intent.intent === 'approved'
+              ? 'Kunden godkände designen'
+              : intent.intent === 'changes'
+                ? 'Kunden svarade med ändringar'
+                : 'Kundsvar behöver granskas'
           await sql`
             INSERT INTO public.application_events (reference, event_type, label, details)
-            VALUES (${match.reference}, 'customer_replied', 'Kunden svarade med ändringar',
-                    ${sql.json({ matchedVia: match.via, summary: directives.summary } as any)})
+            VALUES (${match.reference}, 'customer_replied', ${replyLabel},
+                    ${sql.json({ matchedVia: match.via, intent: intent.intent, reason: intent.reason, summary: directives.summary } as any)})
           `
 
           const found = await sql`SELECT * FROM public.project_applications WHERE reference = ${match.reference} LIMIT 1`
@@ -119,12 +145,51 @@ export const Route = createFileRoute('/api/public/inbound-email')({
           }
           const app = found[0] as any
 
+          // B) Clear approval: stop the revision loop. No later delivery step here.
+          if (intent.intent === 'approved') {
+            await sql`
+              UPDATE public.project_applications
+              SET status = 'approved',
+                  customer_approved_at = now(),
+                  design_locked = true,
+                  review_note = NULL,
+                  updated_at = now()
+              WHERE reference = ${app.reference}
+            `
+            await sql`
+              UPDATE public.customer_change_requests
+              SET status = 'approved', processed_at = now() WHERE id = ${changeRequestId}
+            `
+            await sql`
+              INSERT INTO public.application_events (reference, event_type, label, details)
+              VALUES (${app.reference}, 'customer_approved', 'Godkänd av kund',
+                      ${sql.json({ signals: intent.signals } as any)})
+            `
+            return Response.json({ ok: true, reference: app.reference, intent: 'approved' })
+          }
+
+          // Anything not clearly an approval and not clearly a change request is
+          // never acted on automatically — a human reads it first.
+          if (intent.intent === 'unclear') {
+            await sql`
+              UPDATE public.project_applications
+              SET review_note = ${intent.reason}, status = 'reviewing', updated_at = now()
+              WHERE reference = ${app.reference}
+            `
+            await sql`
+              UPDATE public.customer_change_requests
+              SET status = 'needs_review', processed_at = now() WHERE id = ${changeRequestId}
+            `
+            return Response.json({ ok: true, reference: app.reference, intent: 'unclear' })
+          }
+
           if (app.design_locked) {
             await sql`UPDATE public.customer_change_requests SET status = 'skipped', error = 'design_locked' WHERE id = ${changeRequestId}`
             return Response.json({ ok: true, reference: match.reference, skipped: 'design_locked' })
           }
 
-          const revision = (Number(app.design_spec?.revision) || 0) + 1
+          // A) Change request: build the next design revision automatically.
+          const revision = (Number(app.design_spec?.revision) || Number(app.design_revision) || 0) + 1
           const spec = composeDesignSpec(
             {
               reference: app.reference,
@@ -158,10 +223,12 @@ export const Route = createFileRoute('/api/public/inbound-email')({
                 preview_url = ${previewUrl},
                 design_spec = ${sql.json(spec as any)},
                 design_family = ${spec.family},
+                design_revision = ${revision},
                 qa_status = ${qa?.status ?? null},
                 qa_score = ${qa?.score ?? null},
                 qa_report = ${qa ? sql.json({ ...qa, designVersion: DESIGN_SPEC_VERSION, revision } as any) : null},
                 qa_accepted_at = NULL,
+                review_note = ${directives.unparsed ? 'Ändringarna kunde inte tolkas fullt ut – läs kundsvaret' : null},
                 status = 'changes',
                 updated_at = now()
             WHERE reference = ${app.reference}
@@ -175,13 +242,14 @@ export const Route = createFileRoute('/api/public/inbound-email')({
           await sql`
             INSERT INTO public.application_events (reference, event_type, label, details)
             VALUES (${app.reference}, 'revision_generated', ${'Ny version ' + revision + ' skapad'},
-                    ${sql.json({ revision, family: spec.family, qaStatus: qa?.status, qaScore: qa?.score } as any)})
+                    ${sql.json({ revision, family: spec.family, qaStatus: qa?.status, qaScore: qa?.score, summary: directives.summary } as any)})
           `
 
           // Never auto-send. Admin decides, and the QA gate still applies.
           return Response.json({
             ok: true,
             reference: app.reference,
+            intent: 'changes',
             revision,
             qaStatus: qa?.status,
             qaScore: qa?.score,

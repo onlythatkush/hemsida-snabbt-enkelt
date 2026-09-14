@@ -43,6 +43,9 @@ type Application = {
   qa_score?: number | null;
   qa_report?: any;
   qa_accepted_at?: string | null;
+  design_revision?: number | null;
+  customer_approved_at?: string | null;
+  review_note?: string | null;
 };
 
 const qaStatusLabels: Record<string, string> = {
@@ -461,6 +464,8 @@ function Admin() {
                       </div>
                     </div>
 
+                    <ReviewState app={a} />
+
                     <Select value={a.status} onValueChange={(v) => update(a.reference, { status: v })}>
                       <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
                       <SelectContent>{statuses.map((s) => <SelectItem key={s} value={s}>{statusLabels[s] || s}</SelectItem>)}</SelectContent>
@@ -683,8 +688,57 @@ type ChangeRequest = {
   revision: number | null;
   received_at: string;
   matched_via: string | null;
+  intent?: string | null;
+  intent_reason?: string | null;
   directives?: { summary?: string[] } | null;
 };
+
+const intentLabels: Record<string, string> = {
+  approved: "Godkännande",
+  changes: "Ändringar önskas",
+  unclear: "Oklart – granska",
+};
+
+const requestStatusLabels: Record<string, string> = {
+  received: "Mottaget",
+  applied: "Ny version skapad",
+  approved: "Godkänd av kund",
+  needs_review: "Behöver granskas",
+  skipped: "Ej behandlat",
+  failed: "Misslyckades",
+};
+
+/** Current design-review state: version, approval and pending review note. */
+function ReviewState({ app }: { app: Application }) {
+  const revision = app.design_revision ?? app.design_spec?.revision ?? null;
+  const approved = Boolean(app.customer_approved_at);
+  if (!revision && !approved && !app.review_note) return null;
+  return (
+    <div
+      className={
+        "rounded-lg border p-3 text-sm " +
+        (approved
+          ? "border-emerald-500/60 bg-emerald-500/10"
+          : app.review_note
+            ? "border-amber-500/60 bg-amber-500/10"
+            : "bg-muted/40")
+      }
+    >
+      <div className="flex flex-wrap items-center gap-2">
+        {revision ? <span className="rounded-full bg-background px-2 py-0.5 text-xs">Version {revision}</span> : null}
+        {approved && <span className="font-medium">Godkänd av kund</span>}
+        {approved && app.customer_approved_at && (
+          <span className="text-xs text-muted-foreground">
+            {new Date(app.customer_approved_at).toLocaleString("sv-SE")}
+          </span>
+        )}
+      </div>
+      {!approved && app.review_note && (
+        <div className="mt-1 text-xs text-muted-foreground">{app.review_note}</div>
+      )}
+    </div>
+  );
+}
 
 /** Customer replies and the full history for one application. */
 function RevisionTimeline({ reference, adminKey, version }: { reference: string; adminKey: string; version: number }) {
@@ -716,14 +770,15 @@ function RevisionTimeline({ reference, adminKey, version }: { reference: string;
   return (
     <div className="rounded-lg border p-3 space-y-3">
       <div className="text-xs text-muted-foreground">Kundsvar & historik</div>
-      {requests.slice(0, 3).map((r) => (
+      {requests.map((r) => (
         <div key={r.id} className="rounded-md bg-muted/50 p-2 text-sm space-y-1">
           <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-            <span className="rounded-full bg-background px-2 py-0.5">{r.status}</span>
+            <span className="rounded-full bg-background px-2 py-0.5">{requestStatusLabels[r.status] || r.status}</span>
+            {r.intent ? <span className="rounded-full bg-background px-2 py-0.5">{intentLabels[r.intent] || r.intent}</span> : null}
             {r.revision ? <span>version {r.revision}</span> : null}
             <span>{new Date(r.received_at).toLocaleString("sv-SE")}</span>
           </div>
-          <div className="break-words">{r.raw_text.slice(0, 220)}</div>
+          <div className="break-words">{r.raw_text}</div>
           {!!r.directives?.summary?.length && (
             <ul className="list-disc pl-4 text-xs text-muted-foreground">
               {r.directives.summary.map((s) => <li key={s}>{s}</li>)}
@@ -733,7 +788,7 @@ function RevisionTimeline({ reference, adminKey, version }: { reference: string;
       ))}
       {!!events.length && (
         <ol className="space-y-1 text-xs text-muted-foreground">
-          {events.slice(0, 8).map((e) => (
+          {events.map((e) => (
             <li key={e.id} className="flex flex-wrap gap-2">
               <span className="text-foreground">{e.label}</span>
               <span>{new Date(e.created_at).toLocaleString("sv-SE")}</span>
