@@ -693,6 +693,49 @@ type ChangeRequest = {
   intent?: string | null;
   intent_reason?: string | null;
   directives?: { summary?: string[] } | null;
+  category?: string | null;
+  confidence?: number | null;
+  classifier?: string | null;
+  routing?: string | null;
+  last_error?: string | null;
+};
+type DesignVersion = {
+  revision: number;
+  design_family: string | null;
+  preview_url: string | null;
+  qa_status: string | null;
+  qa_score: number | null;
+  source: string | null;
+  created_at: string;
+};
+type RevisionJob = {
+  id: string;
+  status: string;
+  revision: number | null;
+  retry_count: number;
+  last_error: string | null;
+  created_at: string;
+  finished_at: string | null;
+};
+
+const categoryLabels: Record<string, string> = {
+  design_changes: "Ändringar önskas",
+  design_approved: "Godkännande",
+  question_design: "Fråga om designen",
+  question_process: "Fråga om processen",
+  question_payment: "Fråga om betalning",
+  question_other: "Övrig fråga",
+  unclear: "Oklart – granska",
+};
+
+const qaLabels: Record<string, string> = { ready: "klar", review: "granska", blocked: "blockerad" };
+
+const jobStatusLabels: Record<string, string> = {
+  queued: "I kö",
+  processing: "Pågår",
+  succeeded: "Klar",
+  failed: "Misslyckades",
+  needs_review: "Kräver granskning",
 };
 
 const intentLabels: Record<string, string> = {
@@ -746,6 +789,10 @@ function ReviewState({ app }: { app: Application }) {
 function RevisionTimeline({ reference, adminKey, version }: { reference: string; adminKey: string; version: number }) {
   const [events, setEvents] = useState<TimelineEvent[] | null>(null);
   const [requests, setRequests] = useState<ChangeRequest[]>([]);
+  const [versions, setVersions] = useState<DesignVersion[]>([]);
+  const [jobs, setJobs] = useState<RevisionJob[]>([]);
+  const [busy, setBusy] = useState<string | null>(null);
+  const [reload, setReload] = useState(0);
 
   useEffect(() => {
     let active = true;
@@ -760,43 +807,124 @@ function RevisionTimeline({ reference, adminKey, version }: { reference: string;
         if (!active) return;
         setEvents(body.events || []);
         setRequests(body.changeRequests || []);
+        setVersions(body.versions || []);
+        setJobs(body.jobs || []);
       } catch {
         if (active) setEvents([]);
       }
     })();
     return () => { active = false; };
-  }, [reference, adminKey, version]);
+  }, [reference, adminKey, version, reload]);
 
-  if (!events || (!events.length && !requests.length)) return null;
+  async function reprocess(changeRequestId: string) {
+    setBusy(changeRequestId);
+    try {
+      const res = await fetch("/api/admin/reprocess", {
+        method: "POST",
+        headers: { "content-type": "application/json", "x-admin-key": adminKey },
+        body: JSON.stringify({ reference, changeRequestId }),
+      });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(body?.error || "Kunde inte köra om");
+      toast.success(body?.skipped === "already_processed"
+        ? "Redan behandlat – inget dubbelarbete gjordes"
+        : `Ny version ${body.revision} skapad (kvalitet: ${body.qaStatus || "okänd"})`);
+      setReload((n) => n + 1);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Kunde inte köra om");
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  if (!events || (!events.length && !requests.length && !versions.length && !jobs.length)) return null;
 
   return (
-    <div className="rounded-lg border p-3 space-y-3">
-      <div className="text-xs text-muted-foreground">Kundsvar & historik</div>
-      {requests.map((r) => (
-        <div key={r.id} className="rounded-md bg-muted/50 p-2 text-sm space-y-1">
-          <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-            <span className="rounded-full bg-background px-2 py-0.5">{requestStatusLabels[r.status] || r.status}</span>
-            {r.intent ? <span className="rounded-full bg-background px-2 py-0.5">{intentLabels[r.intent] || r.intent}</span> : null}
-            {r.revision ? <span>version {r.revision}</span> : null}
-            <span>{new Date(r.received_at).toLocaleString("sv-SE")}</span>
-          </div>
-          <div className="break-words">{r.raw_text}</div>
-          {!!r.directives?.summary?.length && (
-            <ul className="list-disc pl-4 text-xs text-muted-foreground">
-              {r.directives.summary.map((s) => <li key={s}>{s}</li>)}
-            </ul>
-          )}
+    <div className="rounded-lg border p-3 space-y-4">
+      {!!requests.length && (
+        <div className="space-y-2">
+          <div className="text-xs text-muted-foreground">Kundens meddelanden</div>
+          {requests.map((r) => {
+            const retryable = ["failed", "needs_review", "received", "skipped"].includes(r.status);
+            return (
+              <div key={r.id} className="rounded-md bg-muted/50 p-2 text-sm space-y-1">
+                <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                  <span className="rounded-full bg-background px-2 py-0.5">{requestStatusLabels[r.status] || r.status}</span>
+                  {r.category ? <span className="rounded-full bg-background px-2 py-0.5">{categoryLabels[r.category] || r.category}</span> : null}
+                  {!r.category && r.intent ? <span className="rounded-full bg-background px-2 py-0.5">{intentLabels[r.intent] || r.intent}</span> : null}
+                  {typeof r.confidence === "number" ? <span>säkerhet {Math.round(r.confidence * 100)}%</span> : null}
+                  {r.revision ? <span>version {r.revision}</span> : null}
+                  {r.matched_via ? <span>matchad via {r.matched_via}</span> : null}
+                  <span>{new Date(r.received_at).toLocaleString("sv-SE")}</span>
+                </div>
+                <div className="break-words">{r.raw_text}</div>
+                {r.intent_reason ? <div className="text-xs text-muted-foreground">Bedömning: {r.intent_reason}</div> : null}
+                {!!r.directives?.summary?.length && (
+                  <ul className="list-disc pl-4 text-xs text-muted-foreground">
+                    {r.directives.summary.map((s) => <li key={s}>{s}</li>)}
+                  </ul>
+                )}
+                {r.last_error ? <div className="text-xs text-destructive break-words">Fel: {r.last_error}</div> : null}
+                {retryable && (
+                  <Button size="sm" variant="outline" className="mt-1" disabled={busy === r.id} onClick={() => reprocess(r.id)}>
+                    {busy === r.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+                    Kör om ändringarna
+                  </Button>
+                )}
+              </div>
+            );
+          })}
         </div>
-      ))}
+      )}
+
+      {!!versions.length && (
+        <div className="space-y-1">
+          <div className="text-xs text-muted-foreground">Versioner</div>
+          <ul className="space-y-1 text-xs">
+            {versions.map((v) => (
+              <li key={v.revision} className="flex flex-wrap items-center gap-2">
+                <span className="text-foreground font-medium">Version {v.revision}</span>
+                {v.design_family ? <span className="text-muted-foreground">{v.design_family}</span> : null}
+                {v.qa_status ? <span className="text-muted-foreground">kvalitet: {qaLabels[v.qa_status] || v.qa_status}{typeof v.qa_score === "number" ? ` ${v.qa_score}` : ""}</span> : null}
+                <span className="text-muted-foreground">{new Date(v.created_at).toLocaleString("sv-SE")}</span>
+                {v.preview_url ? (
+                  <a className="underline" href={v.preview_url} target="_blank" rel="noreferrer">Öppna</a>
+                ) : null}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {!!jobs.length && (
+        <div className="space-y-1">
+          <div className="text-xs text-muted-foreground">Jobb</div>
+          <ul className="space-y-1 text-xs text-muted-foreground">
+            {jobs.map((j) => (
+              <li key={j.id} className="flex flex-wrap gap-2">
+                <span className="text-foreground">{jobStatusLabels[j.status] || j.status}</span>
+                {j.revision ? <span>version {j.revision}</span> : null}
+                {j.retry_count ? <span>försök {j.retry_count + 1}</span> : null}
+                <span>{new Date(j.created_at).toLocaleString("sv-SE")}</span>
+                {j.last_error ? <span className="text-destructive break-words">{j.last_error}</span> : null}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
       {!!events.length && (
-        <ol className="space-y-1 text-xs text-muted-foreground">
-          {events.map((e) => (
-            <li key={e.id} className="flex flex-wrap gap-2">
-              <span className="text-foreground">{e.label}</span>
-              <span>{new Date(e.created_at).toLocaleString("sv-SE")}</span>
-            </li>
-          ))}
-        </ol>
+        <div className="space-y-1">
+          <div className="text-xs text-muted-foreground">Händelser</div>
+          <ol className="space-y-1 text-xs text-muted-foreground">
+            {events.map((e) => (
+              <li key={e.id} className="flex flex-wrap gap-2">
+                <span className="text-foreground">{e.label}</span>
+                <span>{new Date(e.created_at).toLocaleString("sv-SE")}</span>
+              </li>
+            ))}
+          </ol>
+        </div>
       )}
     </div>
   );

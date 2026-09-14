@@ -26,6 +26,7 @@ import { Route as ApiPublicApplicationRouteImport } from './routes/api/public/ap
 import { Route as ApiHubApplicationsRouteImport } from './routes/api/hub/applications'
 import { Route as ApiAdminSendPreviewRouteImport } from './routes/api/admin/send-preview'
 import { Route as ApiAdminSeedTestGalleryRouteImport } from './routes/api/admin/seed-test-gallery'
+import { Route as ApiAdminReprocessRouteImport } from './routes/api/admin/reprocess'
 import { Route as ApiAdminEmailHealthRouteImport } from './routes/api/admin/email-health'
 import { Route as ApiAdminApplicationsRouteImport } from './routes/api/admin/applications'
 import { Route as LovableEmailTransactionalSendRouteImport } from './routes/lovable/email/transactional/send'
@@ -119,6 +120,11 @@ const ApiAdminSeedTestGalleryRoute = ApiAdminSeedTestGalleryRouteImport.update({
   path: '/api/admin/seed-test-gallery',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAdminReprocessRoute = ApiAdminReprocessRouteImport.update({
+  id: '/api/admin/reprocess',
+  path: '/api/admin/reprocess',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiAdminEmailHealthRoute = ApiAdminEmailHealthRouteImport.update({
   id: '/api/admin/email-health',
   path: '/api/admin/email-health',
@@ -165,6 +171,7 @@ export interface FileRoutesByFullPath {
   '/portfolio/$slug': typeof PortfolioSlugRoute
   '/api/admin/applications': typeof ApiAdminApplicationsRoute
   '/api/admin/email-health': typeof ApiAdminEmailHealthRoute
+  '/api/admin/reprocess': typeof ApiAdminReprocessRoute
   '/api/admin/seed-test-gallery': typeof ApiAdminSeedTestGalleryRoute
   '/api/admin/send-preview': typeof ApiAdminSendPreviewRoute
   '/api/hub/applications': typeof ApiHubApplicationsRoute
@@ -190,6 +197,7 @@ export interface FileRoutesByTo {
   '/portfolio/$slug': typeof PortfolioSlugRoute
   '/api/admin/applications': typeof ApiAdminApplicationsRoute
   '/api/admin/email-health': typeof ApiAdminEmailHealthRoute
+  '/api/admin/reprocess': typeof ApiAdminReprocessRoute
   '/api/admin/seed-test-gallery': typeof ApiAdminSeedTestGalleryRoute
   '/api/admin/send-preview': typeof ApiAdminSendPreviewRoute
   '/api/hub/applications': typeof ApiHubApplicationsRoute
@@ -216,6 +224,7 @@ export interface FileRoutesById {
   '/portfolio/$slug': typeof PortfolioSlugRoute
   '/api/admin/applications': typeof ApiAdminApplicationsRoute
   '/api/admin/email-health': typeof ApiAdminEmailHealthRoute
+  '/api/admin/reprocess': typeof ApiAdminReprocessRoute
   '/api/admin/seed-test-gallery': typeof ApiAdminSeedTestGalleryRoute
   '/api/admin/send-preview': typeof ApiAdminSendPreviewRoute
   '/api/hub/applications': typeof ApiHubApplicationsRoute
@@ -243,6 +252,7 @@ export interface FileRouteTypes {
     | '/portfolio/$slug'
     | '/api/admin/applications'
     | '/api/admin/email-health'
+    | '/api/admin/reprocess'
     | '/api/admin/seed-test-gallery'
     | '/api/admin/send-preview'
     | '/api/hub/applications'
@@ -268,6 +278,7 @@ export interface FileRouteTypes {
     | '/portfolio/$slug'
     | '/api/admin/applications'
     | '/api/admin/email-health'
+    | '/api/admin/reprocess'
     | '/api/admin/seed-test-gallery'
     | '/api/admin/send-preview'
     | '/api/hub/applications'
@@ -293,6 +304,7 @@ export interface FileRouteTypes {
     | '/portfolio/$slug'
     | '/api/admin/applications'
     | '/api/admin/email-health'
+    | '/api/admin/reprocess'
     | '/api/admin/seed-test-gallery'
     | '/api/admin/send-preview'
     | '/api/hub/applications'
@@ -319,6 +331,7 @@ export interface RootRouteChildren {
   PortfolioSlugRoute: typeof PortfolioSlugRoute
   ApiAdminApplicationsRoute: typeof ApiAdminApplicationsRoute
   ApiAdminEmailHealthRoute: typeof ApiAdminEmailHealthRoute
+  ApiAdminReprocessRoute: typeof ApiAdminReprocessRoute
   ApiAdminSeedTestGalleryRoute: typeof ApiAdminSeedTestGalleryRoute
   ApiAdminSendPreviewRoute: typeof ApiAdminSendPreviewRoute
   ApiHubApplicationsRoute: typeof ApiHubApplicationsRoute
@@ -455,6 +468,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAdminSeedTestGalleryRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/admin/reprocess': {
+      id: '/api/admin/reprocess'
+      path: '/api/admin/reprocess'
+      fullPath: '/api/admin/reprocess'
+      preLoaderRoute: typeof ApiAdminReprocessRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/admin/email-health': {
       id: '/api/admin/email-health'
       path: '/api/admin/email-health'
@@ -511,6 +531,7 @@ const rootRouteChildren: RootRouteChildren = {
   PortfolioSlugRoute: PortfolioSlugRoute,
   ApiAdminApplicationsRoute: ApiAdminApplicationsRoute,
   ApiAdminEmailHealthRoute: ApiAdminEmailHealthRoute,
+  ApiAdminReprocessRoute: ApiAdminReprocessRoute,
   ApiAdminSeedTestGalleryRoute: ApiAdminSeedTestGalleryRoute,
   ApiAdminSendPreviewRoute: ApiAdminSendPreviewRoute,
   ApiHubApplicationsRoute: ApiHubApplicationsRoute,
