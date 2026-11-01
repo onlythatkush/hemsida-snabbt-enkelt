@@ -11,7 +11,14 @@ import { BUILD_LABEL } from "@/lib/build-info";
 export const Route = createFileRoute("/bekraftelse")({
   validateSearch: z.object({ id: z.string().optional() }),
   head: () => ({
-    meta: [{ title: "Tack för din förfrågan — Din Webbpartner" }],
+    meta: [
+      { title: "Tack för din förfrågan — Din Webbpartner" },
+      { name: "description", content: "Kontrollera att din projektförfrågan har registrerats hos Din Webbpartner." },
+      { property: "og:title", content: "Din projektförfrågan — Din Webbpartner" },
+      { property: "og:description", content: "Bekräftelse och nästa steg för din projektförfrågan." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+    ],
   }),
   component: ConfirmPage,
 });

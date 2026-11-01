@@ -52,6 +52,8 @@ export const Route = createFileRoute("/")({
           "Vi bygger snabba, snygga och mobilanpassade hemsidor åt företag som vill se professionella ut online. Flexibla upplägg — från engångskostnad till månadsabonnemang.",
       },
       { property: "og:title", content: "Din Webbpartner — Moderna hemsidor som säljer" },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
       {
         property: "og:description",
         content:

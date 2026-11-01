@@ -1,9 +1,19 @@
 
+## Sammanhängande publicering 2026-11-01
+- [x] Verifiera befintlig Lovable-drift, databas och mejlanslutning utan dataändring.
+- [x] Återställ stöd för Lovable-publicering och samma adress för order/admin/preview.
+- [x] 54 tester gröna, automatisk kodkontroll/build OK; publicering begärd och live kontrollerat en gång.
+- [x] Verifierat lokalt: riktig admininloggning, ej Demo; osignerad admin 401; orderuppslag 500; 375px utan overflow.
+- [ ] Blockerat: senaste live-kontroll visar fortfarande Demo och API 404; publiceringsbegäran bekräftar inte färdig deployment.
+- [ ] Blockerat: direkt orderanslutning fungerar inte; ordinarie Cloud-läsning ser 21 ansökningar men inte ORD-OS19FK eller ORD-3M8NUN. Åtkomstskillnad är inte bevis för separat databas. Ingen databas flyttad/ändrad.
+- [ ] Blockerat: RESEND_API_KEY och ADMIN_ACCESS_KEY saknas i projektets driftkonfiguration; inga tillgängliga Resend-anslutningar.
+- [x] Inga kundmejl skickade, ingen DNS/dataändring och inget databasbyte.
+
 ## Akut produktionsfelsökning 2026-11-01
 - [x] Verifiera vilken app dinwebbpartner.com och Vercel visar, utan DNS-ändringar.
 - [x] Spåra ansökan, admin, databas och mejlfel; gör endast säkra riktade fixar.
 - [x] Kör relevanta tester och redovisa verifierad status/externa blockerare.
-- [ ] Externt: publicera aktuell app på befintlig Lovable-domän; återställ giltig POSTGRES_URL till befintlig Vercel-orderdatabas och giltig RESEND_API_KEY. Vercel/GitHub-inställningar är inte åtkomliga här. Verifiera order och utskick först därefter.
+- [ ] Externt: koppla befintlig orderdatabas och giltig Resend-nyckel till den valda Lovable-driften. Vercel/GitHub-inställningar är inte åtkomliga här. Verifiera order och utskick först därefter.
 
 ## Designmotor (godkänd plan, fas 1-4)
 - [x] Migration: design_spec/design_family/design_locked på project_applications

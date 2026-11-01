@@ -1,18 +1,12 @@
 /**
- * Inbound replies use the verified main domain by default.
- *
- * Resend has receiving enabled for dinwebbpartner.com and the domain is
- * already verified in production. Using the pending reply subdomain caused
- * customer replies to disappear before the email.received webhook could fire.
- *
- * INBOUND_REPLY_DOMAIN can still override this later if a dedicated reply
- * subdomain is fully verified.
+ * Keep customer replies on the dedicated subdomain without changing DNS.
+ * Receiving still requires verified provider configuration; never assume it.
  */
-export const REPLY_DOMAIN = (process.env.INBOUND_REPLY_DOMAIN || 'dinwebbpartner.com')
+export const REPLY_DOMAIN = (process.env.INBOUND_REPLY_DOMAIN || 'reply.dinwebbpartner.com')
   .trim()
   .toLowerCase()
 
-/** reply+ORD-XXXXXX@dinwebbpartner.com */
+/** reply+ORD-XXXXXX@reply.dinwebbpartner.com */
 export function replyAddressFor(reference: string, domain = REPLY_DOMAIN) {
   return `reply+${reference.trim().toUpperCase()}@${domain}`
 }

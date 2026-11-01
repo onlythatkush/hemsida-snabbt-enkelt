@@ -26,6 +26,10 @@ export const Route = createFileRoute("/bestall")({
     meta: [
       { title: "Starta ditt webbprojekt — Din Webbpartner" },
       { name: "description", content: "Skicka in ditt projektunderlag, material och önskemål. Vi bygger ett första förslag innan du bestämmer dig." },
+      { property: "og:title", content: "Starta ditt webbprojekt — Din Webbpartner" },
+      { property: "og:description", content: "Skicka projektunderlag och önskemål till Din Webbpartner." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: OrderPage,
