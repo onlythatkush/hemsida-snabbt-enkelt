@@ -1051,11 +1051,11 @@ function EmailHealth({ adminKey }: { adminKey: string }) {
   const checks: HealthCheck[] = health.error
     ? [{ id: "error", label: "Kunde inte läsa e-poststatus", status: "red" }]
     : (health.checks || []);
-  const overall: "green" | "yellow" | "red" = health.error
+  const overall: "green" | "yellow" | "red" = health.error || health.status === "red" || checks.length === 0
     ? "red"
     : checks.some((c) => c.status === "red")
       ? "red"
-      : checks.some((c) => c.status === "yellow")
+      : health.status === "yellow" || checks.some((c) => c.status === "yellow")
         ? "yellow"
         : "green";
   const dot = (s: string) => (s === "green" ? "bg-emerald-500" : s === "yellow" ? "bg-amber-500" : "bg-red-500");

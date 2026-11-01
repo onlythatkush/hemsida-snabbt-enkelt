@@ -1,8 +1,9 @@
 
 ## Akut produktionsfelsökning 2026-11-01
-- [ ] Verifiera vilken app dinwebbpartner.com och Vercel visar, utan DNS-ändringar.
-- [ ] Spåra ansökan, admin, databas och mejlfel; gör endast säkra riktade fixar.
-- [ ] Kör relevanta tester och redovisa verifierad status/externa blockerare.
+- [x] Verifiera vilken app dinwebbpartner.com och Vercel visar, utan DNS-ändringar.
+- [x] Spåra ansökan, admin, databas och mejlfel; gör endast säkra riktade fixar.
+- [x] Kör relevanta tester och redovisa verifierad status/externa blockerare.
+- [ ] Externt: publicera aktuell app på befintlig Lovable-domän; återställ giltig POSTGRES_URL till befintlig Vercel-orderdatabas och giltig RESEND_API_KEY. Vercel/GitHub-inställningar är inte åtkomliga här. Verifiera order och utskick först därefter.
 
 ## Designmotor (godkänd plan, fas 1-4)
 - [x] Migration: design_spec/design_family/design_locked på project_applications
