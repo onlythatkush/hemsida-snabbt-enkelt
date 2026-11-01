@@ -181,6 +181,15 @@ export async function withHub<T>(fn: (sql: HubSql) => Promise<T>): Promise<T> {
 
 
 /** Tables every runtime path depends on. Used by the health check. */
+export async function withHubRead<T>(fn: (sql: HubSql) => Promise<T>): Promise<T> {
+  const sql = hubSql()
+  try {
+    return await fn(sql)
+  } finally {
+    await sql.end({ timeout: 5 }).catch(() => undefined)
+  }
+}
+
 export const REQUIRED_TABLES = [
   'project_applications',
   'preview_email_log',
