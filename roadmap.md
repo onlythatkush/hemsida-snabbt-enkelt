@@ -1,4 +1,9 @@
 
+## Akut produktionsfelsökning 2026-11-01
+- [ ] Verifiera vilken app dinwebbpartner.com och Vercel visar, utan DNS-ändringar.
+- [ ] Spåra ansökan, admin, databas och mejlfel; gör endast säkra riktade fixar.
+- [ ] Kör relevanta tester och redovisa verifierad status/externa blockerare.
+
 ## Designmotor (godkänd plan, fas 1-4)
 - [x] Migration: design_spec/design_family/design_locked på project_applications
 - [x] src/lib/design: analyze, palette, families, sections, copy, compose
