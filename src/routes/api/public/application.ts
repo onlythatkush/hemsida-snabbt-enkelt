@@ -1,8 +1,8 @@
-import { createClient } from '@supabase/supabase-js'
 import { createFileRoute } from '@tanstack/react-router'
 import { z } from 'zod'
 import postgres from 'postgres'
 import { preflight, withCors } from '@/lib/cors'
+import { hubDatabaseUrl } from '@/lib/hub/db'
 
 /** Server-authoritative reference. The browser never invents one. */
 function generateReference(): string {
@@ -45,26 +45,6 @@ async function handlePost(request: Request): Promise<Response> {
   {
     {
       {
-        const supabaseUrl =
-          import.meta.env.VITE_SUPABASE_URL ||
-          import.meta.env.VITE_STORAGE_URL ||
-          process.env.SUPABASE_URL ||
-          process.env.STORAGE_URL
-        const serviceKey =
-          process.env.SUPABASE_SERVICE_ROLE_KEY ||
-          process.env.SUPABASE_SECRET_KEY ||
-          process.env.STORAGE_SERVICE_ROLE_KEY ||
-          process.env.STORAGE_SECRET_KEY
-        if (!supabaseUrl || !serviceKey) {
-          return Response.json({
-            error: 'Server misconfigured',
-            missing: {
-              supabaseUrl: !supabaseUrl,
-              serviceKey: !serviceKey,
-            },
-          }, { status: 500 })
-        }
-
         let parsed: z.infer<typeof schema>
         try {
           parsed = schema.parse(await request.json())
@@ -72,11 +52,7 @@ async function handlePost(request: Request): Promise<Response> {
           return Response.json({ error: 'Invalid input' }, { status: 400 })
         }
 
-        const databaseUrl =
-          process.env.POSTGRES_URL ||
-          process.env.STORAGE_POSTGRES_URL ||
-          process.env.STORAGE_DATABASE_URL ||
-          process.env.DATABASE_URL || process.env.SUPABASE_DB_URL
+        const databaseUrl = hubDatabaseUrl()
         if (!databaseUrl) {
           return Response.json({
             error: 'Database not configured',
@@ -154,10 +130,9 @@ async function handlePost(request: Request): Promise<Response> {
               updated_at = now()
           `
         } catch (error) {
-          console.error('Failed to save application', error)
+          console.error('Failed to save application')
           return Response.json({
-            error: 'Failed to save application',
-            detail: error instanceof Error ? error.message : String(error),
+            error: 'Ansökan kunde inte sparas. Försök igen senare; ingen beställning har bekräftats.',
           }, { status: 500 })
         } finally {
           await sql2.end()
@@ -176,12 +151,7 @@ async function handleGet(request: Request): Promise<Response> {
     return Response.json({ error: 'Invalid reference' }, { status: 400 })
   }
 
-  const databaseUrl =
-    process.env.POSTGRES_URL ||
-    process.env.STORAGE_POSTGRES_URL ||
-    process.env.STORAGE_DATABASE_URL ||
-    process.env.DATABASE_URL ||
-    process.env.SUPABASE_DB_URL
+  const databaseUrl = hubDatabaseUrl()
   if (!databaseUrl) {
     return Response.json({ error: 'Database not configured' }, { status: 500 })
   }
