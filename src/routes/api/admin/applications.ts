@@ -3,7 +3,8 @@ import { createFileRoute } from '@tanstack/react-router'
 import { z } from 'zod'
 import postgres from 'postgres'
 import { DESIGN_SPEC_VERSION, composeDesignSpec } from '@/lib/design/compose'
-import { withHub } from '@/lib/hub/db'
+import { hubSql, withHubRead } from '@/lib/hub/db'
+import { listApplications } from '@/lib/hub/applications'
 import { listVersions, nextRevision, recordDesignVersion } from '@/lib/hub/versions'
 
 const createPreviewSchema = z.object({
@@ -42,7 +43,6 @@ export const Route = createFileRoute('/api/admin/applications')({
           const url = new URL(request.url)
           const file = url.searchParams.get('file')
           const timeline = url.searchParams.get('timeline')
-          const supabase = client()
 
           if (timeline) {
             if (!/^[A-Z0-9-]{4,40}$/.test(timeline)) {
@@ -51,20 +51,19 @@ export const Route = createFileRoute('/api/admin/applications')({
             // Read over the unified hub connection — the same database the
             // writes use — so the timeline can never report a "missing" table.
             try {
-              const data = await withHub(async (sql) => {
-                const safe = async (q: Promise<any>) => { try { return await q } catch { return [] } }
+              const data = await withHubRead(async (sql) => {
                 const [events, changeRequests, versions, jobs] = await Promise.all([
-                  safe(sql`SELECT * FROM public.application_events WHERE reference = ${timeline} ORDER BY created_at DESC LIMIT 80`),
-                  safe(sql`SELECT * FROM public.customer_change_requests WHERE reference = ${timeline} ORDER BY received_at DESC LIMIT 30`),
-                  safe(listVersions(sql, timeline)),
-                  safe(sql`SELECT id, status, revision, retry_count, last_error, created_at, finished_at FROM public.revision_jobs WHERE reference = ${timeline} ORDER BY created_at DESC LIMIT 20`),
+                  sql`SELECT * FROM public.application_events WHERE reference = ${timeline} ORDER BY created_at DESC LIMIT 80`,
+                  sql`SELECT * FROM public.customer_change_requests WHERE reference = ${timeline} ORDER BY received_at DESC LIMIT 30`,
+                  listVersions(sql, timeline),
+                  sql`SELECT id, status, revision, retry_count, last_error, created_at, finished_at FROM public.revision_jobs WHERE reference = ${timeline} ORDER BY created_at DESC LIMIT 20`,
                 ])
                 return { events, changeRequests, versions, jobs }
               })
               return Response.json(data)
             } catch (e) {
               console.error('applications: timeline read failed', e)
-              return Response.json({ events: [], changeRequests: [], versions: [], jobs: [] })
+              return Response.json({ error: 'Historiken kunde inte hämtas. Kontrollera databasanslutning och schema.' }, { status: 503 })
             }
           }
 
@@ -73,7 +72,7 @@ export const Route = createFileRoute('/api/admin/applications')({
             if (!file.startsWith('ORD-') || file.includes('..')) {
               return Response.json({ error: 'Invalid file path' }, { status: 400 })
             }
-            const { data, error } = await supabase.storage
+            const { data, error } = await client().storage
               .from('project-files')
               .createSignedUrl(file, 60 * 5)
             if (error || !data?.signedUrl) {
@@ -82,16 +81,11 @@ export const Route = createFileRoute('/api/admin/applications')({
             return Response.json({ url: data.signedUrl })
           }
 
-          const { data, error } = await supabase
-            .from('project_applications')
-            .select('*')
-            .order('created_at', { ascending: false })
-            .limit(200)
-          if (error) throw error
-          return Response.json({ applications: data || [] })
+          const applications = await withHubRead(listApplications)
+          return Response.json({ applications }, { headers: { 'cache-control': 'no-store' } })
         } catch (error) {
           console.error(error)
-          return Response.json({ error: 'Failed to load applications' }, { status: 500 })
+          return Response.json({ error: 'Ansökningarna kunde inte hämtas. Kontrollera POSTGRES_URL i serverns driftmiljö; detta är inte en tom orderlista.' }, { status: 503 })
         }
       },
       POST: async ({ request }) => {
@@ -243,15 +237,17 @@ export const Route = createFileRoute('/api/admin/applications')({
         if (input.acceptQa !== undefined) patch.qa_accepted_at = input.acceptQa ? new Date().toISOString() : null
 
 
-        const { data, error } = await client()
-          .from('project_applications')
-          .update(patch)
-          .eq('reference', input.reference)
-          .select('*')
-          .single()
-
-        if (error) return Response.json({ error: 'Failed to update application' }, { status: 500 })
-        return Response.json({ application: data })
+        let sql
+        try {
+          sql = hubSql()
+          const rows = await sql`UPDATE public.project_applications SET ${sql(patch)} WHERE reference = ${input.reference} RETURNING *`
+          if (!rows[0]) return Response.json({ error: 'Ansökan hittades inte' }, { status: 404 })
+          return Response.json({ application: rows[0] })
+        } catch {
+          return Response.json({ error: 'Kunde inte uppdatera ansökan i orderdatabasen' }, { status: 503 })
+        } finally {
+          await sql?.end({ timeout: 5 }).catch(() => undefined)
+        }
       },
     },
   },

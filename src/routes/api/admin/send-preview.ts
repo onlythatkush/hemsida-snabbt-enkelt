@@ -8,7 +8,8 @@ import { TEMPLATES } from '@/lib/email-templates/registry'
 import { previewSendGate } from '@/lib/design/quality'
 import { getUnsubscribeToken } from '@/lib/unsubscribe-token.server'
 import { replyAddressFor } from '@/lib/email/reply-address'
-import { withHub } from '@/lib/hub/db'
+import { withHub, withHubRead } from '@/lib/hub/db'
+import { findApplication } from '@/lib/hub/applications'
 import { hubSender, sendHubEmail } from '@/lib/hub/mail'
 
 
@@ -132,45 +133,10 @@ type AppRow = {
  * Reads an application without assuming the newest schema exists.
  * `SELECT *` keeps older databases (before the QA/design columns landed)
  * working — a named column list made the whole read fail there.
- * If the direct Postgres connection is unavailable or fails, we fall back to
- * the service-role Data API so an existing application is never unreadable.
+ * A failed connection must not select an application from a different store.
  */
 async function loadApplication(reference: string): Promise<AppRow | null> {
-  const ref = reference.trim().toUpperCase()
-  const dbUrl = databaseUrl()
-  let firstError: unknown = null
-
-  if (dbUrl) {
-    const sql = postgres(dbUrl, { max: 1, prepare: false })
-    try {
-      const rows = await sql`
-        SELECT * FROM public.project_applications
-        WHERE upper(reference) = ${ref}
-        LIMIT 1
-      `
-      const row = (rows as any[])[0]
-      if (row) return row as AppRow
-      return null
-    } catch (e) {
-      firstError = e
-      console.error('send-preview: postgres read failed, falling back to Data API', e)
-    } finally {
-      await sql.end({ timeout: 5 }).catch(() => undefined)
-    }
-  }
-
-  const provider = emailProvider()
-  if (!provider.ok) {
-    if (firstError) throw firstError
-    return null
-  }
-  const { data, error } = await provider.client
-    .from('project_applications')
-    .select('*')
-    .eq('reference', ref)
-    .maybeSingle()
-  if (error) throw error
-  return (data as AppRow) || null
+  return await withHubRead((sql) => findApplication(sql, reference)) as AppRow | null
 }
 
 
@@ -220,7 +186,7 @@ export const Route = createFileRoute('/api/admin/send-preview')({
         // PGRST205 "preview_email_log missing" error: the two paths resolved to
         // different databases.
         try {
-          const rows = await withHub(async (sql) =>
+          const rows = await withHubRead(async (sql) =>
             reference
               ? sql`SELECT id, reference, company, recipient, preview_url, sender, provider, provider_message_id,
                            status, kind, revision, error_message, sent_at, delivered_at, created_at, updated_at

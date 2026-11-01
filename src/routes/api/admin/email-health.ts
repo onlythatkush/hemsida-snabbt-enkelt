@@ -1,7 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { REPLY_DOMAIN, replyAddressFor } from '@/lib/email/reply-address'
 import { composeDesignSpec } from '@/lib/design/compose'
-import { REQUIRED_TABLES, hubDatabaseUrl, schemaReport, withHub } from '@/lib/hub/db'
+import { REQUIRED_TABLES, hubDatabaseUrl, schemaReport, withHubRead } from '@/lib/hub/db'
 import { hubSender } from '@/lib/hub/mail'
 
 /**
@@ -33,7 +33,8 @@ export const Route = createFileRoute('/api/admin/email-health')({
         checks.push({
           id: 'database',
           label: 'Databasanslutning',
-          status: dbConfigured ? 'green' : 'red',
+          status: dbConfigured ? 'yellow' : 'red',
+          detail: dbConfigured ? 'Konfigurerad, anslutningen är ännu inte verifierad' : 'Ingen anslutning konfigurerad',
           action: dbConfigured ? undefined : 'Sätt POSTGRES_URL (eller SUPABASE_DB_URL) i driftmiljön.',
         })
 
@@ -41,7 +42,7 @@ export const Route = createFileRoute('/api/admin/email-health')({
         let mailLog: { total: number; failed: number; lastSentAt: string | null } | null = null
         if (dbConfigured) {
           try {
-            const { report, log } = await withHub(async (sql) => {
+            const { report, log } = await withHubRead(async (sql) => {
               const report = await schemaReport(sql)
               let log = null as any
               if (report.tables['preview_email_log']?.exists) {
@@ -60,6 +61,11 @@ export const Route = createFileRoute('/api/admin/email-health')({
               return { report, log }
             })
             mailLog = log
+            const databaseCheck = checks.find((check) => check.id === 'database')
+            if (databaseCheck) {
+              databaseCheck.status = 'green'
+              databaseCheck.detail = 'Databasanslutningen svarar'
+            }
             const missingTables = REQUIRED_TABLES.filter((t) => !report.tables[t]?.exists)
             const missingCols = Object.entries(report.tables)
               .filter(([, v]) => v.exists && v.missingColumns.length)
@@ -76,11 +82,17 @@ export const Route = createFileRoute('/api/admin/email-health')({
               action: missingTables.length || missingCols.length ? 'Kör databasmigrationerna igen.' : undefined,
             })
           } catch (e) {
+            const databaseCheck = checks.find((check) => check.id === 'database')
+            if (databaseCheck) {
+              databaseCheck.status = 'red'
+              databaseCheck.detail = 'Databasläsningen misslyckades'
+              databaseCheck.action = 'Kontrollera POSTGRES_URL för den befintliga orderdatabasen i driftmiljön. Byt inte databas.'
+            }
             checks.push({
               id: 'schema',
               label: 'Databasschema',
               status: 'red',
-              detail: String((e as any)?.message || e).slice(0, 200),
+              detail: 'Schema kunde inte verifieras eftersom databasläsningen misslyckades',
               action: 'Kontrollera databasanslutningen.',
             })
           }
