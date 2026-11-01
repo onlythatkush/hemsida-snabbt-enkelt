@@ -3,7 +3,15 @@ import { PreviewRenderer } from "@/components/preview/PreviewRenderer";
 import { composeDesignSpec } from "@/lib/design/compose";
 
 export const Route = createFileRoute("/qa-preview")({
-  head: () => ({ meta: [{ title: "QA" }, { name: "robots", content: "noindex" }] }),
+  head: () => ({ meta: [
+    { title: "Designkontroll — Din Webbpartner" },
+    { name: "description", content: "Intern kontroll av Din Webbpartners designmotor." },
+    { property: "og:title", content: "Designkontroll — Din Webbpartner" },
+    { property: "og:description", content: "Intern kvalitetskontroll av genererade webbplatser." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+    { name: "robots", content: "noindex" },
+  ] }),
   component: () => (
     <PreviewRenderer
       spec={composeDesignSpec({
