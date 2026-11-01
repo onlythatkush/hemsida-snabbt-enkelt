@@ -16,7 +16,14 @@ import {
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/admin")({
-  head: () => ({ meta: [{ title: "Adminpanel — Din Webbpartner" }] }),
+  head: () => ({ meta: [
+    { title: "Adminpanel — Din Webbpartner" },
+    { name: "description", content: "Kundansökningar, designförslag och mejlhistorik hos Din Webbpartner." },
+    { property: "og:title", content: "Adminpanel — Din Webbpartner" },
+    { property: "og:description", content: "Hantera kundansökningar och designförslag hos Din Webbpartner." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+  ] }),
   component: Admin,
 });
 
@@ -125,6 +132,7 @@ function Admin() {
   const [savedKey, setSavedKey] = useState("");
   const [items, setItems] = useState<Application[]>([]);
   const [loading, setLoading] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [openRef, setOpenRef] = useState<string | null>(null);
   const [buildingRef, setBuildingRef] = useState<string | null>(null);
   const [showGallery, setShowGallery] = useState(false);
@@ -151,13 +159,16 @@ function Admin() {
   async function load(accessKey = savedKey) {
     if (!accessKey) return;
     setLoading(true);
+    setLoadError(null);
     try {
       const res = await fetch("/api/admin/applications", { headers: { "x-admin-key": accessKey } });
       if (res.status === 401) throw new Error("Fel adminnyckel");
-      if (!res.ok) throw new Error("Kunde inte hämta ansökningar");
       const body = await res.json();
-      setItems(body.applications || []);
+      if (!res.ok) throw new Error(body.error || "Kunde inte hämta ansökningar");
+      if (!Array.isArray(body.applications)) throw new Error("Servern skickade ingen giltig orderlista");
+      setItems(body.applications);
     } catch (e: any) {
+      setLoadError(e.message || "Kunde inte hämta ansökningar");
       toast.error(e.message || "Något gick fel");
     } finally {
       setLoading(false);
@@ -366,7 +377,7 @@ function Admin() {
             <Card>
               <CardContent className="pt-5 flex items-center gap-3">
                 <Inbox className="text-primary shrink-0" />
-                <div className="min-w-0"><div className="text-2xl font-semibold">{realItems.length}</div><div className="text-sm text-muted-foreground truncate">ansökningar</div></div>
+                <div className="min-w-0"><div className="text-2xl font-semibold">{loadError ? "—" : realItems.length}</div><div className="text-sm text-muted-foreground truncate">ansökningar</div></div>
               </CardContent>
             </Card>
             <Button variant={showGallery ? "default" : "outline"} onClick={() => setShowGallery((v) => !v)} className="shrink-0">
@@ -374,6 +385,7 @@ function Admin() {
             </Button>
           </div>
 
+          {loadError && <p role="alert" className="mb-4 text-destructive">{loadError}</p>}
           <EmailHealth adminKey={savedKey} />
 
           {showGallery && (
@@ -554,7 +566,7 @@ function Admin() {
                 </Card>
               );
             })}
-            {!realItems.length && !loading && <Card><CardContent className="py-10 text-center text-muted-foreground">Inga ansökningar ännu.</CardContent></Card>}
+            {!realItems.length && !loading && !loadError && <Card><CardContent className="py-10 text-center text-muted-foreground">Inga ansökningar ännu.</CardContent></Card>}
           </div>
 
           <Card className="hidden md:block">
@@ -617,7 +629,7 @@ function Admin() {
                         </TableCell>
                       </TableRow>
                     ))}
-                    {!realItems.length && !loading && <TableRow><TableCell colSpan={8} className="text-center py-10 text-muted-foreground">Inga ansökningar ännu.</TableCell></TableRow>}
+                    {!realItems.length && !loading && !loadError && <TableRow><TableCell colSpan={8} className="text-center py-10 text-muted-foreground">Inga ansökningar ännu.</TableCell></TableRow>}
                   </TableBody>
                 </Table>
               </div>
