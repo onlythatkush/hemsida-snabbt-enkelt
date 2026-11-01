@@ -1,4 +1,10 @@
 
+## Sammanhängande publicering 2026-11-01
+- [ ] Verifiera befintlig Lovable-drift, databas och mejlanslutning utan dataändring.
+- [ ] Återställ stöd för Lovable-publicering och samma adress för order/admin/preview.
+- [ ] Kör relevanta tester, publicera om möjligt och kontrollera domän/API live.
+- [ ] Redovisa exakt kvarvarande anslutningskrav; skicka inga kundmejl.
+
 ## Akut produktionsfelsökning 2026-11-01
 - [x] Verifiera vilken app dinwebbpartner.com och Vercel visar, utan DNS-ändringar.
 - [x] Spåra ansökan, admin, databas och mejlfel; gör endast säkra riktade fixar.
