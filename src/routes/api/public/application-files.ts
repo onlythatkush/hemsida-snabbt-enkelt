@@ -3,6 +3,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import postgres from 'postgres'
 import { z } from 'zod'
 import { preflight, withCors } from '@/lib/cors'
+import { hubDatabaseUrl } from '@/lib/hub/db'
 
 const MAX_SIZE = 15 * 1024 * 1024
 const ALLOWED = new Set(['image/jpeg','image/png','image/webp','image/gif','application/pdf'])
@@ -99,7 +100,7 @@ async function handlePost(request: Request): Promise<Response> {
 
         const complete = completeSchema.safeParse(body)
         if (complete.success) {
-          const databaseUrl = process.env.POSTGRES_URL || process.env.DATABASE_URL
+          const databaseUrl = hubDatabaseUrl()
           if (!databaseUrl) {
             return Response.json({ error: 'Database not configured for file metadata' }, { status: 500 })
           }
