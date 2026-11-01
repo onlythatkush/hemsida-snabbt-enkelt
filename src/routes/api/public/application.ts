@@ -31,6 +31,63 @@ const schema = z.object({
   fileNames: z.array(z.string().trim().max(255)).max(10).default([]),
 })
 
+
+const NOTIFICATION_EMAIL = 'Kushtrim.x@hotmail.se'
+const SENDER_EMAIL = 'Din Webbpartner <bekraftelse@dinwebbpartner.com>'
+
+function escapeHtml(value: string): string {
+  return value.replace(/[&<>"']/g, (char) => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+  })[char] || char)
+}
+
+async function sendApplicationEmail(
+  to: string,
+  subject: string,
+  html: string,
+  idempotencyKey: string,
+): Promise<void> {
+  const apiKey = process.env.RESEND_API_KEY
+  if (!apiKey) throw new Error('RESEND_API_KEY missing')
+  const response = await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
+      'Idempotency-Key': idempotencyKey,
+    },
+    body: JSON.stringify({ from: SENDER_EMAIL, to: [to], subject, html }),
+  })
+  if (!response.ok) {
+    const detail = await response.text()
+    throw new Error(`Resend HTTP ${response.status}: ${detail.slice(0, 500)}`)
+  }
+}
+
+async function notifyApplication(
+  application: z.infer<typeof schema>,
+  reference: string,
+): Promise<{ customer: boolean; owner: boolean }> {
+  const ref = escapeHtml(reference)
+  const company = escapeHtml(application.company)
+  const name = escapeHtml(application.name)
+  const customerHtml = `<p>Hej ${name}!</p><p>Tack för din ansökan hos Din Webbpartner. Vi har tagit emot din förfrågan och återkommer så snart vi har gått igenom den.</p><p><strong>Ärendenummer: ${ref}</strong></p><p>Vänliga hälsningar,<br>Din Webbpartner</p>`
+  const ownerHtml = `<p>En ny ansökan har kommit in.</p><p><strong>Ärendenummer:</strong> ${ref}<br><strong>Företag:</strong> ${company}<br><strong>Kontaktperson:</strong> ${name}</p><p>Logga in i administrationspanelen för att se hela ansökan.</p>`
+  const results = await Promise.allSettled([
+    sendApplicationEmail(application.email, `Vi har fått din ansökan – ${reference}`, customerHtml, `application-${reference}-customer`),
+    sendApplicationEmail(NOTIFICATION_EMAIL, `Ny ansökan: ${application.company} (${reference})`, ownerHtml, `application-${reference}-owner`),
+  ])
+  for (const [index, result] of results.entries()) {
+    if (result.status === 'rejected') {
+      console.error('Application email delivery failed', {
+        reference, recipientType: index === 0 ? 'customer' : 'owner',
+        error: result.reason instanceof Error ? result.reason.message : String(result.reason),
+      })
+    }
+  }
+  return { customer: results[0].status === 'fulfilled', owner: results[1].status === 'fulfilled' }
+}
+
 export const Route = createFileRoute('/api/public/application')({
   server: {
     handlers: {
@@ -163,7 +220,8 @@ async function handlePost(request: Request): Promise<Response> {
           await sql2.end()
         }
 
-        return Response.json({ success: true, reference })
+        const email = await notifyApplication(parsed, reference)
+        return Response.json({ success: true, reference, email })
       }
     }
   }
