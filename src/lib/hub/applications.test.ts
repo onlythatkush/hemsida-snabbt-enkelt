@@ -6,7 +6,8 @@ describe('authoritative application reads', () => {
   test('returns rows from the provided submission connection', async () => {
     const rows = [{ reference: 'ORD-OS19FK' }]
     const sql = (async () => rows) as unknown as HubSql
-    expect(await listApplications(sql)).toEqual(rows)
+    const result = await listApplications(sql)
+    expect(Array.from(result)).toEqual(rows)
   })
   test('connection failure is not converted into zero applications', async () => {
     const sql = (async () => { throw new Error('ENOTFOUND') }) as unknown as HubSql
