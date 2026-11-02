@@ -91,3 +91,9 @@
 .dwp-premium-service-arrow{margin-left:auto;color:#65d3ff;align-self:flex-start}
 @media(max-width:767px){.dwp-premium-hero{min-height:0}.dwp-premium-photo{object-position:60% center}.dwp-premium-overlay{background:linear-gradient(90deg,#020914f2,#03101fd1),linear-gradient(0deg,#020914e8,transparent)}.dwp-premium-inner{padding-top:72px;padding-bottom:28px;gap:55px}.dwp-premium-services{grid-template-columns:1fr;gap:10px}.dwp-premium-service{min-height:76px;padding:13px 16px}.dwp-premium-service small{-webkit-line-clamp:1}.dwp-premium-service-icon{font-size:1.5rem}.dwp-premium-title{font-size:clamp(2.8rem,12vw,4.5rem)}}
 @media(prefers-reduced-motion:reduce){.dwp-premium-service{transition:none}}
+
+.dwp-root:has(.dwp-premium-hero){--dwp-bg:#06111f;--dwp-fg:#f0f7ff;--dwp-surface:#102338;--dwp-line:#77cfff32;--dwp-accent:#25b9ff;--dwp-accent-fg:#001322;--dwp-font-display:Manrope,sans-serif;--dwp-radius:16px}
+.dwp-root:has(.dwp-premium-hero) .dwp-display{font-weight:750;letter-spacing:-.045em}
+.dwp-root:has(.dwp-premium-hero) #tjanster{background:radial-gradient(ellipse at 80% 0%,#123657,transparent 55%),#06111f}
+.dwp-root:has(.dwp-premium-hero) #kontakt{background:linear-gradient(140deg,#071626,#102c47)}
+.dwp-root:has(.dwp-premium-hero) .dwp-card{background:linear-gradient(145deg,#142c43,#091a2d)}
