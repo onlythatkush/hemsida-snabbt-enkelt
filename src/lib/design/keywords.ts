@@ -17,7 +17,7 @@ export const INDUSTRY_KEYWORDS: Record<IndustryId, string[]> = {
   // "uthyrning" alone is ambiguous (cars, tools, venues) — it must be tied to housing.
   realestate: ["mäklare", "fastighetsmäklare", "fastighetsbolag", "bostadsrätt", "bostäder", "lägenheter", "hyresrätter", "uthyrning av bostad", "uthyrning av lägenhet", "villa till salu"],
   events: ["event", "bröllop", "fest", "konferens", "uthyrning av lokal", "dj", "artist", "band", "eventbyrå"],
-  automotive: ["bilverkstad", "bilservice", "verkstad för bilar", "mekaniker", "däckbyte", "däckhotell", "bilrekond", "bilvård", "ac-service", "fordon", "lastbil", "mc-verkstad", "bilplåt", "besiktningshjälp", "bilhandlare", "bilfirma", "bilhandel", "bilförsäljning", "begagnade bilar", "premiumbilar", "lyxbilar", "sportbil", "sportbilar", "exklusiva bilar", "motor", "biluthyrning", "hyrbil", "hyrbilar", "hyra bil", "hyra ut bilar", "uthyrning av bilar", "biluthyrare", "car rental", "rental cars", "premium cars", "luxury cars", "bilar"],
+  automotive: ["bilverkstad", "bilservice", "verkstad för bilar", "mekaniker", "däckbyte", "däckhotell", "bilrekond", "bilrekonditionering", "rekond", "rekondmästare", "rekonditionering", "biltvätt", "fordonstvätt", "bilvård", "ac-service", "fordon", "lastbil", "mc-verkstad", "bilplåt", "besiktningshjälp", "bilhandlare", "bilfirma", "bilhandel", "bilförsäljning", "begagnade bilar", "premiumbilar", "lyxbilar", "sportbil", "sportbilar", "exklusiva bilar", "motor", "biluthyrning", "hyrbil", "hyrbilar", "hyra bil", "hyra ut bilar", "uthyrning av bilar", "biluthyrare", "car rental", "rental cars", "premium cars", "luxury cars", "bilar"],
   hospitality: ["hotell", "bed and breakfast", "b&b", "vandrarhem", "pensionat", "stugor", "stuguthyrning", "boende", "övernattning", "gästhus", "rum med frukost"],
   generic: [],
 };
@@ -45,6 +45,8 @@ export function normalize(text: string) {
 
 export function detectIndustry(...texts: (string | null | undefined)[]): { industry: IndustryId; score: number } {
   const haystack = normalize(texts.filter(Boolean).join(" "));
+  // Automotive-specific terms outrank ambiguous words such as "spa" in "bilspa".
+  if (/bilrekond|rekond|biltvätt|bilvård|fordonstvätt|bilspa|bil-spa|car detailing/i.test(haystack)) return { industry: "automotive", score: 100 };
   let best: IndustryId = "generic";
   let bestScore = 0;
   for (const [industry, words] of Object.entries(INDUSTRY_KEYWORDS) as [IndustryId, string[]][]) {
