@@ -50,3 +50,27 @@
 [data-dwp-theme="nordic"] .dwp-card { box-shadow: 0 12px 40px -18px oklch(0.25 0.03 170 / 30%); }
 .dwp-imgfallback { display: flex; align-items: center; justify-content: center; text-align: center; padding: 1rem; font-size: .8rem; opacity: .7; background: linear-gradient(135deg, var(--dwp-surface), color-mix(in oklab, var(--dwp-accent) 25%, var(--dwp-surface))); }
 .dwp-badge { display: inline-block; font-size: .65rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; padding: .2rem .5rem; border: 1px solid currentColor; border-radius: 999px; opacity: .6; }
+/* DWP Premium 2.0: layered lighting, motion, depth and responsive hero */
+.dwp-root { overflow-x: clip; }
+.dwp-root .dwp-card { transition: transform .35s cubic-bezier(.2,.8,.2,1),box-shadow .35s,border-color .35s; overflow: hidden; }
+.dwp-root .dwp-card:hover { transform: translateY(-7px); box-shadow: 0 22px 60px -22px color-mix(in srgb,var(--dwp-accent) 38%,transparent); border-color:color-mix(in srgb,var(--dwp-accent) 55%,var(--dwp-line)); }
+.dwp-root .dwp-card img { transition: transform .7s ease,filter .7s ease; }
+.dwp-root .dwp-card:hover img { transform:scale(1.055);filter:saturate(1.12); }
+.dwp-root .dwp-btn { box-shadow:0 8px 28px -12px var(--dwp-accent);position:relative;overflow:hidden; }
+.dwp-root .dwp-btn:after { content:"";position:absolute;inset:0;transform:translateX(-130%) skewX(-25deg);background:linear-gradient(90deg,transparent,#ffffff44,transparent);transition:transform .65s; }
+.dwp-root .dwp-btn:hover:after { transform:translateX(130%) skewX(-25deg); }
+.dwp-premium-hero { --dwp-accent:#21b7ff;--dwp-accent-fg:#001321;position:relative;isolation:isolate;min-height:690px;display:flex;align-items:center;background:#020b16;color:white;overflow:hidden;font-family:Manrope,sans-serif; }
+.dwp-premium-photo { position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center;z-index:-3;filter:contrast(1.12) saturate(1.15); }
+.dwp-premium-overlay { position:absolute;inset:0;z-index:-2;background:linear-gradient(90deg,#020914 0%,#03101ff5 28%,#061322bd 55%,#030c1725 100%),linear-gradient(0deg,#010b18c7,transparent 55%); }
+.dwp-premium-inner { padding-top:125px;padding-bottom:135px; }
+.dwp-premium-kicker { color:#5ad1ff;letter-spacing:.27em;font-size:.73rem;font-weight:700;text-transform:uppercase;margin-bottom:26px; }
+.dwp-premium-title { font-size:clamp(3.1rem,7.2vw,7rem);line-height:.98;font-weight:800;letter-spacing:-.065em;max-width:850px;text-wrap:balance;text-shadow:0 4px 45px #0008; }
+.dwp-premium-lead { font-size:clamp(1rem,1.8vw,1.3rem);line-height:1.7;max-width:590px;color:#d6e5f1;margin:28px 0 35px; }
+.dwp-premium-hero .dwp-btn { border-radius:12px;padding:1rem 1.8rem;box-shadow:0 0 0 1px #75dbff,0 0 30px #00aaff77; }
+.dwp-premium-hero .dwp-btn-ghost { border-radius:12px;padding:1rem 1.8rem;border:1px solid #cdeeff9c;background:#071a2d77;backdrop-filter:blur(14px); }
+.dwp-premium-chips { display:flex;flex-wrap:wrap;gap:12px;margin-top:55px; }
+.dwp-premium-chips span { padding:12px 18px;border:1px solid #82cfff4d;border-radius:12px;background:#10273c9e;backdrop-filter:blur(15px);font-size:.85rem;font-weight:650;box-shadow:inset 0 1px #ffffff20; }
+.dwp-premium-beam { position:absolute;inset:auto -10% 0; height:2px;background:linear-gradient(90deg,transparent,#12bfff,transparent);box-shadow:0 0 25px #12bfff; }
+@media(min-width:768px){.dwp-premium-hero:before{content:"";position:absolute;left:56%;top:-20%;width:2px;height:140%;background:linear-gradient(transparent,#28baff,transparent);transform:rotate(25deg);box-shadow:0 0 32px #00aaff77;opacity:.65;}}
+@media(max-width:640px){.dwp-premium-hero{min-height:640px}.dwp-premium-overlay{background:linear-gradient(90deg,#020914ed,#03101fbb),linear-gradient(0deg,#020914a6,transparent)}.dwp-premium-inner{padding-top:95px;padding-bottom:85px}.dwp-premium-chips{margin-top:35px}.dwp-premium-kicker{letter-spacing:.14em}}
+@media(prefers-reduced-motion:reduce){.dwp-root .dwp-card,.dwp-root .dwp-card img,.dwp-root .dwp-btn:after{transition:none!important}}
