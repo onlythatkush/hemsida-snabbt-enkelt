@@ -11,6 +11,7 @@ const createPreviewSchema = z.object({
   reference: z.string().min(4).max(40),
   action: z.enum(['create-preview', 'regenerate-design']),
   family: z.string().max(40).optional(),
+  buildNotes: z.string().max(2000).optional(),
 })
 
 const updateSchema = z.object({
@@ -196,7 +197,7 @@ export const Route = createFileRoute('/api/admin/applications')({
           await sql`
             INSERT INTO public.application_events (reference, event_type, label, details)
             VALUES (${input.reference}, 'revision_generated', ${'Ny version ' + revision + ' skapad i admin'},
-                    ${sql.json({ revision, family: spec.family, qaStatus: qa?.status, qaScore: qa?.score } as any)})
+                    ${sql.json({ revision, family: spec.family, qaStatus: qa?.status, qaScore: qa?.score, buildNotes: input.buildNotes || null } as any)})
           `.catch(() => undefined)
 
           return Response.json({
