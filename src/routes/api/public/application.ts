@@ -138,7 +138,33 @@ async function handlePost(request: Request): Promise<Response> {
           await sql2.end()
         }
 
-        return Response.json({ success: true, reference })
+        // Build a first design from the submitted customer brief.
+        let previewUrl: string | null = null
+        try {
+          const { composeDesignSpec } = await import('@/lib/design/compose')
+          const spec = composeDesignSpec({
+            reference, company: parsed.company, description: parsed.description,
+            website_type: parsed.websiteType, colors: parsed.colors || '',
+            extra_requests: parsed.extraRequests || '', social_links: parsed.socialLinks || '',
+            address: parsed.address || '', email: parsed.email, phone: parsed.phone,
+            file_names: [],
+          })
+          const token = crypto.randomUUID().replaceAll('-', '') + crypto.randomUUID().replaceAll('-', '')
+          previewUrl = new URL('/kund-preview/' + encodeURIComponent(reference), request.url).toString() + '?token=' + token
+          const previewDb = postgres(databaseUrl, { max: 1, prepare: false })
+          try {
+            await previewDb`ALTER TABLE public.project_applications ADD COLUMN IF NOT EXISTS preview_token TEXT`
+            await previewDb`ALTER TABLE public.project_applications ADD COLUMN IF NOT EXISTS design_spec JSONB`
+            await previewDb`ALTER TABLE public.project_applications ADD COLUMN IF NOT EXISTS design_family TEXT`
+            await previewDb`UPDATE public.project_applications SET preview_token = ${token}, preview_url = ${previewUrl}, design_spec = ${previewDb.json(spec as any)}, design_family = ${spec.family}, status = 'preview' WHERE reference = ${reference}`
+          } finally {
+            await previewDb.end()
+          }
+        } catch (error) {
+          console.error('Preview generation failed', error)
+          previewUrl = null
+        }
+        return Response.json({ success: true, reference, previewUrl })
       }
     }
   }
