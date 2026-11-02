@@ -21,6 +21,8 @@ export function SafeImg({ img, className = "", eager }: { img: Img; className?: 
 
 export function Hero({ s }: { s: Site }) {
   const h = s.hero;
+  const premiumAuto = /bilrekond|bilvård|detailing|rekondmästare/i.test([s.industry,s.brand,s.id].join(" "));
+  if (premiumAuto) return <section className="dwp-premium-hero"><SafeImg eager img={h.image} className="dwp-premium-photo"/><div className="dwp-premium-overlay"/><Wrap className="dwp-premium-inner"><div className="dwp-premium-kicker">✦ {h.eyebrow} · PREMIUM BILVÅRD</div><h1 className="dwp-premium-title">{h.title}</h1><p className="dwp-premium-lead">{h.lead}</p><div className="flex flex-wrap gap-4"><Btn>{h.cta}</Btn><a className="dwp-btn-ghost" href="#tjanster">Utforska tjänster ↗</a></div><div className="dwp-premium-chips"><span>✧ Exklusiv finish</span><span>◇ Noggrann bilvård</span><span>↗ Personlig service</span></div></Wrap><div className="dwp-premium-beam"/></section>;
   const ctas = <div className="flex flex-wrap gap-3"><Btn>{h.cta}</Btn>{h.secondary && <Btn ghost>{h.secondary}</Btn>}</div>;
   switch (h.variant) {
     case "editorial":
@@ -88,7 +90,7 @@ export function Hero({ s }: { s: Site }) {
 
 export function Services({ s }: { s: Site }) {
   return (
-    <section className="py-20 md:py-28"><Wrap>
+    <section id="tjanster" className="py-20 md:py-28"><Wrap>
       <H2>{s.services.heading}</H2>
       <div className="grid gap-6 md:grid-cols-3">
         {s.services.items.map((x) => (
@@ -220,8 +222,8 @@ export function DwpPage({ site: s }: { site: Site }) {
       <header className="dwp-header sticky top-0 z-20"><Wrap className="flex h-16 items-center justify-between gap-4">
         <span className="dwp-display truncate text-xl">{s.brand}</span><Btn>{s.hero.cta}</Btn>
       </Wrap></header>
-      <Hero s={s} /><Services s={s} /><Offer s={s} /><References s={s} /><Contact s={s} />
-      <footer className="py-10 text-center text-sm opacity-60">© {s.brand} · Exempelsajt – alla uppgifter är fiktiva</footer>
+      <Hero s={s} /><Services s={s} /><Offer s={s} />{s.references.length > 0 && <References s={s} />}<Contact s={s} />
+      <footer className="py-10 text-center text-sm opacity-60">© {s.brand} · Förhandsvisning</footer>
     </div>
   );
 }
