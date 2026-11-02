@@ -38,6 +38,12 @@ export function buildCustomerLibrarySite(app:ApplicationInput,revision:number):S
   site.hero.eyebrow=base.industry;
   site.hero.title=app.company;
   site.hero.lead=(app.description||base.hero.lead).slice(0,260);
+  const wishes=app.extra_requests||"";
+  if(/(mörk|svart|dark|inte vit|mindre vitt|sluta.*vit)/i.test(wishes)){site.theme="noir";site.accent="#24baff";}
+  if(/(ljus|vit bakgrund|light mode)/i.test(wishes) && !/(inte vit|mindre vitt)/i.test(wishes)){site.theme="nordic";}
+  if(/(hero|huvudbild|bakgrundsbild).{0,65}(stor|lång|hel|fortsätt|mer|längre)|bilden tog slut|hero bilden tog slut/i.test(wishes)){site.hero.variant="cinematic";}
+  if(/(blå|neon|tech|glöd|cyber)/i.test(wishes)){site.accent="#24baff";}
+
   site.contact={...site.contact,heading:"Kontakta "+app.company,text:"Kontakta oss för att diskutera dina behov.",phone:app.phone||"",address:app.address||""};
   // The templates are demonstrations, not customer facts: never publish their fictional
   // testimonials, qualifications, case studies, prices or contact information as real.
@@ -49,7 +55,6 @@ export function buildCustomerLibrarySite(app:ApplicationInput,revision:number):S
   if(site.offer.kind==="property") site.offer={kind:"property",heading:"Kontakta oss om lediga objekt",listings:[]};
   // Explicitly preserve customer-provided colour while varying visual treatment by revision.
   const variants:Site["theme"][]=["noir","warm","blueprint","nordic","signal"];
-  site.theme=revision<=1?base.theme:variants[(variants.indexOf(base.theme)+revision-1)%variants.length];
-  site.accent=undefined;
+  if (!/(mörk|svart|dark|inte vit|mindre vitt|sluta.*vit|ljus|vit bakgrund|light mode)/i.test(wishes)) site.theme=revision<=1?base.theme:variants[(variants.indexOf(base.theme)+revision-1)%variants.length];
   return site;
 }
