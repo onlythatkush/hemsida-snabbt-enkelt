@@ -22,7 +22,30 @@ export function SafeImg({ img, className = "", eager }: { img: Img; className?: 
 export function Hero({ s }: { s: Site }) {
   const h = s.hero;
   const premiumAuto = /bilrekond|bilvård|detailing|rekondmästare/i.test([s.industry,s.brand,s.id].join(" "));
-  if (premiumAuto) return <section className="dwp-premium-hero"><SafeImg eager img={h.image} className="dwp-premium-photo"/><div className="dwp-premium-overlay"/><Wrap className="dwp-premium-inner"><div className="dwp-premium-kicker">✦ {h.eyebrow} · PREMIUM BILVÅRD</div><h1 className="dwp-premium-title">{h.title}</h1><p className="dwp-premium-lead">{h.lead}</p><div className="flex flex-wrap gap-4"><Btn>{h.cta}</Btn><a className="dwp-btn-ghost" href="#tjanster">Utforska tjänster ↗</a></div><div className="dwp-premium-chips"><span>✧ Exklusiv finish</span><span>◇ Noggrann bilvård</span><span>↗ Personlig service</span></div></Wrap><div className="dwp-premium-beam"/></section>;
+  if (premiumAuto) return (
+    <section className="dwp-premium-hero">
+      <SafeImg eager img={h.image} className="dwp-premium-photo"/>
+      <div className="dwp-premium-overlay"/>
+      <Wrap className="dwp-premium-inner">
+        <div className="dwp-premium-copy">
+          <div className="dwp-premium-kicker">✦ {h.eyebrow} · PREMIUM BILVÅRD</div>
+          <h1 className="dwp-premium-title">{h.title}</h1>
+          <p className="dwp-premium-lead">{h.lead}</p>
+          <div className="flex flex-wrap gap-4"><Btn>{h.cta}</Btn><a className="dwp-btn-ghost" href="#tjanster">Se våra tjänster →</a></div>
+        </div>
+        <div className="dwp-premium-services" aria-label="Våra tjänster">
+          {s.services.items.slice(0,3).map((service,index)=>(
+            <a key={service.title} href="#tjanster" className="dwp-premium-service">
+              <span className="dwp-premium-service-icon" aria-hidden="true">{["✧","◇","✦"][index]}</span>
+              <span><strong>{service.title}</strong><small>{service.text}</small></span>
+              <span className="dwp-premium-service-arrow" aria-hidden="true">↗</span>
+            </a>
+          ))}
+        </div>
+      </Wrap>
+      <div className="dwp-premium-beam"/>
+    </section>
+  );
   const ctas = <div className="flex flex-wrap gap-3"><Btn>{h.cta}</Btn>{h.secondary && <Btn ghost>{h.secondary}</Btn>}</div>;
   switch (h.variant) {
     case "editorial":
@@ -205,12 +228,9 @@ export function Contact({ s }: { s: Site }) {
     <section id="kontakt" className="py-20 md:py-28"><Wrap className="grid gap-10 md:grid-cols-2">
       <div><H2>{c.heading}</H2><p className="text-lg opacity-80">{c.text}</p>
         <p className="mt-6">{c.phone}<br /><span className="opacity-70">{c.address}</span></p></div>
-      <form className="dwp-card grid gap-4 p-8" onSubmit={(e) => e.preventDefault()}>
-        <input className="dwp-input" placeholder="Namn" aria-label="Namn" />
-        <input className="dwp-input" placeholder="E-post eller telefon" aria-label="E-post eller telefon" />
-        <textarea className="dwp-input min-h-28" placeholder="Meddelande" aria-label="Meddelande" />
-        <button className="dwp-btn justify-center">{s.hero.cta}</button>
-      </form>
+      <div className="dwp-card grid gap-4 p-8"><p className="dwp-eyebrow">Kontakta oss</p><p className="text-sm opacity-75">Använd kontaktuppgifterna för att komma i kontakt med företaget.</p>
+        {c.phone ? <a className="dwp-btn justify-center" href={`tel:${c.phone.replace(/[^+\\d]/g,"")}`}>Ring oss →</a> : <p className="text-sm opacity-60">Kontaktuppgifter kompletteras inför publicering.</p>}
+      </div>
     </Wrap></section>
   );
 }
@@ -222,7 +242,7 @@ export function DwpPage({ site: s }: { site: Site }) {
       <header className="dwp-header sticky top-0 z-20"><Wrap className="flex h-16 items-center justify-between gap-4">
         <span className="dwp-display truncate text-xl">{s.brand}</span><Btn>{s.hero.cta}</Btn>
       </Wrap></header>
-      <Hero s={s} /><Services s={s} /><Offer s={s} />{s.references.length > 0 && <References s={s} />}<Contact s={s} />
+      <Hero s={s} /><Services s={s} />{(s.offer.kind === "quote" ? s.offer.projects.length > 0 || s.offer.credentials.length > 0 : s.offer.kind === "appointment" ? s.offer.rows.length > 0 : s.offer.kind === "package" ? s.offer.tiers.length > 0 : s.offer.kind === "product" ? s.offer.items.length > 0 : s.offer.listings.length > 0) && <Offer s={s} />}{s.references.length > 0 && <References s={s} />}<Contact s={s} />
       <footer className="py-10 text-center text-sm opacity-60">© {s.brand} · Förhandsvisning</footer>
     </div>
   );
