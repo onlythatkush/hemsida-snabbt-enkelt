@@ -319,12 +319,24 @@ const RENTAL_OFFER = {
 export function buildSections(ctx: SectionContext): Section[] {
   const { industry, tone, local, description, images, docCount, company } = ctx;
   const rental = industry === "automotive" && Boolean(ctx.art?.subjects.includes("rental"));
+  const detailing = industry === "automotive" && /rekond|bilvård|biltvätt|fordonstvätt|lackskydd|polering|detailing|bilspa/i.test(
+    [description, ctx.extra || "", company].join(" ")
+  );
+  const detailingOffer = {
+    eyebrow: "Bilvård",
+    title: "Våra bilvårdstjänster",
+    items: [
+      { title: "Invändig rekond", body: "Rengöring och vård av bilens interiör." },
+      { title: "Utvändig rekond", body: "Tvätt och rengöring av bilens utsida." },
+      { title: "Polering & lackvård", body: "Behandling för en välvårdad finish." },
+    ],
+  };
   const heroImages = images.filter((i) => i.role === "hero");
   const featureImages = images.filter((i) => i.role === "feature");
   const galleryImages = images.filter((i) => i.role === "gallery");
   const indexOf = (img: SpecImage) => images.indexOf(img);
 
-  const offer = rental ? RENTAL_OFFER : OFFER_LABELS[industry] || OFFER_LABELS.generic;
+  const offer = rental ? RENTAL_OFFER : detailing ? detailingOffer : OFFER_LABELS[industry] || OFFER_LABELS.generic;
   const aboutBody = restSentences(description, 2) || firstSentences(description, 2) || `${company} är ett företag som sätter kunden först.`;
   const sections: Section[] = [];
 
@@ -340,7 +352,7 @@ export function buildSections(ctx: SectionContext): Section[] {
     eyebrow: local ? "Om oss — lokalt och nära" : "Om oss",
     title: tone.craft > 0.6 ? "Gjort för hand, med omsorg" : tone.formality > 0.75 ? "Erfarenhet du kan luta dig mot" : "Det här är vi",
     body: aboutBody,
-    items: (ABOUT_POINTS[industry] || ABOUT_POINTS_DEFAULT).map((title) => ({ title })),
+    items: (detailing ? ["Invändig & utvändig bilvård", "Omsorg om detaljerna", "Kontakta oss för offert"] : ABOUT_POINTS[industry] || ABOUT_POINTS_DEFAULT).map((title) => ({ title })),
     images: featureImages.slice(0, 1).map(indexOf),
     layout: featureImages.length ? "split" : "list",
     tone: "base",
@@ -362,6 +374,8 @@ export function buildSections(ctx: SectionContext): Section[] {
       tone.craft > 0.55 && ["bakery", "cafe", "restaurant", "photography", "beauty"].includes(industry);
     const highlight = rental
       ? RENTAL_HIGHLIGHT
+      : detailing
+        ? { eyebrow: "Bilvård", title: "Omsorg om varje detalj", body: "Från rengöring till finish — kontakta oss för att diskutera vad din bil behöver." }
       : craftHighlight
         ? {
             eyebrow: "Hantverket",
