@@ -194,6 +194,7 @@ export type EngineInfo = {
 };
 
 export type DesignSpec = {
+  librarySite?: import("@/lib/dwp-library/types").Site;
   version: number;
   generatedAt: string;
   /** Increments every time admin presses "Gör ny hemsida". */
