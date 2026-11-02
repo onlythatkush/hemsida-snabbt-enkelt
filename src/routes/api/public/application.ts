@@ -140,6 +140,7 @@ async function handlePost(request: Request): Promise<Response> {
 
         // Build a first design from the submitted customer brief.
         let previewUrl: string | null = null
+        let qaSendable = false
         try {
           const { composeDesignSpec } = await import('@/lib/design/compose')
           const spec = composeDesignSpec({
@@ -149,6 +150,12 @@ async function handlePost(request: Request): Promise<Response> {
             address: parsed.address || '', email: parsed.email, phone: parsed.phone,
             file_names: [],
           })
+          const { previewSendGate } = await import('@/lib/design/quality')
+          const gate = previewSendGate(spec.qa, false)
+          if (!gate.sendable) {
+            console.warn('Preview withheld by QA', { reference, status: spec.qa.status, reason: gate.reason })
+          }
+          qaSendable = gate.sendable
           const token = crypto.randomUUID().replaceAll('-', '') + crypto.randomUUID().replaceAll('-', '')
           previewUrl = new URL('/kund-preview/' + encodeURIComponent(reference), request.url).toString() + '?token=' + token
           const previewDb = postgres(databaseUrl, { max: 1, prepare: false })
@@ -168,7 +175,7 @@ async function handlePost(request: Request): Promise<Response> {
         // Keep failures visible to the browser and logs; never claim the email was sent otherwise.
         let emailSent = false
         let emailError: string | null = null
-        if (previewUrl) {
+        if (previewUrl && qaSendable) {
           try {
             const { renderTemplate } = await import('@/lib/hub/mail')
             const { replyAddressFor } = await import('@/lib/email/reply-address')
@@ -199,7 +206,7 @@ async function handlePost(request: Request): Promise<Response> {
             console.error('Automatic preview email failed', { reference, error: emailError })
           }
         }
-        return Response.json({ success: true, reference, previewUrl, emailSent, emailError })
+        return Response.json({ success: true, reference, previewUrl, emailSent, emailError, qaSendable })
       }
     }
   }
