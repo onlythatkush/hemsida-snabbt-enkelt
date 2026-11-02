@@ -164,7 +164,42 @@ async function handlePost(request: Request): Promise<Response> {
           console.error('Preview generation failed', error)
           previewUrl = null
         }
-        return Response.json({ success: true, reference, previewUrl })
+        // A successful application must deliver its generated preview, not only save it.
+        // Keep failures visible to the browser and logs; never claim the email was sent otherwise.
+        let emailSent = false
+        let emailError: string | null = null
+        if (previewUrl) {
+          try {
+            const { renderTemplate } = await import('@/lib/hub/mail')
+            const { replyAddressFor } = await import('@/lib/email/reply-address')
+            const apiKey = process.env.RESEND_API_KEY
+            if (!apiKey) throw new Error('RESEND_API_KEY missing')
+            const mail = await renderTemplate('preview-ready', {
+              name: parsed.name,
+              company: parsed.company,
+              previewUrl,
+              reference,
+            })
+            const response = await fetch('https://api.resend.com/emails', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
+              body: JSON.stringify({
+                from: 'Din Webbpartner <preview@dinwebbpartner.com>',
+                to: [parsed.email],
+                reply_to: replyAddressFor(reference),
+                subject: mail.subject,
+                html: mail.html,
+                text: mail.text,
+              }),
+            })
+            if (!response.ok) throw new Error(`Resend ${response.status}: ${(await response.text()).slice(0, 200)}`)
+            emailSent = true
+          } catch (error) {
+            emailError = String((error as Error)?.message || error).slice(0, 200)
+            console.error('Automatic preview email failed', { reference, error: emailError })
+          }
+        }
+        return Response.json({ success: true, reference, previewUrl, emailSent, emailError })
       }
     }
   }
