@@ -39,7 +39,7 @@ export const Route = createFileRoute('/api/public/health')({
           },
           email: {
             resendStatus,
-            resendAuthenticated: resendStatus === 200,
+            // A sending-only Resend key cannot call GET /domains (403/401).\n            // Do not misreport a restricted key as invalid.\n            resendAuthenticated: resendStatus === 200 ? true : null,\n            resendDiagnostic: resendStatus === 200 ? 'domain_read_allowed' : resendStatus === 401 || resendStatus === 403 ? 'domain_read_not_authorized_for_sending_key' : 'unverified',
             inboundSignatureConfigured: present('INBOUND_EMAIL_WEBHOOK_SECRET'),
           },
         })
