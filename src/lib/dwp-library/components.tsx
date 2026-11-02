@@ -23,14 +23,14 @@ export function Hero({ s }: { s: Site }) {
   const h = s.hero;
   const premiumAuto = /bilrekond|bilvård|detailing|rekondmästare/i.test([s.industry,s.brand,s.id].join(" "));
   if (premiumAuto) return (
-    <section className="dwp-premium-hero">
+    <section className="dwp-premium-hero text-white">
       <SafeImg eager img={h.image} className="dwp-premium-photo"/>
       <div className="dwp-premium-overlay"/>
       <Wrap className="dwp-premium-inner">
         <div className="dwp-premium-copy">
           <div className="dwp-premium-kicker">✦ {h.eyebrow} · PREMIUM BILVÅRD</div>
-          <h1 className="dwp-premium-title">{h.title}</h1>
-          <p className="dwp-premium-lead">{h.lead}</p>
+          <h1 className="dwp-premium-title !text-white">{h.title}</h1>
+          <p className="dwp-premium-lead !text-slate-100">{h.lead}</p>
           <div className="flex flex-wrap gap-4"><Btn>{h.cta}</Btn><a className="dwp-btn-ghost" href="#tjanster">Se våra tjänster →</a></div>
         </div>
         <div className="dwp-premium-services" aria-label="Våra tjänster">
