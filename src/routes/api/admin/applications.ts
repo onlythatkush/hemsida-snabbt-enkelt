@@ -142,7 +142,7 @@ export const Route = createFileRoute('/api/admin/applications')({
               description: app.description,
               website_type: app.website_type,
               colors: app.colors,
-              extra_requests: app.extra_requests,
+              extra_requests: [app.extra_requests, input.buildNotes ? `Ändringsönskemål för denna designversion: ${input.buildNotes}` : null].filter(Boolean).join('\n\n'),
               social_links: app.social_links,
               address: app.address,
               email: app.email,
