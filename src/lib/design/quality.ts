@@ -229,6 +229,7 @@ export function previewSendGate(
   accepted: boolean,
 ): { sendable: boolean; reason?: string } {
   const status = qa?.status;
+  if (!qa) return { sendable: false, reason: "Ingen kvalitetsrapport finns — förhandsvisningen får inte skickas." };
   if (status === "blocked") {
     const failed = (qa?.checks || []).filter((c) => c.level === "fail").map((c) => c.label);
     return {
