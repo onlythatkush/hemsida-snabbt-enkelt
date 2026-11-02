@@ -229,7 +229,7 @@ export function Contact({ s }: { s: Site }) {
       <div><H2>{c.heading}</H2><p className="text-lg opacity-80">{c.text}</p>
         <p className="mt-6">{c.phone}<br /><span className="opacity-70">{c.address}</span></p></div>
       <div className="dwp-card grid gap-4 p-8"><p className="dwp-eyebrow">Kontakta oss</p><p className="text-sm opacity-75">Använd kontaktuppgifterna för att komma i kontakt med företaget.</p>
-        {c.phone ? <a className="dwp-btn justify-center" href={`tel:${c.phone.replace(/[^+\\d]/g,"")}`}>Ring oss →</a> : <p className="text-sm opacity-60">Kontaktuppgifter kompletteras inför publicering.</p>}
+        {c.phone ? <a className="dwp-btn justify-center" href={`tel:${c.phone.replace(/[^+0-9]/g,"")}`}>Ring oss →</a> : <p className="text-sm opacity-60">Kontaktuppgifter kompletteras inför publicering.</p>}
       </div>
     </Wrap></section>
   );
