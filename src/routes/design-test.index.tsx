@@ -1,0 +1,4 @@
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { sites } from "@/lib/dwp-library/templates";
+export const Route = createFileRoute("/design-test/")({ component: Gallery });
+function Gallery(){return <main className="min-h-screen bg-slate-950 p-6 text-white"><div className="mx-auto max-w-6xl"><h1 className="mb-2 text-4xl font-bold">DWP – 20 testdesigner</h1><p className="mb-8 text-slate-300">Intern granskning · alla företag och uppgifter är exempel</p><div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">{sites.map(s=><Link key={s.id} to="/design-test/$id" params={{id:s.id}} className="rounded-xl border border-white/20 p-5 hover:bg-white/10"><div className="text-xs uppercase text-slate-400">{s.category} · {s.theme}</div><h2 className="mt-2 text-xl font-semibold">{s.industry}</h2><p className="mt-2 text-sm text-slate-300">{s.brand}</p></Link>)}</div></div></main>}
