@@ -123,8 +123,11 @@ export function cleanReplyText(raw: string | null | undefined): string {
   const lines = raw.replace(/\r/g, "").split("\n");
   const kept: string[] = [];
   for (const line of lines) {
-    if (/^>/.test(line.trim())) break;
-    if (/^(den|on|from:|skrivet av|-{2,}\s*$)/i.test(line.trim()) && kept.length) break;
+    const trimmed = line.trim();
+    if (/^>/.test(trimmed)) break;
+    if (/^(den|on|from:|skrivet av|-{2,}\s*$)/i.test(trimmed) && kept.length) break;
+    // Mobile signatures must not be passed to the classifier or AI generator.
+    if (/^skickat från (outlook|min (iphone|ipad)|iphone|android)|^sent from (outlook|my (iphone|ipad|android))/i.test(trimmed)) break;
     kept.push(line);
   }
   return kept.join("\n").trim().slice(0, 8000);
