@@ -1,13 +1,14 @@
 import { createFileRoute } from '@tanstack/react-router'
+import { env as nodeEnv } from 'node:process'
 
 export const Route = createFileRoute('/api/public/health')({
   server: {
     handlers: {
       GET: async () => {
-        const present = (name: string) => Boolean(process.env[name])
+        const present = (name: string) => Boolean(nodeEnv[name])
 
         let resendStatus: number | null = null
-        const resendKey = process.env.RESEND_API_KEY
+        const resendKey = nodeEnv.RESEND_API_KEY
         if (resendKey) {
           try {
             const res = await fetch('https://api.resend.com/domains', {
