@@ -1,9 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { z } from 'zod'
-import postgres from 'postgres'
 import { preflight, withCors } from '@/lib/cors'
-import { hubDatabaseUrl } from '@/lib/hub/db'
-import { cloudAdmin, hubStore } from '@/lib/hub/cloud'
+import { hubSql, hubStore, logEvent } from '@/lib/hub/db'
 
 /** Server-authoritative reference. The browser never invents one. */
 function generateReference(): string {
@@ -53,18 +51,15 @@ async function handlePost(request: Request): Promise<Response> {
           return Response.json({ error: 'Invalid input' }, { status: 400 })
         }
 
-        const store = hubStore()
-        if (store === 'cloud') return insertIntoCloud(parsed)
-        const databaseUrl = hubDatabaseUrl()
-        if (!databaseUrl) {
+        if (hubStore() === 'none') {
           return Response.json({
             error: 'Ansökan kunde inte sparas. Servern saknar databaskonfiguration; ingen beställning har bekräftats.',
           }, { status: 503 })
         }
 
-        const sql = postgres(databaseUrl, { max: 1, prepare: false })
+        const sql = hubSql()
         try {
-          await sql`
+          if (!(sql as any).__cloud) await sql`
             CREATE TABLE IF NOT EXISTS public.project_applications (
               id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
               reference TEXT NOT NULL UNIQUE,
@@ -93,7 +88,7 @@ async function handlePost(request: Request): Promise<Response> {
         }
 
         const reference = generateReference()
-        const sql2 = postgres(databaseUrl, { max: 1, prepare: false })
+        const sql2 = hubSql()
         try {
           await sql2`
             INSERT INTO public.project_applications (
@@ -132,13 +127,14 @@ async function handlePost(request: Request): Promise<Response> {
               updated_at = now()
           `
         } catch (error) {
-          console.error('Failed to save application')
+          console.error('Failed to save application', (error as any)?.code)
+          await sql2.end()
           return Response.json({
             error: 'Ansökan kunde inte sparas. Försök igen senare; ingen beställning har bekräftats.',
           }, { status: 500 })
-        } finally {
-          await sql2.end()
         }
+        await logEvent(sql2, reference, 'application_received', 'Ansökan mottagen', { store: hubStore() })
+        await sql2.end()
 
         return Response.json({ success: true, reference })
       }
@@ -153,21 +149,11 @@ async function handleGet(request: Request): Promise<Response> {
     return Response.json({ error: 'Invalid reference' }, { status: 400 })
   }
 
-  if (hubStore() === 'cloud') {
-    const { data, error } = await cloudAdmin()
-      .from('project_applications').select('reference').eq('reference', reference).limit(1)
-    if (error) {
-      console.error('Failed to verify application (cloud)', error.code)
-      return Response.json({ error: 'Lookup failed' }, { status: 500 })
-    }
-    return Response.json({ exists: (data?.length ?? 0) > 0, reference })
-  }
-  const databaseUrl = hubDatabaseUrl()
-  if (!databaseUrl) {
+  if (hubStore() === 'none') {
     return Response.json({ error: 'Database not configured' }, { status: 503 })
   }
 
-  const sql = postgres(databaseUrl, { max: 1, prepare: false })
+  const sql = hubSql()
   try {
     const rows = await sql<{ reference: string }[]>`
       SELECT reference FROM public.project_applications WHERE reference = ${reference} LIMIT 1
@@ -181,39 +167,3 @@ async function handleGet(request: Request): Promise<Response> {
   }
 }
 
-/** Lovable Cloud store: used only when no direct Postgres URL is configured. */
-async function insertIntoCloud(parsed: z.infer<typeof schema>): Promise<Response> {
-  const db = cloudAdmin()
-  for (let attempt = 0; attempt < 3; attempt++) {
-    const reference = generateReference()
-    const { error } = await db.from('project_applications').insert({
-      reference,
-      name: parsed.name,
-      email: parsed.email,
-      phone: parsed.phone,
-      company: parsed.company,
-      address: parsed.address || null,
-      description: parsed.description,
-      social_links: parsed.socialLinks || null,
-      website_type: parsed.websiteType,
-      colors: parsed.colors || null,
-      extra_requests: parsed.extraRequests || null,
-      wants_support: parsed.wantsSupport,
-      file_names: [],
-      status: 'new',
-    })
-    if (!error) {
-      await db.from('application_events').insert({
-        reference, event_type: 'application_received', label: 'Ansökan mottagen', details: { store: 'cloud' },
-      }).then(() => undefined, () => undefined)
-      return Response.json({ success: true, reference })
-    }
-    if (error.code !== '23505') {
-      console.error('Failed to save application (cloud)', error.code)
-      break
-    }
-  }
-  return Response.json({
-    error: 'Ansökan kunde inte sparas. Försök igen senare; ingen beställning har bekräftats.',
-  }, { status: 500 })
-}

@@ -31,16 +31,6 @@ function authorized(request: Request) {
   return Boolean(expected && provided && provided === expected)
 }
 
-function databaseUrl() {
-  return (
-    process.env.POSTGRES_URL ||
-    process.env.STORAGE_POSTGRES_URL ||
-    process.env.STORAGE_DATABASE_URL ||
-    process.env.DATABASE_URL ||
-    process.env.SUPABASE_DB_URL
-  )
-}
-
 function emailProvider() {
   const url = import.meta.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SECRET_KEY

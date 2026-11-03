@@ -4,10 +4,6 @@ import { hubSql, hubStore } from '@/lib/hub/db'
 import { DESIGN_SPEC_VERSION, composeDesignSpec } from '@/lib/design/compose'
 import type { DesignSpec } from '@/lib/design/types'
 
-function databaseUrl() {
-  return process.env.POSTGRES_URL || process.env.STORAGE_POSTGRES_URL || process.env.STORAGE_DATABASE_URL || process.env.DATABASE_URL || process.env.SUPABASE_DB_URL
-}
-
 function supabaseClient() {
   const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SECRET_KEY
