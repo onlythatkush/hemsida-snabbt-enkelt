@@ -36,6 +36,23 @@ export const Route = createFileRoute('/api/public/health')({
           }
         }
 
+        let databaseReachable = false
+        let databaseStatus: number | null = null
+        const supabaseUrl = nodeEnv.SUPABASE_URL
+        const serviceKey = nodeEnv.SUPABASE_SERVICE_ROLE_KEY
+        if (supabaseUrl && serviceKey) {
+          try {
+            const response = await fetch(supabaseUrl.replace(/\/$/, '') + '/rest/v1/project_applications?select=reference&limit=0', {
+              headers: { apikey: serviceKey, Authorization: 'Bearer ' + serviceKey },
+              signal: AbortSignal.timeout(5000),
+            })
+            databaseStatus = response.status
+            databaseReachable = response.ok
+          } catch {
+            databaseStatus = 0
+          }
+        }
+
         return Response.json({
           ok: databaseConnected,
           database: { connected: databaseConnected },
