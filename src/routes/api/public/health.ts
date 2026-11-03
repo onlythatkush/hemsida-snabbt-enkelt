@@ -1,4 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
+import { classifyDbError, datasourceFingerprint, hubStore, withHubRead } from '@/lib/hub/db'
 
 export const Route = createFileRoute('/api/public/health')({
   server: {
@@ -19,8 +20,23 @@ export const Route = createFileRoute('/api/public/health')({
           }
         }
 
+        // Secret-free database probe: store type, reachability and a data-source
+        // ID so both deployments can prove they read the same database.
+        const store = hubStore()
+        let database: Record<string, unknown> = { store, reachable: false }
+        if (store !== 'none') {
+          try {
+            const fp = await withHubRead(datasourceFingerprint)
+            database = { store, reachable: true, datasourceId: fp.fingerprint, locked: Boolean(process.env.HUB_STORE) }
+          } catch (e) {
+            const info = classifyDbError(e)
+            database = { store, reachable: false, error: info.kind, message: info.message, action: info.action }
+          }
+        }
+
         return Response.json({
-          ok: true,
+          ok: database.reachable === true,
+          database,
           env: {
             SUPABASE_URL: present('SUPABASE_URL'),
             VITE_SUPABASE_URL: present('VITE_SUPABASE_URL'),
@@ -34,6 +50,8 @@ export const Route = createFileRoute('/api/public/health')({
             STORAGE_POSTGRES_URL: present('STORAGE_POSTGRES_URL'),
             STORAGE_DATABASE_URL: present('STORAGE_DATABASE_URL'),
             DATABASE_URL: present('DATABASE_URL'),
+            HUB_STORE: present('HUB_STORE'),
+            ADMIN_ACCESS_KEY: present('ADMIN_ACCESS_KEY'),
             RESEND_API_KEY: present('RESEND_API_KEY'),
             INBOUND_EMAIL_WEBHOOK_SECRET: present('INBOUND_EMAIL_WEBHOOK_SECRET'),
           },
