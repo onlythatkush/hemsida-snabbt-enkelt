@@ -97,3 +97,24 @@
 .dwp-root:has(.dwp-premium-hero) #tjanster{background:radial-gradient(ellipse at 80% 0%,#123657,transparent 55%),#06111f}
 .dwp-root:has(.dwp-premium-hero) #kontakt{background:linear-gradient(140deg,#071626,#102c47)}
 .dwp-root:has(.dwp-premium-hero) .dwp-card{background:linear-gradient(145deg,#142c43,#091a2d)}
+
+/* Premium detailing: controlled cinematic framing, readable cards and accessible actions. */
+.dwp-root:has(.dwp-premium-hero) .dwp-premium-photo { object-position: 66% 47%; }
+.dwp-root:has(.dwp-premium-hero) .dwp-premium-overlay {
+  background: linear-gradient(90deg, #030912f5 0%, #05111edc 32%, #07152375 62%, #030a1228 100%),
+              linear-gradient(0deg, #020912ed 0%, transparent 48%);
+}
+.dwp-root:has(.dwp-premium-hero) .dwp-premium-service {
+  background: linear-gradient(135deg, #173047d9, #0a1a2bd9);
+  border-color: #a5dcff5c;
+}
+.dwp-root:has(.dwp-premium-hero) a:focus-visible,
+.dwp-root:has(.dwp-premium-hero) button:focus-visible {
+  outline: 3px solid #74dcff; outline-offset: 4px;
+}
+@media (max-width: 767px) {
+  .dwp-root:has(.dwp-premium-hero) .dwp-premium-photo { object-position: 69% center; }
+  .dwp-root:has(.dwp-premium-hero) .dwp-premium-title { line-height: 1.04; overflow-wrap: anywhere; }
+  .dwp-root:has(.dwp-premium-hero) .dwp-premium-services { gap: 12px; }
+  .dwp-root:has(.dwp-premium-hero) .dwp-premium-service small { -webkit-line-clamp: 2; }
+}
