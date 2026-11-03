@@ -52,12 +52,11 @@ export type FetchOptions = {
 
 /** Fetches the stored inbound email body from Resend. Returns null when unavailable. */
 export async function fetchInboundEmail(emailId: string, opts: FetchOptions = {}): Promise<any | null> {
-  const apiKey = opts.apiKey ?? process.env.RESEND_API_KEY
+  const apiKey = opts.apiKey ?? process.env.RESEND_RECEIVING_API_KEY ?? process.env.RESEND_API_KEY
   if (!apiKey || !emailId) return null
   const doFetch = opts.fetchImpl ?? fetch
   const endpoints = [
-    `https://api.resend.com/emails/inbound/${encodeURIComponent(emailId)}`,
-    `https://api.resend.com/emails/${encodeURIComponent(emailId)}`,
+    `https://api.resend.com/emails/receiving/${encodeURIComponent(emailId)}`,
   ]
   for (const url of endpoints) {
     try {
