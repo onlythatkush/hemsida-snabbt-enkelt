@@ -68,7 +68,7 @@ export function renderSql(strings: TemplateStringsArray, values: unknown[]): { t
   // Decide on the statement skeleton only — never on user-supplied values.
   const skeleton = strings.join(' ')
   const wantRows = /^\s*(select|with)\b/i.test(skeleton) || /\breturning\b/i.test(skeleton)
-  return { text, wantRows }
+  return { text: text.trim(), wantRows }
 }
 
 export function createCloudSql(client: SupabaseClient<any>) {
