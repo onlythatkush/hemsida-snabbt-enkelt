@@ -9,44 +9,34 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as QaPreviewRouteImport } from './routes/qa-preview'
-import { Route as BestallRouteImport } from './routes/bestall'
-import { Route as BekraftelseRouteImport } from './routes/bekraftelse'
-import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as PortfolioSlugRouteImport } from './routes/portfolio.$slug'
-import { Route as KundPreviewReferenceRouteImport } from './routes/kund-preview.$reference'
+import { Route as AdminRouteImport } from './routes/admin'
+import { Route as BekraftelseRouteImport } from './routes/bekraftelse'
+import { Route as BestallRouteImport } from './routes/bestall'
+import { Route as QaPreviewRouteImport } from './routes/qa-preview'
 import { Route as EmailUnsubscribeRouteImport } from './routes/email/unsubscribe'
-import { Route as LovableEmailSuppressionRouteImport } from './routes/lovable/email/suppression'
-import { Route as ApiPublicInboundEmailRouteImport } from './routes/api/public/inbound-email'
-import { Route as ApiPublicHealthRouteImport } from './routes/api/public/health'
-import { Route as ApiPublicContactRouteImport } from './routes/api/public/contact'
-import { Route as ApiPublicApplicationFilesRouteImport } from './routes/api/public/application-files'
-import { Route as ApiPublicApplicationRouteImport } from './routes/api/public/application'
-import { Route as ApiHubApplicationsRouteImport } from './routes/api/hub/applications'
-import { Route as ApiAdminSendPreviewRouteImport } from './routes/api/admin/send-preview'
-import { Route as ApiAdminSeedTestGalleryRouteImport } from './routes/api/admin/seed-test-gallery'
-import { Route as ApiAdminReprocessRouteImport } from './routes/api/admin/reprocess'
-import { Route as ApiAdminEmailHealthRouteImport } from './routes/api/admin/email-health'
+import { Route as KundPreviewReferenceRouteImport } from './routes/kund-preview.$reference'
+import { Route as PortfolioSlugRouteImport } from './routes/portfolio.$slug'
 import { Route as ApiAdminApplicationsRouteImport } from './routes/api/admin/applications'
-import { Route as LovableEmailTransactionalSendRouteImport } from './routes/lovable/email/transactional/send'
-import { Route as LovableEmailTransactionalPreviewRouteImport } from './routes/lovable/email/transactional/preview'
-import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/email/queue/process'
+import { Route as ApiAdminEmailHealthRouteImport } from './routes/api/admin/email-health'
+import { Route as ApiAdminReprocessRouteImport } from './routes/api/admin/reprocess'
+import { Route as ApiAdminSeedTestGalleryRouteImport } from './routes/api/admin/seed-test-gallery'
+import { Route as ApiAdminSendPreviewRouteImport } from './routes/api/admin/send-preview'
+import { Route as ApiHubApplicationsRouteImport } from './routes/api/hub/applications'
+import { Route as ApiPublicApplicationRouteImport } from './routes/api/public/application'
+import { Route as ApiPublicApplicationFilesRouteImport } from './routes/api/public/application-files'
+import { Route as ApiPublicContactRouteImport } from './routes/api/public/contact'
+import { Route as ApiPublicHealthRouteImport } from './routes/api/public/health'
+import { Route as ApiPublicInboundEmailRouteImport } from './routes/api/public/inbound-email'
+import { Route as LovableEmailSuppressionRouteImport } from './routes/lovable/email/suppression'
 import { Route as ApiPublicProjectPreviewReferenceRouteImport } from './routes/api/public/project-preview.$reference'
+import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/email/queue/process'
+import { Route as LovableEmailTransactionalPreviewRouteImport } from './routes/lovable/email/transactional/preview'
+import { Route as LovableEmailTransactionalSendRouteImport } from './routes/lovable/email/transactional/send'
 
-const QaPreviewRoute = QaPreviewRouteImport.update({
-  id: '/qa-preview',
-  path: '/qa-preview',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const BestallRoute = BestallRouteImport.update({
-  id: '/bestall',
-  path: '/bestall',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const BekraftelseRoute = BekraftelseRouteImport.update({
-  id: '/bekraftelse',
-  path: '/bekraftelse',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminRoute = AdminRouteImport.update({
@@ -54,19 +44,19 @@ const AdminRoute = AdminRouteImport.update({
   path: '/admin',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const BekraftelseRoute = BekraftelseRouteImport.update({
+  id: '/bekraftelse',
+  path: '/bekraftelse',
   getParentRoute: () => rootRouteImport,
 } as any)
-const PortfolioSlugRoute = PortfolioSlugRouteImport.update({
-  id: '/portfolio/$slug',
-  path: '/portfolio/$slug',
+const BestallRoute = BestallRouteImport.update({
+  id: '/bestall',
+  path: '/bestall',
   getParentRoute: () => rootRouteImport,
 } as any)
-const KundPreviewReferenceRoute = KundPreviewReferenceRouteImport.update({
-  id: '/kund-preview/$reference',
-  path: '/kund-preview/$reference',
+const QaPreviewRoute = QaPreviewRouteImport.update({
+  id: '/qa-preview',
+  path: '/qa-preview',
   getParentRoute: () => rootRouteImport,
 } as any)
 const EmailUnsubscribeRoute = EmailUnsubscribeRouteImport.update({
@@ -74,24 +64,49 @@ const EmailUnsubscribeRoute = EmailUnsubscribeRouteImport.update({
   path: '/email/unsubscribe',
   getParentRoute: () => rootRouteImport,
 } as any)
-const LovableEmailSuppressionRoute = LovableEmailSuppressionRouteImport.update({
-  id: '/lovable/email/suppression',
-  path: '/lovable/email/suppression',
+const KundPreviewReferenceRoute = KundPreviewReferenceRouteImport.update({
+  id: '/kund-preview/$reference',
+  path: '/kund-preview/$reference',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiPublicInboundEmailRoute = ApiPublicInboundEmailRouteImport.update({
-  id: '/api/public/inbound-email',
-  path: '/api/public/inbound-email',
+const PortfolioSlugRoute = PortfolioSlugRouteImport.update({
+  id: '/portfolio/$slug',
+  path: '/portfolio/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiPublicHealthRoute = ApiPublicHealthRouteImport.update({
-  id: '/api/public/health',
-  path: '/api/public/health',
+const ApiAdminApplicationsRoute = ApiAdminApplicationsRouteImport.update({
+  id: '/api/admin/applications',
+  path: '/api/admin/applications',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiPublicContactRoute = ApiPublicContactRouteImport.update({
-  id: '/api/public/contact',
-  path: '/api/public/contact',
+const ApiAdminEmailHealthRoute = ApiAdminEmailHealthRouteImport.update({
+  id: '/api/admin/email-health',
+  path: '/api/admin/email-health',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAdminReprocessRoute = ApiAdminReprocessRouteImport.update({
+  id: '/api/admin/reprocess',
+  path: '/api/admin/reprocess',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAdminSeedTestGalleryRoute = ApiAdminSeedTestGalleryRouteImport.update({
+  id: '/api/admin/seed-test-gallery',
+  path: '/api/admin/seed-test-gallery',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAdminSendPreviewRoute = ApiAdminSendPreviewRouteImport.update({
+  id: '/api/admin/send-preview',
+  path: '/api/admin/send-preview',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiHubApplicationsRoute = ApiHubApplicationsRouteImport.update({
+  id: '/api/hub/applications',
+  path: '/api/hub/applications',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicApplicationRoute = ApiPublicApplicationRouteImport.update({
+  id: '/api/public/application',
+  path: '/api/public/application',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiPublicApplicationFilesRoute =
@@ -100,51 +115,30 @@ const ApiPublicApplicationFilesRoute =
     path: '/api/public/application-files',
     getParentRoute: () => rootRouteImport,
   } as any)
-const ApiPublicApplicationRoute = ApiPublicApplicationRouteImport.update({
-  id: '/api/public/application',
-  path: '/api/public/application',
+const ApiPublicContactRoute = ApiPublicContactRouteImport.update({
+  id: '/api/public/contact',
+  path: '/api/public/contact',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiHubApplicationsRoute = ApiHubApplicationsRouteImport.update({
-  id: '/api/hub/applications',
-  path: '/api/hub/applications',
+const ApiPublicHealthRoute = ApiPublicHealthRouteImport.update({
+  id: '/api/public/health',
+  path: '/api/public/health',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiAdminSendPreviewRoute = ApiAdminSendPreviewRouteImport.update({
-  id: '/api/admin/send-preview',
-  path: '/api/admin/send-preview',
+const ApiPublicInboundEmailRoute = ApiPublicInboundEmailRouteImport.update({
+  id: '/api/public/inbound-email',
+  path: '/api/public/inbound-email',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiAdminSeedTestGalleryRoute = ApiAdminSeedTestGalleryRouteImport.update({
-  id: '/api/admin/seed-test-gallery',
-  path: '/api/admin/seed-test-gallery',
+const LovableEmailSuppressionRoute = LovableEmailSuppressionRouteImport.update({
+  id: '/lovable/email/suppression',
+  path: '/lovable/email/suppression',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiAdminReprocessRoute = ApiAdminReprocessRouteImport.update({
-  id: '/api/admin/reprocess',
-  path: '/api/admin/reprocess',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiAdminEmailHealthRoute = ApiAdminEmailHealthRouteImport.update({
-  id: '/api/admin/email-health',
-  path: '/api/admin/email-health',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiAdminApplicationsRoute = ApiAdminApplicationsRouteImport.update({
-  id: '/api/admin/applications',
-  path: '/api/admin/applications',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LovableEmailTransactionalSendRoute =
-  LovableEmailTransactionalSendRouteImport.update({
-    id: '/lovable/email/transactional/send',
-    path: '/lovable/email/transactional/send',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const LovableEmailTransactionalPreviewRoute =
-  LovableEmailTransactionalPreviewRouteImport.update({
-    id: '/lovable/email/transactional/preview',
-    path: '/lovable/email/transactional/preview',
+const ApiPublicProjectPreviewReferenceRoute =
+  ApiPublicProjectPreviewReferenceRouteImport.update({
+    id: '/api/public/project-preview/$reference',
+    path: '/api/public/project-preview/$reference',
     getParentRoute: () => rootRouteImport,
   } as any)
 const LovableEmailQueueProcessRoute =
@@ -153,10 +147,16 @@ const LovableEmailQueueProcessRoute =
     path: '/lovable/email/queue/process',
     getParentRoute: () => rootRouteImport,
   } as any)
-const ApiPublicProjectPreviewReferenceRoute =
-  ApiPublicProjectPreviewReferenceRouteImport.update({
-    id: '/api/public/project-preview/$reference',
-    path: '/api/public/project-preview/$reference',
+const LovableEmailTransactionalPreviewRoute =
+  LovableEmailTransactionalPreviewRouteImport.update({
+    id: '/lovable/email/transactional/preview',
+    path: '/lovable/email/transactional/preview',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const LovableEmailTransactionalSendRoute =
+  LovableEmailTransactionalSendRouteImport.update({
+    id: '/lovable/email/transactional/send',
+    path: '/lovable/email/transactional/send',
     getParentRoute: () => rootRouteImport,
   } as any)
 
@@ -349,25 +349,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/qa-preview': {
-      id: '/qa-preview'
-      path: '/qa-preview'
-      fullPath: '/qa-preview'
-      preLoaderRoute: typeof QaPreviewRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/bestall': {
-      id: '/bestall'
-      path: '/bestall'
-      fullPath: '/bestall'
-      preLoaderRoute: typeof BestallRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/bekraftelse': {
-      id: '/bekraftelse'
-      path: '/bekraftelse'
-      fullPath: '/bekraftelse'
-      preLoaderRoute: typeof BekraftelseRouteImport
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin': {
@@ -377,25 +363,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+    '/bekraftelse': {
+      id: '/bekraftelse'
+      path: '/bekraftelse'
+      fullPath: '/bekraftelse'
+      preLoaderRoute: typeof BekraftelseRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/portfolio/$slug': {
-      id: '/portfolio/$slug'
-      path: '/portfolio/$slug'
-      fullPath: '/portfolio/$slug'
-      preLoaderRoute: typeof PortfolioSlugRouteImport
+    '/bestall': {
+      id: '/bestall'
+      path: '/bestall'
+      fullPath: '/bestall'
+      preLoaderRoute: typeof BestallRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/kund-preview/$reference': {
-      id: '/kund-preview/$reference'
-      path: '/kund-preview/$reference'
-      fullPath: '/kund-preview/$reference'
-      preLoaderRoute: typeof KundPreviewReferenceRouteImport
+    '/qa-preview': {
+      id: '/qa-preview'
+      path: '/qa-preview'
+      fullPath: '/qa-preview'
+      preLoaderRoute: typeof QaPreviewRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/email/unsubscribe': {
@@ -405,81 +391,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EmailUnsubscribeRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/lovable/email/suppression': {
-      id: '/lovable/email/suppression'
-      path: '/lovable/email/suppression'
-      fullPath: '/lovable/email/suppression'
-      preLoaderRoute: typeof LovableEmailSuppressionRouteImport
+    '/kund-preview/$reference': {
+      id: '/kund-preview/$reference'
+      path: '/kund-preview/$reference'
+      fullPath: '/kund-preview/$reference'
+      preLoaderRoute: typeof KundPreviewReferenceRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/public/inbound-email': {
-      id: '/api/public/inbound-email'
-      path: '/api/public/inbound-email'
-      fullPath: '/api/public/inbound-email'
-      preLoaderRoute: typeof ApiPublicInboundEmailRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/health': {
-      id: '/api/public/health'
-      path: '/api/public/health'
-      fullPath: '/api/public/health'
-      preLoaderRoute: typeof ApiPublicHealthRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/contact': {
-      id: '/api/public/contact'
-      path: '/api/public/contact'
-      fullPath: '/api/public/contact'
-      preLoaderRoute: typeof ApiPublicContactRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/application-files': {
-      id: '/api/public/application-files'
-      path: '/api/public/application-files'
-      fullPath: '/api/public/application-files'
-      preLoaderRoute: typeof ApiPublicApplicationFilesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/application': {
-      id: '/api/public/application'
-      path: '/api/public/application'
-      fullPath: '/api/public/application'
-      preLoaderRoute: typeof ApiPublicApplicationRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/hub/applications': {
-      id: '/api/hub/applications'
-      path: '/api/hub/applications'
-      fullPath: '/api/hub/applications'
-      preLoaderRoute: typeof ApiHubApplicationsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/admin/send-preview': {
-      id: '/api/admin/send-preview'
-      path: '/api/admin/send-preview'
-      fullPath: '/api/admin/send-preview'
-      preLoaderRoute: typeof ApiAdminSendPreviewRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/admin/seed-test-gallery': {
-      id: '/api/admin/seed-test-gallery'
-      path: '/api/admin/seed-test-gallery'
-      fullPath: '/api/admin/seed-test-gallery'
-      preLoaderRoute: typeof ApiAdminSeedTestGalleryRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/admin/reprocess': {
-      id: '/api/admin/reprocess'
-      path: '/api/admin/reprocess'
-      fullPath: '/api/admin/reprocess'
-      preLoaderRoute: typeof ApiAdminReprocessRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/admin/email-health': {
-      id: '/api/admin/email-health'
-      path: '/api/admin/email-health'
-      fullPath: '/api/admin/email-health'
-      preLoaderRoute: typeof ApiAdminEmailHealthRouteImport
+    '/portfolio/$slug': {
+      id: '/portfolio/$slug'
+      path: '/portfolio/$slug'
+      fullPath: '/portfolio/$slug'
+      preLoaderRoute: typeof PortfolioSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/admin/applications': {
@@ -489,18 +412,88 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAdminApplicationsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/lovable/email/transactional/send': {
-      id: '/lovable/email/transactional/send'
-      path: '/lovable/email/transactional/send'
-      fullPath: '/lovable/email/transactional/send'
-      preLoaderRoute: typeof LovableEmailTransactionalSendRouteImport
+    '/api/admin/email-health': {
+      id: '/api/admin/email-health'
+      path: '/api/admin/email-health'
+      fullPath: '/api/admin/email-health'
+      preLoaderRoute: typeof ApiAdminEmailHealthRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/lovable/email/transactional/preview': {
-      id: '/lovable/email/transactional/preview'
-      path: '/lovable/email/transactional/preview'
-      fullPath: '/lovable/email/transactional/preview'
-      preLoaderRoute: typeof LovableEmailTransactionalPreviewRouteImport
+    '/api/admin/reprocess': {
+      id: '/api/admin/reprocess'
+      path: '/api/admin/reprocess'
+      fullPath: '/api/admin/reprocess'
+      preLoaderRoute: typeof ApiAdminReprocessRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/seed-test-gallery': {
+      id: '/api/admin/seed-test-gallery'
+      path: '/api/admin/seed-test-gallery'
+      fullPath: '/api/admin/seed-test-gallery'
+      preLoaderRoute: typeof ApiAdminSeedTestGalleryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/send-preview': {
+      id: '/api/admin/send-preview'
+      path: '/api/admin/send-preview'
+      fullPath: '/api/admin/send-preview'
+      preLoaderRoute: typeof ApiAdminSendPreviewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/hub/applications': {
+      id: '/api/hub/applications'
+      path: '/api/hub/applications'
+      fullPath: '/api/hub/applications'
+      preLoaderRoute: typeof ApiHubApplicationsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/application': {
+      id: '/api/public/application'
+      path: '/api/public/application'
+      fullPath: '/api/public/application'
+      preLoaderRoute: typeof ApiPublicApplicationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/application-files': {
+      id: '/api/public/application-files'
+      path: '/api/public/application-files'
+      fullPath: '/api/public/application-files'
+      preLoaderRoute: typeof ApiPublicApplicationFilesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/contact': {
+      id: '/api/public/contact'
+      path: '/api/public/contact'
+      fullPath: '/api/public/contact'
+      preLoaderRoute: typeof ApiPublicContactRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/health': {
+      id: '/api/public/health'
+      path: '/api/public/health'
+      fullPath: '/api/public/health'
+      preLoaderRoute: typeof ApiPublicHealthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/inbound-email': {
+      id: '/api/public/inbound-email'
+      path: '/api/public/inbound-email'
+      fullPath: '/api/public/inbound-email'
+      preLoaderRoute: typeof ApiPublicInboundEmailRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/lovable/email/suppression': {
+      id: '/lovable/email/suppression'
+      path: '/lovable/email/suppression'
+      fullPath: '/lovable/email/suppression'
+      preLoaderRoute: typeof LovableEmailSuppressionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/project-preview/$reference': {
+      id: '/api/public/project-preview/$reference'
+      path: '/api/public/project-preview/$reference'
+      fullPath: '/api/public/project-preview/$reference'
+      preLoaderRoute: typeof ApiPublicProjectPreviewReferenceRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/lovable/email/queue/process': {
@@ -510,11 +503,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LovableEmailQueueProcessRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/public/project-preview/$reference': {
-      id: '/api/public/project-preview/$reference'
-      path: '/api/public/project-preview/$reference'
-      fullPath: '/api/public/project-preview/$reference'
-      preLoaderRoute: typeof ApiPublicProjectPreviewReferenceRouteImport
+    '/lovable/email/transactional/preview': {
+      id: '/lovable/email/transactional/preview'
+      path: '/lovable/email/transactional/preview'
+      fullPath: '/lovable/email/transactional/preview'
+      preLoaderRoute: typeof LovableEmailTransactionalPreviewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/lovable/email/transactional/send': {
+      id: '/lovable/email/transactional/send'
+      path: '/lovable/email/transactional/send'
+      fullPath: '/lovable/email/transactional/send'
+      preLoaderRoute: typeof LovableEmailTransactionalSendRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
