@@ -117,7 +117,8 @@ export function classifyReply(raw: string | null | undefined): IntentResult {
     };
   }
 
-  // A question, negation, condition or reservation must never approve a design.\n  if (approvals.length && !blockers.length) {
+  // A question, negation, condition or reservation must never approve a design.
+  if (approvals.length && !blockers.length) {
     return {
       intent: "approved",
       reason: "Tydligt godkännande utan reservationer",
