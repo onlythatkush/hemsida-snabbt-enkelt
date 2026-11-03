@@ -1,7 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { REPLY_DOMAIN, replyAddressFor } from '@/lib/email/reply-address'
 import { composeDesignSpec } from '@/lib/design/compose'
-import { REQUIRED_TABLES, hubDatabaseUrl, schemaReport, withHubRead } from '@/lib/hub/db'
+import { REQUIRED_TABLES, hubStore, hubStoreMissingMessage, schemaReport, withHubRead } from '@/lib/hub/db'
 import { hubSender } from '@/lib/hub/mail'
 
 /**
@@ -29,13 +29,19 @@ export const Route = createFileRoute('/api/admin/email-health')({
         const receivingEndpoint = new URL('/api/public/inbound-email', request.url).toString()
 
         // 1. Database connection
-        const dbConfigured = Boolean(hubDatabaseUrl())
+        const store = hubStore()
+        const dbConfigured = store !== 'none'
+        const storeLocked = Boolean((process.env.HUB_STORE || '').trim())
         checks.push({
           id: 'database',
           label: 'Databasanslutning',
           status: dbConfigured ? 'yellow' : 'red',
-          detail: dbConfigured ? 'Konfigurerad, anslutningen är ännu inte verifierad' : 'Ingen anslutning konfigurerad',
-          action: dbConfigured ? undefined : 'Sätt POSTGRES_URL (eller SUPABASE_DB_URL) i driftmiljön.',
+          detail: dbConfigured
+            ? `Aktiv orderdatabas: ${store === 'cloud' ? 'Lovable Cloud' : 'extern Postgres (POSTGRES_URL)'}${storeLocked ? ' (låst via HUB_STORE)' : ' (standardval, ej låst)'}; anslutningen verifieras nedan`
+            : hubStoreMissingMessage(),
+          action: !dbConfigured
+            ? 'Sätt POSTGRES_URL för den befintliga orderdatabasen, eller HUB_STORE=cloud. Byt inte databas.'
+            : storeLocked ? undefined : 'Sätt HUB_STORE (postgres eller cloud) i driftmiljön så att en saknad inställning aldrig tyst byter databas.',
         })
 
         // 2. Schema — tables AND columns the runtime actually uses
