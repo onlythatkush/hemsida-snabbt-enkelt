@@ -1,7 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { REPLY_DOMAIN, replyAddressFor } from '@/lib/email/reply-address'
 import { composeDesignSpec } from '@/lib/design/compose'
-import { REQUIRED_TABLES, hubStore, hubStoreMissingMessage, schemaReport, withHubRead } from '@/lib/hub/db'
+import { REQUIRED_TABLES, hubStore, hubStoreMissingMessage, schemaReport, classifyDbError, datasourceFingerprint, withHubRead } from '@/lib/hub/db'
 import { hubSender } from '@/lib/hub/mail'
 
 /**
@@ -48,7 +48,7 @@ export const Route = createFileRoute('/api/admin/email-health')({
         let mailLog: { total: number; failed: number; lastSentAt: string | null } | null = null
         if (dbConfigured) {
           try {
-            const { report, log } = await withHubRead(async (sql) => {
+            const { report, log, fp } = await withHubRead(async (sql) => {
               const report = await schemaReport(sql)
               let log = null as any
               if (report.tables['preview_email_log']?.exists) {
@@ -64,13 +64,14 @@ export const Route = createFileRoute('/api/admin/email-health')({
                   lastSentAt: rows[0]?.last ?? null,
                 }
               }
-              return { report, log }
+              const fp = await datasourceFingerprint(sql)
+              return { report, log, fp }
             })
             mailLog = log
             const databaseCheck = checks.find((check) => check.id === 'database')
             if (databaseCheck) {
               databaseCheck.status = 'green'
-              databaseCheck.detail = 'Databasanslutningen svarar'
+              databaseCheck.detail = `${databaseCheck.detail?.split(';')[0]}; svarar. Datakälla-ID ${fp.fingerprint ?? 'tom databas'} (${fp.applications} ansökningar) — jämför med den andra miljön.`
             }
             const missingTables = REQUIRED_TABLES.filter((t) => !report.tables[t]?.exists)
             const missingCols = Object.entries(report.tables)
@@ -88,11 +89,13 @@ export const Route = createFileRoute('/api/admin/email-health')({
               action: missingTables.length || missingCols.length ? 'Kör databasmigrationerna igen.' : undefined,
             })
           } catch (e) {
+            const info = classifyDbError(e)
+            console.error('[health] database read failed', info.kind, (e as any)?.code)
             const databaseCheck = checks.find((check) => check.id === 'database')
             if (databaseCheck) {
               databaseCheck.status = 'red'
-              databaseCheck.detail = 'Databasläsningen misslyckades'
-              databaseCheck.action = 'Kontrollera POSTGRES_URL för den befintliga orderdatabasen i driftmiljön. Byt inte databas.'
+              databaseCheck.detail = `Databasläsningen misslyckades: ${info.message} (${info.kind})`
+              databaseCheck.action = `${info.action} Byt inte databas.`
             }
             checks.push({
               id: 'schema',

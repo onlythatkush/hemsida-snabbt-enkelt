@@ -305,3 +305,43 @@ export async function logEvent(
     console.error('[hub] event log failed', eventType, e)
   }
 }
+
+export type DbErrorInfo = { kind: string; message: string; action: string }
+
+/** Maps driver/RPC errors to actionable, secret-free diagnostics. */
+export function classifyDbError(e: unknown): DbErrorInfo {
+  const err = e as any
+  const code = String(err?.code ?? '')
+  const msg = String(err?.message ?? e ?? '')
+  if (code === 'ENOTFOUND' || /ENOTFOUND|getaddrinfo/i.test(msg) || /tenant\/user .* not found/i.test(msg))
+    return { kind: 'host_not_found', message: 'Databasvärden eller pooler-användaren hittades inte.', action: 'POSTGRES_URL pekar på en värd/tenant som inte finns. Kopiera en aktuell anslutningsadress från den befintliga orderdatabasen.' }
+  if (code === '28P01' || /password authentication failed/i.test(msg))
+    return { kind: 'auth_failed', message: 'Databasen nekade inloggningen.', action: 'Uppdatera lösenordet i POSTGRES_URL för den befintliga databasen.' }
+  if (code === 'ECONNREFUSED' || code === 'ETIMEDOUT' || /timeout|ECONNREFUSED/i.test(msg))
+    return { kind: 'unreachable', message: 'Databasen svarar inte.', action: 'Kontrollera att databasen är igång och nåbar från driftmiljön.' }
+  if (code === '42P01' || code === 'PGRST205' || /does not exist/i.test(msg))
+    return { kind: 'schema_missing', message: 'En tabell eller kolumn saknas i den aktiva databasen.', action: 'Kör de befintliga migrationerna mot den aktiva databasen.' }
+  if (code === 'PGRST202' || /hub_exec/i.test(msg))
+    return { kind: 'cloud_driver_missing', message: 'Lovable Cloud-drivrutinen (hub_exec) saknas eller nekas.', action: 'Kör migrationen som skapar public.hub_exec.' }
+  if (code === '42501' || /permission denied/i.test(msg))
+    return { kind: 'permission_denied', message: 'Databasrollen saknar behörighet.', action: 'Ge serverrollen behörighet till hubbens tabeller.' }
+  return { kind: 'unknown', message: 'Databasanropet misslyckades.', action: 'Se serverloggen för felkod.' }
+}
+
+/**
+ * Secret-free identity of the active order database. Two deployments that
+ * report the same fingerprint read the same data source.
+ */
+export async function datasourceFingerprint(sql: HubSql): Promise<{ fingerprint: string | null; applications: number }> {
+  const rows = await sql<{ n: string; first_id: string | null }[]>`
+    SELECT count(*)::text AS n,
+           (SELECT id::text FROM public.project_applications ORDER BY created_at ASC, id ASC LIMIT 1) AS first_id
+    FROM public.project_applications
+  `
+  const firstId = rows[0]?.first_id ?? null
+  const n = Number(rows[0]?.n ?? 0)
+  if (!firstId) return { fingerprint: null, applications: n }
+  const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(`dwp-hub:${firstId}`))
+  const hex = Array.from(new Uint8Array(digest)).map((b) => b.toString(16).padStart(2, '0')).join('')
+  return { fingerprint: hex.slice(0, 16), applications: n }
+}
