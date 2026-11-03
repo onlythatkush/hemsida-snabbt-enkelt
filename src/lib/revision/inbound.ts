@@ -32,7 +32,7 @@ export function normalizeInbound(payload: any): InboundEmail & { emailId: string
     messageId: d.message_id ?? d.messageId ?? headerOf(headers, 'Message-Id') ?? d.email_id ?? d.id ?? null,
     inReplyTo: d.in_reply_to ?? d.inReplyTo ?? headerOf(headers, 'In-Reply-To') ?? null,
     references: asArray(d.references ?? headerOf(headers, 'References')).flatMap((r) => r.split(/\s+/)).filter(Boolean),
-    to: asArray(d.to),
+    to: [...new Set([...asArray(d.to), ...asArray(d.received_for)])],
     cc: asArray(d.cc),
     from: typeof d.from === 'string' ? d.from : (d.from?.address ?? null),
     subject: d.subject ?? null,
