@@ -511,6 +511,7 @@ export type Database = {
         Args: { payload: Json; queue_name: string }
         Returns: number
       }
+      hub_exec: { Args: { q: string }; Returns: Json }
       move_to_dlq: {
         Args: {
           dlq_name: string
