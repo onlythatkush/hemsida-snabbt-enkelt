@@ -119,8 +119,40 @@ export const Route = createFileRoute('/api/public/inbound-email')({
               RETURNING id
             `
             if (!inserted.length) {
-              // Duplicate webhook delivery: never a second revision, never a second email.
-              return Response.json({ ok: true, duplicate: true, reference: match.reference })
+              // Only failed revision requests may resume. A successful delivery must
+              // never generate a second version or send a duplicate acknowledgement.
+              const previous = await sql<{ id: string; status: string; category: string; routing: string }[]>`
+                SELECT id, status, category, routing
+                FROM public.customer_change_requests
+                WHERE message_id = ${inboundMessageId}
+                LIMIT 1
+              `
+              const prior = previous[0]
+              if (!prior || prior.status !== 'failed' || prior.category !== 'design_changes' || prior.routing !== 'auto_revision') {
+                return Response.json({ ok: true, duplicate: true, reference: match.reference })
+              }
+              const existingApp = await sql`
+                SELECT * FROM public.project_applications
+                WHERE upper(reference) = ${match.reference.toUpperCase()} LIMIT 1
+              `
+              if (!existingApp.length || (existingApp[0] as any).design_locked) {
+                return Response.json({ ok: true, duplicate: true, reference: match.reference, needsReview: true })
+              }
+              const saved = await sql<{ directives: any; extracted: any }[]>`
+                SELECT directives, extracted FROM public.customer_change_requests WHERE id = ${prior.id}
+              `
+              const outcome = await runRevisionJob(sql, {
+                app: existingApp[0],
+                changeRequestId: prior.id,
+                directives: saved[0]?.directives ?? directives,
+                summary: safeSummary(saved[0]?.extracted?.summary ?? []),
+                origin: new URL(request.url).origin,
+                mailAllowed: !TEST_REF.test(match.reference),
+                sendAck: false,
+                source: 'retry',
+              })
+              if (!outcome.ok) return Response.json({ error: 'Revision retry failed' }, { status: 500 })
+              return Response.json({ ok: true, reference: match.reference, retried: true, ...outcome })
             }
             const changeRequestId = (inserted[0] as any).id as string
 
