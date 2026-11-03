@@ -19,7 +19,7 @@ function supabaseRest() {
   const base = process.env.SUPABASE_URL
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY
   if (!base || !key) return null
-  return { base: base.replace(/\\/$/, ''), key }
+  return { base: base.replace(/\/$/, ''), key }
 }
 async function restRequest(path: string, init: RequestInit) {
   const cfg = supabaseRest()
