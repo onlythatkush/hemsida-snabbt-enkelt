@@ -313,7 +313,7 @@ export function classifyDbError(e: unknown): DbErrorInfo {
   const err = e as any
   const code = String(err?.code ?? '')
   const msg = String(err?.message ?? e ?? '')
-  if (code === 'ENOTFOUND' || /ENOTFOUND|getaddrinfo/i.test(msg) || /tenant\/user .* not found/i.test(msg))
+  if (code === 'ENOTFOUND' || /ENOTFOUND|getaddrinfo/i.test(msg) || /tenant(\/| or )user.*not found/i.test(msg))
     return { kind: 'host_not_found', message: 'Databasvärden eller pooler-användaren hittades inte.', action: 'POSTGRES_URL pekar på en värd/tenant som inte finns. Kopiera en aktuell anslutningsadress från den befintliga orderdatabasen.' }
   if (code === '28P01' || /password authentication failed/i.test(msg))
     return { kind: 'auth_failed', message: 'Databasen nekade inloggningen.', action: 'Uppdatera lösenordet i POSTGRES_URL för den befintliga databasen.' }

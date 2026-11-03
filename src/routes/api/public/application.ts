@@ -160,7 +160,7 @@ async function handleGet(request: Request): Promise<Response> {
     `
     return Response.json({ exists: rows.length > 0, reference })
   } catch (error) {
-    console.error('Failed to verify application', error)
+    console.error('Failed to verify application', classifyDbError(error).kind)
     return Response.json({ error: 'Lookup failed' }, { status: 500 })
   } finally {
     await sql.end()

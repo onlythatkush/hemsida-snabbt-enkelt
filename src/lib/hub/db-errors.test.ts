@@ -3,7 +3,7 @@ import { classifyDbError } from './db'
 
 test('Vercel pooler tenant error is reported as host_not_found', () => {
   expect(classifyDbError(new Error('getaddrinfo ENOTFOUND db.example')).kind).toBe('host_not_found')
-  expect(classifyDbError({ message: 'Tenant or user postgres.dr123 not found' }).kind).toBe('unknown')
+  expect(classifyDbError({ message: 'Tenant or user not found' }).kind).toBe('host_not_found')
   expect(classifyDbError({ message: 'tenant/user postgres.dr123 not found' }).kind).toBe('host_not_found')
 })
 test('auth, missing table and missing cloud driver are distinguished', () => {
