@@ -5,6 +5,7 @@ import postgres from 'postgres'
 import { DESIGN_SPEC_VERSION, composeDesignSpec } from '@/lib/design/compose'
 import { hubSql, withHubRead } from '@/lib/hub/db'
 import { listApplications } from '@/lib/hub/applications'
+import { cloudAdmin, hubStore } from '@/lib/hub/cloud'
 import { listVersions, nextRevision, recordDesignVersion } from '@/lib/hub/versions'
 
 const createPreviewSchema = z.object({
@@ -81,6 +82,12 @@ export const Route = createFileRoute('/api/admin/applications')({
             return Response.json({ url: data.signedUrl })
           }
 
+          if (hubStore() === 'cloud') {
+            const { data, error } = await cloudAdmin().from('project_applications')
+              .select('*').order('created_at', { ascending: false }).limit(200)
+            if (error) throw new Error(`cloud list failed: ${error.code}`)
+            return Response.json({ applications: data ?? [], store: 'cloud' }, { headers: { 'cache-control': 'no-store' } })
+          }
           const applications = await withHubRead(listApplications)
           return Response.json({ applications }, { headers: { 'cache-control': 'no-store' } })
         } catch (error) {
