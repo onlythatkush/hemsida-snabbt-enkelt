@@ -1,7 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { z } from 'zod'
 import { preflight, withCors } from '@/lib/cors'
-import { hubSql, hubStore, logEvent } from '@/lib/hub/db'
+import { classifyDbError, hubSql, hubStore, logEvent } from '@/lib/hub/db'
 
 /** Server-authoritative reference. The browser never invents one. */
 function generateReference(): string {
@@ -127,7 +127,7 @@ async function handlePost(request: Request): Promise<Response> {
               updated_at = now()
           `
         } catch (error) {
-          console.error('Failed to save application', (error as any)?.code)
+          console.error('Failed to save application', classifyDbError(error).kind, (error as any)?.code)
           await sql2.end()
           return Response.json({
             error: 'Ansökan kunde inte sparas. Försök igen senare; ingen beställning har bekräftats.',
