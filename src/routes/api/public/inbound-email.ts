@@ -63,6 +63,12 @@ export const Route = createFileRoute('/api/public/inbound-email')({
 
         // Metadata-only webhooks are completed from the provider API first.
         const { email, fetched, bodyMissing } = await resolveInboundEmail(payload)
+        // A metadata-only webhook must not be acknowledged as processed when the body is unavailable.
+        // Returning 503 lets Resend retry after receiving API credentials/configuration recover.
+        if (bodyMissing) {
+          console.error('[inbound-email] received message body unavailable', { emailId: email.emailId })
+          return Response.json({ error: 'Inbound message body unavailable; retry later' }, { status: 503 })
+        }
         if (!email.messageId) return Response.json({ error: 'Missing message id' }, { status: 400 })
         const inboundMessageId: string = email.messageId
 
