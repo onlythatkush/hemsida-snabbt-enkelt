@@ -1,6 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
 import { createFileRoute } from '@tanstack/react-router'
-import postgres from 'postgres'
+import { hubSql, hubStore } from '@/lib/hub/db'
 import { DESIGN_SPEC_VERSION, composeDesignSpec } from '@/lib/design/compose'
 import type { DesignSpec } from '@/lib/design/types'
 
@@ -22,10 +22,9 @@ export const Route = createFileRoute('/api/public/project-preview/$reference')({
         const token = new URL(request.url).searchParams.get('token') || ''
         if (!token || token.length < 32) return Response.json({ error: 'Invalid preview link' }, { status: 401 })
 
-        const db = databaseUrl()
-        if (!db) return Response.json({ error: 'Database not configured' }, { status: 500 })
+        if (hubStore() === 'none') return Response.json({ error: 'Database not configured' }, { status: 503 })
 
-        const sql = postgres(db, { max: 1, prepare: false })
+        const sql = hubSql()
         try {
           // Schema is managed by migrations; ignore failures when the role is not owner.
           try {

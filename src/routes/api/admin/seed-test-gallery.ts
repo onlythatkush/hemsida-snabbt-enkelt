@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import postgres from 'postgres'
+import { hubSql, hubStore } from '@/lib/hub/db'
 import { composeDesignSpec } from '@/lib/design/compose'
 import { TEST_CASES } from '@/lib/design/test-cases'
 
@@ -21,17 +21,10 @@ export const Route = createFileRoute('/api/admin/seed-test-gallery')({
       POST: async ({ request }) => {
         if (!authorized(request)) return Response.json({ error: 'Unauthorized' }, { status: 401 })
 
-        const databaseUrl =
-          process.env.POSTGRES_URL ||
-          process.env.STORAGE_POSTGRES_URL ||
-          process.env.STORAGE_DATABASE_URL ||
-          process.env.DATABASE_URL ||
-          process.env.SUPABASE_DB_URL
-
-        if (!databaseUrl) return Response.json({ error: 'Database not configured' }, { status: 500 })
+        if (hubStore() === 'none') return Response.json({ error: 'Database not configured' }, { status: 503 })
 
         const origin = new URL(request.url).origin
-        const sql = postgres(databaseUrl, { max: 1, prepare: false })
+        const sql = hubSql()
 
         try {
           try {
