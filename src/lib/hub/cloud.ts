@@ -12,10 +12,12 @@ import { hubDatabaseUrl } from './db'
 export type HubStore = 'postgres' | 'cloud' | 'none'
 
 export function hubStore(): HubStore {
-  if (hubDatabaseUrl()) return 'postgres'
-  const url = process.env.SUPABASE_URL
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY
-  return url && key ? 'cloud' : 'none'
+  // Explicit external order database (Vercel/Coolify) always wins.
+  if (process.env.POSTGRES_URL || process.env.STORAGE_POSTGRES_URL || process.env.STORAGE_DATABASE_URL || process.env.DATABASE_URL) return 'postgres'
+  // SUPABASE_DB_URL is a platform-injected internal URL that is not reachable
+  // from every runtime, so the Cloud service-role client is preferred over it.
+  if (process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) return 'cloud'
+  return hubDatabaseUrl() ? 'postgres' : 'none'
 }
 
 export function cloudAdmin() {
