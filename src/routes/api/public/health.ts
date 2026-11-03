@@ -54,8 +54,8 @@ export const Route = createFileRoute('/api/public/health')({
         }
 
         return Response.json({
-          ok: databaseConnected,
-          database: { connected: databaseConnected },
+          ok: databaseConnected || databaseReachable,
+          database: { connected: databaseConnected, reachable: databaseReachable, status: databaseStatus, method: databaseConnected ? 'postgres' : 'supabase_rest' },
           env: {
             SUPABASE_URL: present('SUPABASE_URL'),
             VITE_SUPABASE_URL: present('VITE_SUPABASE_URL'),
