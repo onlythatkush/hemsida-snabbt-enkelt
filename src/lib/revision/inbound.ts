@@ -32,7 +32,7 @@ export function normalizeInbound(payload: any): InboundEmail & { emailId: string
     messageId: d.message_id ?? d.messageId ?? headerOf(headers, 'Message-Id') ?? d.email_id ?? d.id ?? null,
     inReplyTo: d.in_reply_to ?? d.inReplyTo ?? headerOf(headers, 'In-Reply-To') ?? null,
     references: asArray(d.references ?? headerOf(headers, 'References')).flatMap((r) => r.split(/\s+/)).filter(Boolean),
-    to: asArray(d.to),
+    to: [...new Set([...asArray(d.to), ...asArray(d.received_for)])],
     cc: asArray(d.cc),
     from: typeof d.from === 'string' ? d.from : (d.from?.address ?? null),
     subject: d.subject ?? null,
@@ -52,12 +52,11 @@ export type FetchOptions = {
 
 /** Fetches the stored inbound email body from Resend. Returns null when unavailable. */
 export async function fetchInboundEmail(emailId: string, opts: FetchOptions = {}): Promise<any | null> {
-  const apiKey = opts.apiKey ?? process.env.RESEND_API_KEY
+  const apiKey = opts.apiKey ?? process.env.RESEND_RECEIVING_API_KEY ?? process.env.RESEND_API_KEY
   if (!apiKey || !emailId) return null
   const doFetch = opts.fetchImpl ?? fetch
   const endpoints = [
-    `https://api.resend.com/emails/inbound/${encodeURIComponent(emailId)}`,
-    `https://api.resend.com/emails/${encodeURIComponent(emailId)}`,
+    `https://api.resend.com/emails/receiving/${encodeURIComponent(emailId)}`,
   ]
   for (const url of endpoints) {
     try {

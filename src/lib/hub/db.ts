@@ -1,4 +1,5 @@
 import postgres from 'postgres'
+import { env as nodeEnv } from 'node:process'
 
 /**
  * ONE database path for the whole hub.
@@ -11,11 +12,11 @@ import postgres from 'postgres'
  */
 export function hubDatabaseUrl(): string | undefined {
   return (
-    process.env.POSTGRES_URL ||
-    process.env.STORAGE_POSTGRES_URL ||
-    process.env.STORAGE_DATABASE_URL ||
-    process.env.DATABASE_URL ||
-    process.env.SUPABASE_DB_URL
+    nodeEnv.POSTGRES_URL ||
+    nodeEnv.STORAGE_POSTGRES_URL ||
+    nodeEnv.STORAGE_DATABASE_URL ||
+    nodeEnv.DATABASE_URL ||
+    nodeEnv.SUPABASE_DB_URL
   )
 }
 

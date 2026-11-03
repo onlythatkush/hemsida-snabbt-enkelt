@@ -2,6 +2,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
 import { PreviewRenderer } from "@/components/preview/PreviewRenderer";
+import { DwpPage } from "@/lib/dwp-library/components";
+import "@/lib/dwp-library/styles.css";
 import type { DesignSpec } from "@/lib/design/types";
 
 export const Route = createFileRoute("/kund-preview/$reference")({
@@ -76,7 +78,7 @@ function CustomerPreview() {
         </div>
       </div>
 
-      <PreviewRenderer spec={spec} />
+      {spec.librarySite ? <DwpPage site={spec.librarySite} /> : <PreviewRenderer spec={spec} />}
 
       <div className="bg-[#0b0d12] px-5 py-6 text-center text-sm text-white/55">
         Det här är ett första förslag. Layout, texter, färger och bilder justeras innan sidan godkänns.

@@ -1,13 +1,30 @@
 import { createFileRoute } from '@tanstack/react-router'
+import { env as nodeEnv } from 'node:process'
+import postgres from 'postgres'
+import { hubDatabaseUrl } from '@/lib/hub/db'
 
 export const Route = createFileRoute('/api/public/health')({
   server: {
     handlers: {
       GET: async () => {
-        const present = (name: string) => Boolean(process.env[name])
+        const present = (name: string) => Boolean(nodeEnv[name])
+
+        let databaseConnected = false
+        const dbUrl = hubDatabaseUrl()
+        if (dbUrl) {
+          const sql = postgres(dbUrl, { max: 1, prepare: false, connect_timeout: 5 })
+          try {
+            const result = await sql`SELECT 1 AS connected`
+            databaseConnected = result[0]?.connected === 1
+          } catch (error) {
+            console.error('[health] Database connection failed', (error as Error)?.message)
+          } finally {
+            await sql.end({ timeout: 2 }).catch(() => undefined)
+          }
+        }
 
         let resendStatus: number | null = null
-        const resendKey = process.env.RESEND_API_KEY
+        const resendKey = nodeEnv.RESEND_API_KEY
         if (resendKey) {
           try {
             const res = await fetch('https://api.resend.com/domains', {
@@ -19,8 +36,26 @@ export const Route = createFileRoute('/api/public/health')({
           }
         }
 
+        let databaseReachable = false
+        let databaseStatus: number | null = null
+        const supabaseUrl = nodeEnv.SUPABASE_URL
+        const serviceKey = nodeEnv.SUPABASE_SERVICE_ROLE_KEY
+        if (supabaseUrl && serviceKey) {
+          try {
+            const response = await fetch(supabaseUrl.replace(/\/$/, '') + '/rest/v1/project_applications?select=reference&limit=0', {
+              headers: { apikey: serviceKey, Authorization: 'Bearer ' + serviceKey },
+              signal: AbortSignal.timeout(5000),
+            })
+            databaseStatus = response.status
+            databaseReachable = response.ok
+          } catch {
+            databaseStatus = 0
+          }
+        }
+
         return Response.json({
-          ok: true,
+          ok: databaseConnected || databaseReachable,
+          database: { connected: databaseConnected, reachable: databaseReachable, status: databaseStatus, method: databaseConnected ? 'postgres' : 'supabase_rest' },
           env: {
             SUPABASE_URL: present('SUPABASE_URL'),
             VITE_SUPABASE_URL: present('VITE_SUPABASE_URL'),
@@ -39,7 +74,7 @@ export const Route = createFileRoute('/api/public/health')({
           },
           email: {
             resendStatus,
-            resendAuthenticated: resendStatus === 200,
+            // A sending-only Resend key cannot call GET /domains (403/401).\n            // Do not misreport a restricted key as invalid.\n            resendAuthenticated: resendStatus === 200 ? true : null,\n            resendDiagnostic: resendStatus === 200 ? 'domain_read_allowed' : resendStatus === 401 || resendStatus === 403 ? 'domain_read_not_authorized_for_sending_key' : 'unverified',
             inboundSignatureConfigured: present('INBOUND_EMAIL_WEBHOOK_SECRET'),
           },
         })

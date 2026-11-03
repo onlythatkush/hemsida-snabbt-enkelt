@@ -14,6 +14,27 @@ function generateReference(): string {
   return `ORD-${out}`
 }
 
+/** Use the existing server-only Supabase credentials when the Postgres pool URL is unavailable. */
+function supabaseRest() {
+  const base = process.env.SUPABASE_URL
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY
+  if (!base || !key) return null
+  return { base: base.replace(/\/$/, ''), key }
+}
+async function restRequest(path: string, init: RequestInit) {
+  const cfg = supabaseRest()
+  if (!cfg) throw new Error('Supabase REST credentials missing')
+  const response = await fetch(cfg.base + '/rest/v1/' + path, {
+    ...init,
+    headers: { apikey: cfg.key, Authorization: 'Bearer ' + cfg.key, 'Content-Type': 'application/json', ...(init.headers || {}) },
+  })
+  if (!response.ok) {
+    console.error('Supabase REST request failed', { status: response.status, path: path.split('?')[0] })
+    throw new Error('Supabase REST status ' + response.status)
+  }
+  return response
+}
+
 const schema = z.object({
   // Optional and ignored for new submissions; kept so older clients still work.
   reference: z.string().trim().min(4).max(40).optional(),
@@ -53,92 +74,106 @@ async function handlePost(request: Request): Promise<Response> {
         }
 
         const databaseUrl = hubDatabaseUrl()
-        if (!databaseUrl) {
-          return Response.json({
-            error: 'Database not configured',
-            hint: 'Missing POSTGRES_URL / STORAGE_POSTGRES_URL / STORAGE_DATABASE_URL / DATABASE_URL',
-          }, { status: 500 })
-        }
-
-        const sql = postgres(databaseUrl, { max: 1, prepare: false })
-        try {
-          await sql`
-            CREATE TABLE IF NOT EXISTS public.project_applications (
-              id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-              reference TEXT NOT NULL UNIQUE,
-              name TEXT NOT NULL,
-              email TEXT NOT NULL,
-              phone TEXT NOT NULL,
-              company TEXT NOT NULL,
-              address TEXT,
-              description TEXT NOT NULL,
-              social_links TEXT,
-              website_type TEXT NOT NULL,
-              colors TEXT,
-              extra_requests TEXT,
-              wants_support BOOLEAN NOT NULL DEFAULT false,
-              file_names TEXT[] NOT NULL DEFAULT '{}',
-              status TEXT NOT NULL DEFAULT 'new',
-              preview_url TEXT,
-              created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-              updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
-            )
-          `
-        } catch {
-          // Table already exists and is owned by another role - fine.
-        } finally {
-          await sql.end()
-        }
-
         const reference = generateReference()
-        const sql2 = postgres(databaseUrl, { max: 1, prepare: false })
+        if (!databaseUrl && !supabaseRest()) {
+          return Response.json({ error: 'Database not configured' }, { status: 500 })
+        }
+        const record = {
+          reference, name: parsed.name, email: parsed.email, phone: parsed.phone,
+          company: parsed.company, address: parsed.address || null,
+          description: parsed.description, social_links: parsed.socialLinks || null,
+          website_type: parsed.websiteType, colors: parsed.colors || null,
+          extra_requests: parsed.extraRequests || null, wants_support: parsed.wantsSupport,
+          file_names: [], status: 'new', updated_at: new Date().toISOString(),
+        }
         try {
-          await sql2`
-            INSERT INTO public.project_applications (
-              reference, name, email, phone, company, address, description,
-              social_links, website_type, colors, extra_requests, wants_support,
-              file_names, status, updated_at
-            ) VALUES (
-              ${reference},
-              ${parsed.name},
-              ${parsed.email},
-              ${parsed.phone},
-              ${parsed.company},
-              ${parsed.address || null},
-              ${parsed.description},
-              ${parsed.socialLinks || null},
-              ${parsed.websiteType},
-              ${parsed.colors || null},
-              ${parsed.extraRequests || null},
-              ${parsed.wantsSupport},
-              ${[]},
-              'new',
-              now()
-            )
-            ON CONFLICT (reference) DO UPDATE SET
-              name = EXCLUDED.name,
-              email = EXCLUDED.email,
-              phone = EXCLUDED.phone,
-              company = EXCLUDED.company,
-              address = EXCLUDED.address,
-              description = EXCLUDED.description,
-              social_links = EXCLUDED.social_links,
-              website_type = EXCLUDED.website_type,
-              colors = EXCLUDED.colors,
-              extra_requests = EXCLUDED.extra_requests,
-              wants_support = EXCLUDED.wants_support,
-              updated_at = now()
-          `
+          if (databaseUrl) {
+            const db = postgres(databaseUrl, { max: 1, prepare: false })
+            try {
+              await db`INSERT INTO public.project_applications ${db(record)}`
+            } finally { await db.end() }
+          } else {
+            await restRequest('project_applications', { method: 'POST', headers: { Prefer: 'return=minimal' }, body: JSON.stringify(record) })
+          }
         } catch (error) {
-          console.error('Failed to save application')
-          return Response.json({
-            error: 'Ansökan kunde inte sparas. Försök igen senare; ingen beställning har bekräftats.',
-          }, { status: 500 })
-        } finally {
-          await sql2.end()
+          console.error('Failed to save application', error)
+          return Response.json({ error: 'Ansökan kunde inte sparas. Ingen beställning har bekräftats.' }, { status: 500 })
         }
 
-        return Response.json({ success: true, reference })
+        // Build a first design from the submitted customer brief.
+        let previewUrl: string | null = null
+        let qaSendable = false
+        try {
+          const { composeDesignSpec } = await import('@/lib/design/compose')
+          const spec = composeDesignSpec({
+            reference, company: parsed.company, description: parsed.description,
+            website_type: parsed.websiteType, colors: parsed.colors || '',
+            extra_requests: parsed.extraRequests || '', social_links: parsed.socialLinks || '',
+            address: parsed.address || '', email: parsed.email, phone: parsed.phone,
+            file_names: [],
+          })
+          const { previewSendGate } = await import('@/lib/design/quality')
+          const gate = previewSendGate(spec.qa, false)
+          if (!gate.sendable) {
+            console.warn('Preview withheld by QA', { reference, status: spec.qa.status, reason: gate.reason })
+          }
+          qaSendable = gate.sendable
+          const token = crypto.randomUUID().replaceAll('-', '') + crypto.randomUUID().replaceAll('-', '')
+          previewUrl = new URL('/kund-preview/' + encodeURIComponent(reference), request.url).toString() + '?token=' + token
+          if (databaseUrl) {
+            const previewDb = postgres(databaseUrl, { max: 1, prepare: false })
+            try {
+              await previewDb`ALTER TABLE public.project_applications ADD COLUMN IF NOT EXISTS preview_token TEXT`
+              await previewDb`ALTER TABLE public.project_applications ADD COLUMN IF NOT EXISTS design_spec JSONB`
+              await previewDb`ALTER TABLE public.project_applications ADD COLUMN IF NOT EXISTS design_family TEXT`
+              await previewDb`UPDATE public.project_applications SET preview_token = ${token}, preview_url = ${previewUrl}, design_spec = ${previewDb.json(spec as any)}, design_family = ${spec.family}, status = 'preview' WHERE reference = ${reference}`
+            } finally { await previewDb.end() }
+          } else {
+            await restRequest('project_applications?reference=eq.' + encodeURIComponent(reference), {
+              method: 'PATCH', headers: { Prefer: 'return=minimal' },
+              body: JSON.stringify({ preview_token: token, preview_url: previewUrl, design_spec: spec, design_family: spec.family, status: 'preview' }),
+            })
+          }
+        } catch (error) {
+          console.error('Preview generation failed', error)
+          previewUrl = null
+        }
+        // A successful application must deliver its generated preview, not only save it.
+        // Keep failures visible to the browser and logs; never claim the email was sent otherwise.
+        let emailSent = false
+        let emailError: string | null = null
+        if (previewUrl && qaSendable) {
+          try {
+            const { renderTemplate } = await import('@/lib/hub/mail')
+            const { replyAddressFor } = await import('@/lib/email/reply-address')
+            const apiKey = process.env.RESEND_API_KEY
+            if (!apiKey) throw new Error('RESEND_API_KEY missing')
+            const mail = await renderTemplate('preview-ready', {
+              name: parsed.name,
+              company: parsed.company,
+              previewUrl,
+              reference,
+            })
+            const response = await fetch('https://api.resend.com/emails', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
+              body: JSON.stringify({
+                from: 'Din Webbpartner <preview@dinwebbpartner.com>',
+                to: [parsed.email],
+                reply_to: replyAddressFor(reference),
+                subject: mail.subject,
+                html: mail.html,
+                text: mail.text,
+              }),
+            })
+            if (!response.ok) throw new Error(`Resend ${response.status}: ${(await response.text()).slice(0, 200)}`)
+            emailSent = true
+          } catch (error) {
+            emailError = String((error as Error)?.message || error).slice(0, 200)
+            console.error('Automatic preview email failed', { reference, error: emailError })
+          }
+        }
+        return Response.json({ success: true, reference, previewUrl, emailSent, emailError, qaSendable })
       }
     }
   }
@@ -152,20 +187,20 @@ async function handleGet(request: Request): Promise<Response> {
   }
 
   const databaseUrl = hubDatabaseUrl()
-  if (!databaseUrl) {
-    return Response.json({ error: 'Database not configured' }, { status: 500 })
-  }
-
-  const sql = postgres(databaseUrl, { max: 1, prepare: false })
+  if (!databaseUrl && !supabaseRest()) return Response.json({ error: 'Database not configured' }, { status: 500 })
   try {
-    const rows = await sql<{ reference: string }[]>`
-      SELECT reference FROM public.project_applications WHERE reference = ${reference} LIMIT 1
-    `
-    return Response.json({ exists: rows.length > 0, reference })
+    if (!databaseUrl) {
+      const response = await restRequest('project_applications?select=reference&reference=eq.' + encodeURIComponent(reference) + '&limit=1', { method: 'GET' })
+      const rows = await response.json() as Array<{ reference: string }>
+      return Response.json({ exists: rows.length > 0, reference })
+    }
+    const sql = postgres(databaseUrl, { max: 1, prepare: false })
+    try {
+      const rows = await sql<{ reference: string }[]>`SELECT reference FROM public.project_applications WHERE reference = ${reference} LIMIT 1`
+      return Response.json({ exists: rows.length > 0, reference })
+    } finally { await sql.end() }
   } catch (error) {
     console.error('Failed to verify application', error)
     return Response.json({ error: 'Lookup failed' }, { status: 500 })
-  } finally {
-    await sql.end()
   }
 }

@@ -1,24 +1,24 @@
 import type { IndustryId, Tone } from "./types";
 
 export const INDUSTRY_KEYWORDS: Record<IndustryId, string[]> = {
-  bakery: ["bageri", "konditori", "hembakat", "hembakad", "bakverk", "bakar", "kakor", "kaka", "tårta", "tårtor", "bulle", "bullar", "godis", "praliner", "choklad", "sylt", "surdeg", "bröd", "fika", "sweets", "candy"],
-  cafe: ["café", "cafe", "kafé", "fik", "kaffe", "espresso", "lunchcafé"],
-  restaurant: ["restaurang", "pizzeria", "meny", "bistro", "krog", "sushi", "kök", "matsal", "catering", "food truck"],
-  ecommerce: ["webshop", "webbshop", "e-handel", "ehandel", "onlinebutik", "produkter online", "sälja online", "shop"],
-  retail: ["butik", "blomsterhandel", "blommor", "gårdsbutik", "second hand", "inredningsbutik", "loppis"],
-  legal: ["jurist", "juridik", "advokat", "advokatbyrå", "familjerätt", "avtal", "rådgivning juridik", "revisor", "redovisning", "bokföring", "ekonomibyrå"],
-  consulting: ["konsult", "konsultbolag", "rådgivning", "strategi", "projektledning", "it-konsult", "utveckling", "byrå", "coachning för företag"],
-  beauty: ["salong", "frisör", "frisörsalong", "naglar", "nagelteknolog", "skönhet", "hudvård", "make-up", "barberare", "fransar"],
-  health: ["massage", "spa", "yoga", "terapi", "terapeut", "psykolog", "naprapat", "kiropraktor", "hälsa", "vård", "klinik", "tandläkare", "fotvård"],
-  construction: ["bygg", "byggfirma", "snickeri", "snickare", "elektriker", "el-firma", "rörmokare", "vvs", "målare", "takläggare", "entreprenad", "mark", "renovering"],
-  fitness: ["gym", "träning", "pt", "personlig tränare", "crossfit", "träningsstudio"],
-  photography: ["fotograf", "foto", "bröllopsfotograf", "film", "videoproduktion"],
-  cleaning: ["städ", "städfirma", "flyttstäd", "hemstäd", "fönsterputs", "lokalvård"],
+  bakery: ["bageri", "konditori", "hembakat", "hembakad", "bakverk", "bakar", "kakor", "kaka", "tårta", "tårtor", "bulle", "bullar", "godis", "praliner", "choklad", "sylt", "surdeg", "bröd", "fika", "sweets", "candy", "tårtbageri", "bageributik", "konditor", "bakelse", "brödbutik", "chokladbutik"],
+  cafe: ["café", "cafe", "kafé", "fik", "kaffe", "espresso", "lunchcafé", "kaffebar", "kaffestuga", "fika", "caféverksamhet", "espressobar"],
+  restaurant: ["restaurang", "pizzeria", "meny", "bistro", "krog", "sushi", "kök", "matsal", "catering", "food truck", "hamburgerrestaurang", "grill", "foodtruck", "takeaway", "matservering", "lunchrestaurang", "thai", "pizza", "kebab"],
+  ecommerce: ["webshop", "webbshop", "e-handel", "ehandel", "onlinebutik", "produkter online", "sälja online", "shop", "dropshipping", "nätbutik", "webbutik", "säljer via nätet", "digital butik"],
+  retail: ["butik", "blomsterhandel", "blommor", "gårdsbutik", "second hand", "inredningsbutik", "loppis", "klädbutik", "presentbutik", "modebutik", "blomsterbutik", "butiksförsäljning", "optiker", "cykelbutik"],
+  legal: ["jurist", "juridik", "advokat", "advokatbyrå", "familjerätt", "avtal", "rådgivning juridik", "revisor", "redovisning", "bokföring", "ekonomibyrå", "advokatkontor", "juristbyrå", "redovisningsbyrå", "bokslut", "skatterådgivning", "ekonomikonsult"],
+  consulting: ["konsult", "konsultbolag", "rådgivning", "strategi", "projektledning", "it-konsult", "utveckling", "byrå", "coachning för företag", "managementkonsult", "it-bolag", "marknadsföringsbyrå", "digitalbyrå", "affärsutveckling", "webbyrå", "reklambyrå"],
+  beauty: ["salong", "frisör", "frisörsalong", "naglar", "nagelteknolog", "skönhet", "hudvård", "make-up", "barberare", "fransar", "fransförlängning", "nagelsalong", "skönhetssalong", "hårsalong", "hudterapeut", "bryn", "lash lift"],
+  health: ["massage", "spa", "yoga", "terapi", "terapeut", "psykolog", "naprapat", "kiropraktor", "hälsa", "vård", "klinik", "tandläkare", "fotvård", "fysioterapeut", "sjukgymnast", "vårdcentral", "psykoterapi", "hälsoklinik", "osteopat", "akupunktur"],
+  construction: ["bygg", "byggfirma", "snickeri", "snickare", "elektriker", "el-firma", "rörmokare", "vvs", "målare", "takläggare", "entreprenad", "mark", "renovering", "byggföretag", "byggentreprenör", "plattsättare", "murare", "golvläggare", "målerifirma", "takfirma", "grävarbeten", "anläggningsfirma"],
+  fitness: ["gym", "träning", "pt", "personlig tränare", "crossfit", "träningsstudio", "träningscenter", "yogastudio", "pilates", "personlig träning", "boxningsklubb", "idrottsförening"],
+  photography: ["fotograf", "foto", "bröllopsfotograf", "film", "videoproduktion", "fotostudio", "porträttfotograf", "videograf", "drönarfoto", "produktfoto"],
+  cleaning: ["städ", "städfirma", "flyttstäd", "hemstäd", "fönsterputs", "lokalvård", "kontorsstäd", "städservice", "städtjänster", "trappstäd", "industristäd", "hemservice"],
   // "uthyrning" alone is ambiguous (cars, tools, venues) — it must be tied to housing.
-  realestate: ["mäklare", "fastighetsmäklare", "fastighetsbolag", "bostadsrätt", "bostäder", "lägenheter", "hyresrätter", "uthyrning av bostad", "uthyrning av lägenhet", "villa till salu"],
-  events: ["event", "bröllop", "fest", "konferens", "uthyrning av lokal", "dj", "artist", "band", "eventbyrå"],
-  automotive: ["bilverkstad", "bilservice", "verkstad för bilar", "mekaniker", "däckbyte", "däckhotell", "bilrekond", "bilvård", "ac-service", "fordon", "lastbil", "mc-verkstad", "bilplåt", "besiktningshjälp", "bilhandlare", "bilfirma", "bilhandel", "bilförsäljning", "begagnade bilar", "premiumbilar", "lyxbilar", "sportbil", "sportbilar", "exklusiva bilar", "motor", "biluthyrning", "hyrbil", "hyrbilar", "hyra bil", "hyra ut bilar", "uthyrning av bilar", "biluthyrare", "car rental", "rental cars", "premium cars", "luxury cars", "bilar"],
-  hospitality: ["hotell", "bed and breakfast", "b&b", "vandrarhem", "pensionat", "stugor", "stuguthyrning", "boende", "övernattning", "gästhus", "rum med frukost"],
+  realestate: ["mäklare", "fastighetsmäklare", "fastighetsbolag", "bostadsrätt", "bostäder", "lägenheter", "hyresrätter", "uthyrning av bostad", "uthyrning av lägenhet", "villa till salu", "fastighetsförvaltning", "bostadsförmedling", "mäklarfirma", "husförsäljning", "hyresfastigheter"],
+  events: ["event", "bröllop", "fest", "konferens", "uthyrning av lokal", "dj", "artist", "band", "eventbyrå", "festlokal", "eventplanering", "ljud och ljus", "bröllopsplanerare", "konsertarrangör"],
+  automotive: ["bilverkstad", "bilservice", "verkstad för bilar", "mekaniker", "däckbyte", "däckhotell", "bilrekond", "bilrekonditionering", "rekond", "rekondmästare", "rekonditionering", "biltvätt", "fordonstvätt", "bilvård", "ac-service", "fordon", "lastbil", "mc-verkstad", "bilplåt", "besiktningshjälp", "bilhandlare", "bilfirma", "bilhandel", "bilförsäljning", "begagnade bilar", "premiumbilar", "lyxbilar", "sportbil", "sportbilar", "exklusiva bilar", "motor", "biluthyrning", "hyrbil", "hyrbilar", "hyra bil", "hyra ut bilar", "uthyrning av bilar", "biluthyrare", "car rental", "rental cars", "premium cars", "luxury cars", "bilar", "bilrekonditionering", "rekonditionering", "rekondmästare", "bilspa", "car detailing", "detailing", "polering av bil", "lackskydd", "keramiskt lackskydd", "biltvätt", "handtvätt", "fordonstvätt", "däckverkstad", "bilglas", "bilmekaniker", "bilreparation", "fordonsverkstad", "bilverkstad", "lastbilsverkstad"],
+  hospitality: ["hotell", "bed and breakfast", "b&b", "vandrarhem", "pensionat", "stugor", "stuguthyrning", "boende", "övernattning", "gästhus", "rum med frukost", "hotellverksamhet", "stugby", "semesterboende", "camping", "bed and breakfast", "vandrarhem", "hotellrum"],
   generic: [],
 };
 
@@ -43,19 +43,41 @@ export function normalize(text: string) {
   return text.toLowerCase().replace(/\s+/g, " ");
 }
 
+/**
+ * Prioritize the applicant's explicit website category, then their business
+ * description, then supplementary wishes and name. Match whole phrases instead
+ * of arbitrary substrings ("spa" must not match "bilspa").
+ */
 export function detectIndustry(...texts: (string | null | undefined)[]): { industry: IndustryId; score: number } {
-  const haystack = normalize(texts.filter(Boolean).join(" "));
-  let best: IndustryId = "generic";
-  let bestScore = 0;
+  const inputs = texts.map((value) => normalize(value || ""));
+  const weights = [5, 3, 1, 1];
+  const scores = new Map<IndustryId, number>();
+  const specialist: Partial<Record<IndustryId, RegExp[]>> = {
+    automotive: [/\\b(?:bil|fordon|auto)(?:rekond|tvätt|vård|service|verkstad|handel|försäljning|uthyrning|spa)\\b/u, /\\brekond(?:itionering|mästare)?\\b/u, /\\b(?:car detailing|detailing|lackskydd|bilpolering)\\b/u],
+    construction: [/\\b(?:bygg|snickeri|el|vvs|tak|måleri)(?:firma|företag|service|entreprenad)\\b/u],
+    cleaning: [/\\b(?:städ|rengöring)(?:firma|företag|service|tjänst|ning)?\\b/u],
+    beauty: [/\\b(?:frisör|nagel|skönhets|frans)(?:salong|studio|vård|förlängning)?\\b/u],
+  };
   for (const [industry, words] of Object.entries(INDUSTRY_KEYWORDS) as [IndustryId, string[]][]) {
+    if (industry === "generic") continue;
     let score = 0;
-    for (const word of words) if (haystack.includes(word)) score += word.length > 6 ? 2 : 1.5;
-    if (score > bestScore) {
-      bestScore = score;
-      best = industry;
-    }
+    inputs.forEach((input, index) => {
+      if (!input) return;
+      const weight = weights[index] ?? 1;
+      const padded = " " + input.replace(/[^\\p{L}\\p{N}]+/gu, " ") + " ";
+      for (const word of new Set(words)) {
+        const phrase = " " + normalize(word).replace(/[^\\p{L}\\p{N}]+/gu, " ") + " ";
+        if (padded.includes(phrase)) score += weight * (word.length >= 7 ? 3 : 2);
+      }
+      for (const pattern of specialist[industry] || []) {
+        if (pattern.test(input)) score += weight * 12;
+      }
+    });
+    scores.set(industry, score);
   }
-  return { industry: best, score: bestScore };
+  const ranked = [...scores.entries()].sort((a, b) => b[1] - a[1]);
+  const [industry, score] = ranked[0] || ["generic", 0];
+  return { industry: score > 0 ? industry : "generic", score };
 }
 
 export function detectTone(...texts: (string | null | undefined)[]): { tone: Tone; matched: string[] } {

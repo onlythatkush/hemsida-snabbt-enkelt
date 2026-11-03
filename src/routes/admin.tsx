@@ -135,6 +135,7 @@ function Admin() {
   const [loadError, setLoadError] = useState<string | null>(null);
   const [openRef, setOpenRef] = useState<string | null>(null);
   const [buildingRef, setBuildingRef] = useState<string | null>(null);
+  const [buildNotes, setBuildNotes] = useState<Record<string,string>>({});
   const [showGallery, setShowGallery] = useState(false);
   const [seeding, setSeeding] = useState(false);
   const [sendingRef, setSendingRef] = useState<string | null>(null);
@@ -204,12 +205,13 @@ function Admin() {
       const res = await fetch("/api/admin/applications", {
         method: "POST",
         headers: { "Content-Type": "application/json", "x-admin-key": savedKey },
-        body: JSON.stringify({ reference, action }),
+        body: JSON.stringify({ reference, action, buildNotes: (buildNotes[reference] || "").trim() }),
       });
       const body = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(body?.error || "Kunde inte skapa preview");
       setItems((prev) => prev.map((x) => x.reference === reference ? body.application : x));
-      toast.success("Första hemsideförslaget är klart");
+      toast.success("Hemsidan är genererad med dina ändringsönskemål");
+      setBuildNotes((prev) => ({ ...prev, [reference]: "" }));
       if (body.application?.preview_url) window.open(body.application.preview_url, "_blank", "noopener,noreferrer");
     } catch (e: any) {
       toast.error(e.message || "Kunde inte skapa preview");
@@ -502,6 +504,7 @@ function Admin() {
                         <QaPanel app={a} onAccept={acceptQa} />
                         <DesignDiagnostics app={a} />
 
+                        <div className="space-y-1.5"><label htmlFor={`build-notes-${a.reference}`} className="text-sm font-medium">Ändringsönskemål till nästa hemsida</label><textarea id={`build-notes-${a.reference}`} className="w-full min-h-24 rounded-md border bg-background px-3 py-2 text-sm" maxLength={2000} placeholder="T.ex. behåll hero-bilden över större del av sidan, mörk bakgrund i alla sektioner, mer exklusiv känsla och glaskort." value={buildNotes[a.reference] || ""} onChange={(e) => setBuildNotes((prev) => ({ ...prev, [a.reference]: e.target.value }))}/><p className="text-xs text-muted-foreground">Skickas med när du trycker på Gör ny hemsida. Tidigare kunduppgifter behålls.</p></div>
                         {(a.status === "reviewing" || a.status === "new") ? (
                           <Button className="w-full" onClick={() => createPreview(a.reference)} disabled={buildingRef === a.reference}>
                             {buildingRef === a.reference ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
@@ -602,6 +605,7 @@ function Admin() {
                         <TableCell className="text-sm text-muted-foreground">{new Date(a.created_at).toLocaleDateString("sv-SE")}</TableCell>
                         <TableCell>
                           <div className="flex flex-col gap-2">
+                          <textarea className="w-full min-h-20 rounded-md border bg-background px-2 py-1 text-xs" aria-label="Ändringsönskemål till ny design" maxLength={2000} placeholder="Ändringsönskemål till nästa design..." value={buildNotes[a.reference] || ""} onChange={(e) => setBuildNotes((prev) => ({ ...prev, [a.reference]: e.target.value }))}/>
                           {(a.status === "reviewing" || a.status === "new") ? (
                             <Button size="sm" onClick={() => createPreview(a.reference)} disabled={buildingRef === a.reference}>
                               {buildingRef === a.reference ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}

@@ -90,7 +90,7 @@ const NEGATED_CHANGE_PHRASES = [
 ];
 
 /** Negations that cancel a would-be approval, e.g. "ser bra ut men ändra ...". */
-const APPROVAL_BLOCKERS = [" men ", " dock ", " förutom ", " fast ", "en sak", "ett önskemål"];
+const APPROVAL_BLOCKERS = [" men ", " dock ", " förutom ", " fast ", "en sak", "ett önskemål", " inte ", " ej ", " ännu ", "?", " om ", " kanske ", " nästan "];
 
 function normalise(raw: string) {
   return ` ${(raw || "").toLowerCase().replace(/\s+/g, " ").trim()} `;
@@ -117,6 +117,7 @@ export function classifyReply(raw: string | null | undefined): IntentResult {
     };
   }
 
+  // A question, negation, condition or reservation must never approve a design.
   if (approvals.length && !blockers.length) {
     return {
       intent: "approved",

@@ -1,4 +1,5 @@
 import { analyzeArt } from "./art";
+import { buildCustomerLibrarySite } from "./library-adapter";
 import { planAssets } from "./assets";
 import { contrast, extractColors, hexToHsl } from "./color";
 import { ctaPrimary, ctaSecondary, heroSub, heroTitle, tagline } from "./copy";
@@ -12,7 +13,7 @@ import type { ApplicationInput, ArtDirection, DesignSpec, FamilyId } from "./typ
 import type { RevisionDirectives } from "@/lib/revision/types";
 import { buildVariation } from "./variants";
 
-export const DESIGN_SPEC_VERSION = 6;
+export const DESIGN_SPEC_VERSION = 7;
 
 function hashSeed(input: string) {
   let hash = 2166136261;
@@ -183,6 +184,7 @@ export function composeDesignSpec(
     ...(directives ? { directives, revisionNotes: directives.summary } : {}),
   };
 
+  spec.librarySite = buildCustomerLibrarySite(app, revision);
   spec.qa = evaluateQuality(spec);
   spec.engine = {
     version: DESIGN_SPEC_VERSION,
