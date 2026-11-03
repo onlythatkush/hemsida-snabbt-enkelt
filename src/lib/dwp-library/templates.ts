@@ -123,20 +123,20 @@ export const sites: Site[] = [
 
   // ───────── Fordon ─────────
   {
-    id: "bilrekond", industry: "Bilrekond", category: "Fordon", archetype: "package", theme: "noir", brand: "Noir Rekond",
-    hero: { variant: "cinematic", eyebrow: "Bilrekond · Polering · Keramiskt skydd", title: "Din bil, i nyskick.", lead: "Handtvätt, invändig djuprengöring och maskinpolering utförd med precision i vår studio i Stockholm.", cta: "Boka rekond", secondary: "Se paket", image: i("photo-1607860108855-64acf2078ed9", "Bil täckt av skum under handtvätt", H) },
-    services: { heading: "Våra tjänster", items: [
-      { title: "Invändig rengöring", text: "Dammsugning, ångtvätt av klädsel och behandling av alla ytor.", image: i("photo-1600964373031-f0b65565f356", "Invändig rengöring av bilsäten och instrumentbräda") },
-      { title: "Utvändig tvätt", text: "Skonsam handtvätt med förtvätt, skum och tvåhinksmetod.", image: i("photo-1601362840469-51e4d8d58785", "Handtvätt av bil med skum och svamp") },
-      { title: "Polering", text: "Maskinpolering som tar bort swirls och återställer djup glans.", image: i("photo-1619405399517-d7fce0f13302", "Maskinpolering av billack") },
+    id: "bilrekond", industry: "Bilrekond", category: "Fordon", archetype: "package", theme: "noir", brand: "Noir Rekond", accent: "#29baff",
+    hero: { variant: "cinematic", eyebrow: "Bilrekond / Lackkorrigering / Keramiskt lackskydd", title: "Varje detalj. En ny känsla.", lead: "Från omsorgsfull handtvätt till lackkorrigering och långvarigt skydd. Bilvård med fokus på finish, material och precision.", cta: "Boka rekond", secondary: "Utforska tjänster", image: i("photo-1503376780353-7e6692767b70", "Sportbil fotograferad i filmiskt ljus", H) },
+    services: { heading: "Bilvård på en annan nivå", items: [
+      { title: "Invändig rekond", text: "Noggrann rengöring av kupé, textilier, detaljer och kontaktytor – anpassad efter material och skick.", image: i("photo-1600964373031-f0b65565f356", "Detaljer i bilens kupé") },
+      { title: "Handtvätt & finish", text: "Skonsam förtvätt, handtvätt, fälgrengöring och omsorgsfull avtorkning för en ren helhet.", image: i("photo-1601362840469-51e4d8d58785", "Skonsam handtvätt av bil") },
+      { title: "Polering & lackskydd", text: "Bedömning av lackens skick, maskinpolering och skyddsbehandling efter bilens behov.", image: i("photo-1619405399517-d7fce0f13302", "Maskinpolering av billack") },
     ]},
-    offer: { kind: "package", heading: "Rekondpaket", tiers: [
-      { name: "Bas", price: "1 295 kr", features: ["Utvändig handtvätt", "Invändig dammsugning", "Fönsterputs"] },
-      { name: "Signatur", price: "3 495 kr", featured: true, features: ["Komplett invändig rekond", "Polering ett steg", "Vaxskydd 3 mån"] },
-      { name: "Concours", price: "8 995 kr", features: ["Flerstegspolering", "Keramiskt skydd", "Läderbehandling"] },
+    offer: { kind: "package", heading: "Hitta rätt nivå av bilvård", tiers: [
+      { name: "Refresh", price: "Pris på förfrågan", features: ["Skonsam utvändig tvätt", "Rengöring av fälgar", "Avslutande finish"] },
+      { name: "Signature", price: "Pris på förfrågan", featured: true, features: ["Invändig och utvändig rekond", "Individuell bedömning", "Rekommendation för lackskydd"] },
+      { name: "Detailing", price: "Pris på förfrågan", features: ["Lackinspektion", "Polering efter behov", "Valbart långtidsskydd"] },
     ]},
-    references: [{ quote: "Bilen ser bättre ut än när jag köpte den.", author: "Johan, Volvo XC90" }, { quote: "Otroligt noggranna, varje detalj var perfekt.", author: "Sara, Tesla Model 3" }],
-    contact: { heading: "Boka din rekond", text: "Lämna bilen på morgonen – hämta den skinande på eftermiddagen.", phone: "08-123 45 67", address: "Exempelgatan 12, Stockholm" },
+    references: [],
+    contact: { heading: "Ge bilen den omsorg den förtjänar", text: "Berätta om bilen och önskat resultat så tar vi fram ett lämpligt upplägg.", phone: "", address: "" },
   },
   {
     id: "bilverkstad", industry: "Bilverkstad", category: "Fordon", archetype: "appointment", theme: "blueprint", brand: "Motorverket", accent: "oklch(0.55 0.18 30)",
