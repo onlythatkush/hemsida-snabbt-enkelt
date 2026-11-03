@@ -1,11 +1,9 @@
 import { createClient } from '@supabase/supabase-js'
 import { createFileRoute } from '@tanstack/react-router'
 import { z } from 'zod'
-import postgres from 'postgres'
 import { DESIGN_SPEC_VERSION, composeDesignSpec } from '@/lib/design/compose'
-import { hubSql, withHubRead } from '@/lib/hub/db'
+import { hubSql, hubStore, hubStoreMissingMessage, withHubRead } from '@/lib/hub/db'
 import { listApplications } from '@/lib/hub/applications'
-import { cloudAdmin, hubStore } from '@/lib/hub/cloud'
 import { listVersions, nextRevision, recordDesignVersion } from '@/lib/hub/versions'
 
 const createPreviewSchema = z.object({
@@ -82,17 +80,11 @@ export const Route = createFileRoute('/api/admin/applications')({
             return Response.json({ url: data.signedUrl })
           }
 
-          if (hubStore() === 'cloud') {
-            const { data, error } = await cloudAdmin().from('project_applications')
-              .select('*').order('created_at', { ascending: false }).limit(200)
-            if (error) throw new Error(`cloud list failed: ${error.code}`)
-            return Response.json({ applications: data ?? [], store: 'cloud' }, { headers: { 'cache-control': 'no-store' } })
-          }
           const applications = await withHubRead(listApplications)
-          return Response.json({ applications }, { headers: { 'cache-control': 'no-store' } })
+          return Response.json({ applications, store: hubStore() }, { headers: { 'cache-control': 'no-store' } })
         } catch (error) {
           console.error(error)
-          return Response.json({ error: 'Ansökningarna kunde inte hämtas. Kontrollera POSTGRES_URL i serverns driftmiljö; detta är inte en tom orderlista.' }, { status: 503 })
+          return Response.json({ error: 'Ansökningarna kunde inte hämtas. Kontrollera orderdatabasens anslutning (POSTGRES_URL/HUB_STORE) i serverns driftmiljö; detta är inte en tom orderlista.' }, { status: 503 })
         }
       },
       POST: async ({ request }) => {
@@ -101,11 +93,10 @@ export const Route = createFileRoute('/api/admin/applications')({
         try { input = createPreviewSchema.parse(await request.json()) }
         catch { return Response.json({ error: 'Invalid input' }, { status: 400 }) }
 
-        const databaseUrl = process.env.POSTGRES_URL || process.env.STORAGE_POSTGRES_URL || process.env.STORAGE_DATABASE_URL || process.env.DATABASE_URL || process.env.SUPABASE_DB_URL
-        if (!databaseUrl) return Response.json({ error: 'Database not configured' }, { status: 500 })
+        if (hubStore() === 'none') return Response.json({ error: hubStoreMissingMessage() }, { status: 503 })
 
         const origin = new URL(request.url).origin
-        const sql = postgres(databaseUrl, { max: 1, prepare: false })
+        const sql = hubSql()
         try {
           try {
             await sql`ALTER TABLE public.project_applications ADD COLUMN IF NOT EXISTS preview_token TEXT`

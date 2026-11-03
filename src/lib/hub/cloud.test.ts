@@ -1,5 +1,5 @@
 import { afterEach, expect, test } from 'bun:test'
-import { hubStore } from './cloud'
+import { hubStore } from './db'
 
 const KEYS = ['POSTGRES_URL', 'STORAGE_POSTGRES_URL', 'STORAGE_DATABASE_URL', 'DATABASE_URL', 'SUPABASE_DB_URL', 'SUPABASE_URL', 'SUPABASE_SERVICE_ROLE_KEY']
 const saved = Object.fromEntries(KEYS.map((k) => [k, process.env[k]]))

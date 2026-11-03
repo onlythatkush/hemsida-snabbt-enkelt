@@ -1,18 +1,10 @@
 // Redeploy marker: HUB_READONLY_KEY project link refreshed
-import { createClient } from '@supabase/supabase-js'
+import { hubStore, withHubRead } from '@/lib/hub/db'
 import { createFileRoute } from '@tanstack/react-router'
 
 const REFERENCE_PATTERN = /^[A-Z0-9-]{4,40}$/
 const MAX_ROWS = 20
 
-function client() {
-  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL
-  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SECRET_KEY
-  if (!supabaseUrl || !serviceKey) return null
-  return createClient<any>(supabaseUrl, serviceKey, {
-    auth: { persistSession: false, autoRefreshToken: false },
-  })
-}
 
 export const Route = createFileRoute('/api/hub/applications')({
   server: {
@@ -38,24 +30,15 @@ export const Route = createFileRoute('/api/hub/applications')({
           return Response.json({ error: 'Invalid reference format' }, { status: 400 })
         }
 
-        const supabase = client()
-        if (!supabase) {
-          console.error(`[hub] ${path} 500 server_misconfigured: supabase credentials missing`)
+        if (hubStore() === 'none') {
+          console.error(`[hub] ${path} 500 server_misconfigured: no order store`)
           return Response.json({ error: 'Server misconfigured' }, { status: 500 })
         }
 
         try {
-          let query = supabase
-            .from('project_applications')
-            .select('id, reference, status, created_at, updated_at, preview_url')
-            .order('created_at', { ascending: false })
-            .limit(reference ? 1 : MAX_ROWS)
-
-          if (reference) query = query.eq('reference', reference)
-          else query = query.not('reference', 'like', 'TEST-%')
-
-          const { data, error } = await query
-          if (error) throw error
+          const data: any[] = await withHubRead((sql) => reference
+            ? sql`SELECT id, reference, status, created_at, updated_at, preview_url FROM public.project_applications WHERE reference = ${reference} LIMIT 1`
+            : sql`SELECT id, reference, status, created_at, updated_at, preview_url FROM public.project_applications WHERE reference NOT LIKE 'TEST-%' ORDER BY created_at DESC LIMIT ${MAX_ROWS}`)
 
           const applications = (data ?? []).map((row: any) => ({
             id: row.id,

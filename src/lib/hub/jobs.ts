@@ -15,7 +15,7 @@ export async function claimJob(
     INSERT INTO public.revision_jobs (reference, change_request_id, kind, status, idempotency_key, started_at)
     VALUES (${input.reference}, ${input.changeRequestId ?? null}, ${input.kind ?? 'design_revision'},
             'processing', ${input.idempotencyKey}, now())
-    ON CONFLICT (idempotency_key) DO UPDATE
+    ON CONFLICT (idempotency_key) WHERE idempotency_key IS NOT NULL DO UPDATE
       SET status = 'processing',
           retry_count = public.revision_jobs.retry_count + 1,
           started_at = now(),

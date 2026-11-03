@@ -1,4 +1,6 @@
 import postgres from 'postgres'
+import { createClient } from '@supabase/supabase-js'
+import { createCloudSql } from './cloud-sql'
 
 /**
  * ONE database path for the whole hub.
@@ -21,10 +23,51 @@ export function hubDatabaseUrl(): string | undefined {
 
 export type HubSql = ReturnType<typeof postgres>
 
+/**
+ * ONE store per deployment.
+ * - HUB_STORE=postgres|cloud forces a store (recommended in production so a
+ *   missing POSTGRES_URL can never silently fall back to another database).
+ * - Otherwise an explicit external Postgres URL wins, then Lovable Cloud.
+ */
+export type HubStore = 'postgres' | 'cloud' | 'none'
+
+function explicitPostgresUrl() {
+  return process.env.POSTGRES_URL || process.env.STORAGE_POSTGRES_URL || process.env.STORAGE_DATABASE_URL || process.env.DATABASE_URL
+}
+function cloudConfigured() {
+  return Boolean(process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY)
+}
+
+export function hubStore(): HubStore {
+  const forced = (process.env.HUB_STORE || '').trim().toLowerCase()
+  if (forced === 'postgres') return explicitPostgresUrl() ? 'postgres' : 'none'
+  if (forced === 'cloud') return cloudConfigured() ? 'cloud' : 'none'
+  if (explicitPostgresUrl()) return 'postgres'
+  // SUPABASE_DB_URL is platform-internal and not reachable from every runtime.
+  if (cloudConfigured()) return 'cloud'
+  return hubDatabaseUrl() ? 'postgres' : 'none'
+}
+
+export function hubStoreMissingMessage(): string {
+  const forced = (process.env.HUB_STORE || '').trim().toLowerCase()
+  if (forced === 'postgres') return 'HUB_STORE=postgres men POSTGRES_URL saknas i driftmiljön.'
+  if (forced === 'cloud') return 'HUB_STORE=cloud men Lovable Cloud-serverkonfiguration saknas.'
+  return 'Ingen orderdatabas är konfigurerad (POSTGRES_URL eller Lovable Cloud).'
+}
+
 export function hubSql(): HubSql {
-  const url = hubDatabaseUrl()
-  if (!url) throw new Error('Databasen är inte konfigurerad (POSTGRES_URL/SUPABASE_DB_URL saknas)')
-  return postgres(url, { max: 1, prepare: false })
+  const store = hubStore()
+  if (store === 'cloud') {
+    const client = createClient<any>(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!, {
+      auth: { persistSession: false, autoRefreshToken: false },
+    })
+    return createCloudSql(client) as HubSql
+  }
+  if (store === 'postgres') {
+    const url = explicitPostgresUrl() || hubDatabaseUrl()
+    return postgres(url!, { max: 1, prepare: false })
+  }
+  throw new Error(hubStoreMissingMessage())
 }
 
 let schemaEnsured = false
@@ -41,6 +84,8 @@ let schemaAttempts = 0
  */
 export async function ensureHubSchema(sql: HubSql) {
   if (schemaEnsured) return
+  // Lovable Cloud schema is owned by migrations; hub_exec rejects DDL anyway.
+  if ((sql as any).__cloud) return
   try {
     await sql`
       CREATE TABLE IF NOT EXISTS public.application_events (
