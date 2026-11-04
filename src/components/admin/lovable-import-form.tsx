@@ -39,6 +39,7 @@ export function LovableImportForm({ reference, adminKey }: Props) {
     try {
       const form = new FormData()
       form.append('reference', reference)
+      form.append('commit', commit.trim())
       form.append('archive', archive)
       const res = await fetch('/api/admin/lovable-import', { method: 'PUT', headers: { 'x-admin-key': adminKey }, body: form })
       const data = await res.json()
