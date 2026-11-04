@@ -26,7 +26,7 @@ export const Route = createFileRoute('/api/admin/lovable-import')({
       const reference = String(data?.get('reference') ?? '')
       const archive = data?.get('archive')
       if (!/^ORD-[A-Z0-9]{4,20}$/.test(reference) || !(archive instanceof File) ||
-          !/\\.zip$/i.test(archive.name) || archive.size > 20 * 1024 * 1024 || archive.size === 0) {
+          !/\.zip$/i.test(archive.name) || archive.size > 20 * 1024 * 1024 || archive.size === 0) {
         return Response.json({ error: 'Choose a ZIP archive up to 20 MB and a valid order' }, { status: 400 })
       }
       const url = process.env.SUPABASE_URL
