@@ -93,7 +93,17 @@ export async function runRevisionJob(
       `${origin}/kund-preview/${encodeURIComponent(app.reference)}?token=${token}` +
       `&v=${revision}-${Date.now().toString(36)}`
 
-    if (isLovable) {\n      const original = app.design_spec\n      const preserved = structuredClone(original)\n      preserved.revision = revision\n      if (directives.mode) preserved.palette.mode = directives.mode\n      if (directives.addColors?.length && /^#[0-9a-f]{6}$/i.test(directives.addColors[0])) preserved.palette.primary = directives.addColors[0]\n      if (directives.headingScale) preserved.type.headingScale = Math.max(0.75, Math.min(1.3, Number(preserved.type.headingScale || 1) + directives.headingScale))\n      if (directives.dropSections?.length) preserved.sections = preserved.sections.filter((section: any) => !directives.dropSections.includes(section.id))\n      Object.assign(spec, preserved)\n    }\n    const qa = spec.qa
+    if (isLovable) {
+      const original = app.design_spec
+      const preserved = structuredClone(original)
+      preserved.revision = revision
+      if (directives.mode) preserved.palette.mode = directives.mode
+      if (directives.addColors?.length && /^#[0-9a-f]{6}$/i.test(directives.addColors[0])) preserved.palette.primary = directives.addColors[0]
+      if (directives.headingScale) preserved.type.headingScale = Math.max(0.75, Math.min(1.3, Number(preserved.type.headingScale || 1) + directives.headingScale))
+      if (directives.dropSections?.length) preserved.sections = preserved.sections.filter((section: any) => !directives.dropSections.includes(section.id))
+      Object.assign(spec, preserved)
+    }
+    const qa = spec.qa
     await recordDesignVersion(sql, {
       reference: app.reference,
       revision,
