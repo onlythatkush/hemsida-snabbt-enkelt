@@ -397,10 +397,10 @@ export function ContactBlock({ ctx, section }: { ctx: Ctx; section: Section }) {
           className="mt-4 leading-relaxed"
           style={{ color: rgba(p.onPrimary, 0.86), fontSize: "var(--t-body)", maxWidth: "var(--t-measure)" }}
         >
-          Skriv några rader om vad du behöver så hör vi av oss. Vi svarar oftast samma dag.
+          {section.body || "Kontakta oss så hjälper vi dig vidare."}
         </p>
         <a
-          href={b.email ? `mailto:${b.email}` : "#"}
+          href={b.phone ? `tel:${b.phone.replace(/[^0-9+]/g, "")}` : b.email ? `mailto:${b.email}` : "#kontakt"}
           className="mt-7 inline-flex items-center gap-2"
           style={{ ...ctaStyle(ctx, true), background: p.onPrimary, color: p.primary, border: "none" }}
         >
@@ -440,6 +440,21 @@ export function ContactBlock({ ctx, section }: { ctx: Ctx; section: Section }) {
             {b.socialLinks}
           </div>
         ) : null}
+      {b.address ? (
+        <div className="lg:col-span-2 overflow-hidden" style={{ borderRadius: "var(--r-lg)", border: `1px solid ${rgba("#ffffff", 0.24)}` }}>
+          <iframe
+            title={`Karta till ${b.company}`}
+            src={`https://maps.google.com/maps?q=${encodeURIComponent(b.address)}&output=embed`}
+            loading="lazy"
+            referrerPolicy="no-referrer-when-downgrade"
+            className="block w-full"
+            style={{ height: "min(55vw, 360px)", minHeight: 240, border: 0 }}
+          />
+          <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(b.address)}`} target="_blank" rel="noopener noreferrer" className="block px-4 py-3 underline" style={{ color: p.onPrimary }}>
+            Öppna vägbeskrivning i Google Maps
+          </a>
+        </div>
+      ) : null}
       </div>
     </div>
   );
