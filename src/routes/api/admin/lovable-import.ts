@@ -4,7 +4,7 @@ import { z } from 'zod'
 import { hubSql, hubStore, hubStoreMissingMessage } from '@/lib/hub/db'
 
 const schema = z.object({
-  reference: z.string().regex(/^ORD-[A-Z0-9]{6,20}$/),
+  reference: z.string().regex(/^ORD-[A-Z0-9]{4,20}$/),
   lovableProjectId: z.string().uuid(),
   lovableCommit: z.string().regex(/^[a-f0-9]{40}$/),
   previewUrl: z.string().url().max(500),
