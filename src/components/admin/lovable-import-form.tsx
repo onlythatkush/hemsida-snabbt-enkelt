@@ -78,6 +78,7 @@ export function LovableImportForm({ reference, adminKey }: Props) {
       <input type="file" accept=".zip" onChange={e => setArchive(e.target.files?.[0] ?? null)} />
       <button type="button" disabled={busy || !archive} onClick={uploadArchive}>Spara ZIP på ordern</button>
       {message && <p role="status" className="text-xs">{message}</p>}
-    </div>
-  </details>
+      </div>
+    </details>
+  </section>
 }
