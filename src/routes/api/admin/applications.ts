@@ -153,34 +153,64 @@ export const Route = createFileRoute('/api/admin/applications')({
           )
 
           if (demo) {
+            // Customer-specific Lovable proposals must never inherit stock copy,
+            // galleries, contact data or service lists from a generic industry template.
+            spec.brand.company = demo.company.name
+            spec.brand.tagline = demo.company.tagline
             spec.brand.heroTitle = demo.hero.headline
             spec.brand.heroSub = demo.hero.subheadline
+            spec.brand.ctaPrimary = demo.hero.primaryCta === 'book' ? 'Boka däckbyte' : 'Ring oss'
+            spec.brand.ctaSecondary = 'Ring ' + demo.customerFacts.phone.display
+            spec.brand.phone = demo.customerFacts.phone.display
+            spec.brand.address = demo.customerFacts.address.full
+            spec.brand.email = demo.customerFacts.email || undefined
+            spec.brand.socialLinks = undefined
+            spec.palette.mode = demo.palette.mode
             spec.palette.primary = demo.palette.accent
+            spec.palette.accent = demo.palette.accentGlow || demo.palette.accent
             spec.palette.bg = demo.palette.background
             spec.palette.surface = demo.palette.surface
+            spec.palette.surfaceAlt = demo.palette.surface
             spec.palette.ink = demo.palette.foreground
-            spec.palette.mode = demo.palette.mode
-            spec.brand.phone = app.phone || demo.customerFacts.phone.display
-            // Prefer the exact Lovable-generated imagery over generic automotive stock.
-            // Asset paths are customer-scoped to prevent cross-order image mixing.
+            spec.palette.muted = demo.palette.mutedForeground
+            spec.palette.border = demo.palette.border
+            spec.palette.onPrimary = demo.palette.onAccent
+            spec.palette.primarySoft = '#1b315c'
+            spec.type.headingFamily = demo.typography.display.family
+            spec.type.bodyFamily = demo.typography.body.family
+            spec.type.headingCase = 'none'
+            spec.fonts = [demo.typography.display.family, demo.typography.body.family]
+            spec.motif = { ...spec.motif!, imageFilter: 'none', ctaStyle: 'pill', divider: 'hairline', overlay: 0.48 }
+            spec.stockSet = undefined
+            spec.art = { subjects: ['tires', 'rims', 'workshop'], keywords: [], mood: 'neutral', requireHeroMedia: true }
             const assetOrigin = new URL(demo.previewUrl).origin
             const assetImages = (demo.imagery || []).filter((image: any) =>
               typeof image.path === 'string' && image.path.startsWith('/dwp-assets/' + input.reference + '/')
             )
-            if (assetImages.length) {
-              const imported = assetImages.map((image: any, index: number) => ({
-                path: image.path,
-                name: image.key || image.path.split('/').pop(),
-                role: index === 0 ? 'hero' as const : 'feature' as const,
-                url: assetOrigin + image.path,
-              }))
-              spec.images = [...imported, ...spec.images]
-              const heroSection = spec.sections.find((section) => section.type === 'hero')
-              if (heroSection) heroSection.images = [0]
-              const servicesSection = spec.sections.find((section) => section.type === 'services')
-              if (servicesSection) servicesSection.images = imported.slice(1).map((_: any, index: number) => index + 1)
-            }
-
+            spec.images = assetImages.map((image: any, index: number) => ({
+              path: image.path, name: image.key,
+              role: index === 0 ? 'hero' as const : 'feature' as const,
+              url: assetOrigin + image.path,
+            }))
+            const imageIndex = (key: string) => Math.max(0, assetImages.findIndex((image: any) => image.key === key))
+            spec.sections = [
+              { id: 'hero', type: 'hero', eyebrow: demo.hero.eyebrow, images: [imageIndex('hero')] },
+              ...demo.sections.filter((section: any) => section.items?.length).map((section: any) => ({
+                id: section.id, type: 'services' as const, eyebrow: section.eyebrow,
+                title: section.title, tone: 'base' as const,
+                items: section.items.map((item: any) => ({ title: item.title, body: item.text })),
+                images: section.items.map((item: any) => imageIndex(item.image)),
+              })),
+              ...demo.sections.filter((section: any) => section.id === 'cta-band').map((section: any) => ({
+                id: 'cta-band', type: 'local' as const, eyebrow: 'Kontakta oss',
+                title: section.title, body: section.text, tone: 'base' as const,
+              })),
+              ...demo.sections.filter((section: any) => section.id === 'contact').map((section: any) => ({
+                id: 'contact', type: 'contact' as const, eyebrow: section.eyebrow,
+                title: section.title, body: section.text, tone: 'contrast' as const,
+              })),
+            ]
+            spec.engine = { ...spec.engine!, heroSource: 'customer', heroAsset: 'hero.jpg', stockSet: undefined }
           }
           const token: string =
             app.preview_token && String(app.preview_token).length >= 32
