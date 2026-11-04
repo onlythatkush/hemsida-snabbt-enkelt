@@ -161,6 +161,26 @@ export const Route = createFileRoute('/api/admin/applications')({
             spec.palette.ink = demo.palette.foreground
             spec.palette.mode = demo.palette.mode
             spec.brand.phone = app.phone || demo.customerFacts.phone.display
+            // Prefer the exact Lovable-generated imagery over generic automotive stock.
+            // Asset paths are customer-scoped to prevent cross-order image mixing.
+            const assetOrigin = new URL(demo.previewUrl).origin
+            const assetImages = (demo.imagery || []).filter((image: any) =>
+              typeof image.path === 'string' && image.path.startsWith('/dwp-assets/' + input.reference + '/')
+            )
+            if (assetImages.length) {
+              const imported = assetImages.map((image: any, index: number) => ({
+                path: image.path,
+                name: image.key || image.path.split('/').pop(),
+                role: index === 0 ? 'hero' as const : 'feature' as const,
+                url: assetOrigin + image.path,
+              }))
+              spec.images = [...imported, ...spec.images]
+              const heroSection = spec.sections.find((section) => section.type === 'hero')
+              if (heroSection) heroSection.images = [0]
+              const servicesSection = spec.sections.find((section) => section.type === 'services')
+              if (servicesSection) servicesSection.images = imported.slice(1).map((_: any, index: number) => index + 1)
+            }
+
           }
           const token: string =
             app.preview_token && String(app.preview_token).length >= 32
