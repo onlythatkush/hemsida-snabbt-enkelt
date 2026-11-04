@@ -1,3 +1,4 @@
+import { createClient } from '@supabase/supabase-js'
 import { createFileRoute } from '@tanstack/react-router'
 import { z } from 'zod'
 import { hubSql, hubStore, hubStoreMissingMessage } from '@/lib/hub/db'
@@ -19,6 +20,48 @@ function authorized(request: Request) {
 
 export const Route = createFileRoute('/api/admin/lovable-import')({
   server: { handlers: {
+    PUT: async ({ request }) => {
+      if (!authorized(request)) return Response.json({ error: 'Unauthorized' }, { status: 401 })
+      const data = await request.formData().catch(() => null)
+      const reference = String(data?.get('reference') ?? '')
+      const archive = data?.get('archive')
+      if (!/^ORD-[A-Z0-9]{4,20}$/.test(reference) || !(archive instanceof File) ||
+          !/\\.zip$/i.test(archive.name) || archive.size > 20 * 1024 * 1024 || archive.size === 0) {
+        return Response.json({ error: 'Choose a ZIP archive up to 20 MB and a valid order' }, { status: 400 })
+      }
+      const url = process.env.SUPABASE_URL
+      const key = process.env.SUPABASE_SERVICE_ROLE_KEY
+      if (!url || !key) return Response.json({ error: 'Source archive storage is not configured' }, { status: 503 })
+      const sql = hubSql()
+      try {
+        const existing = await sql`SELECT reference FROM public.project_applications WHERE reference=${reference} LIMIT 1`
+        if (!existing.length) return Response.json({ error: 'Order not found' }, { status: 404 })
+        const storage = createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } }).storage
+        const destination = reference + '/lovable-source-' + crypto.randomUUID() + '.zip'
+        const uploaded = await storage.from('project-files').upload(destination, archive, {
+          contentType: 'application/zip', upsert: false,
+        })
+        if (uploaded.error) return Response.json({ error: 'Storage upload failed: ' + uploaded.error.message }, { status: 503 })
+        try {
+          const updated = await sql`
+            UPDATE public.lovable_project_imports SET source_import_status='source_archive_saved',
+            updated_at=now(), design_metadata=design_metadata || ${sql.json({ sourceArchivePath: destination, sourceArchiveBytes: archive.size } as any)}
+            WHERE reference=${reference} RETURNING reference
+          `
+          if (!updated.length) {
+            await storage.from('project-files').remove([destination])
+            return Response.json({ error: 'Save project metadata first' }, { status: 409 })
+          }
+        } catch (error) {
+          await storage.from('project-files').remove([destination])
+          throw error
+        }
+        return Response.json({ reference, status: 'source_archive_saved', note: 'ZIP stored privately; not built or published' })
+      } catch (error) {
+        console.error('lovable archive upload failed', error)
+        return Response.json({ error: 'Could not store source archive in the authoritative order' }, { status: 503 })
+      } finally { await sql.end().catch(() => undefined) }
+    },
     POST: async ({ request }) => {
       if (!authorized(request)) return Response.json({ error: 'Unauthorized' }, { status: 401 })
       if (hubStore() === 'none') return Response.json({ error: hubStoreMissingMessage() }, { status: 503 })
