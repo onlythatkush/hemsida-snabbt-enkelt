@@ -1,3 +1,4 @@
+import { AiChangeCenter } from "@/components/admin/ai-change-center";
 import { LovableImportForm } from "@/components/admin/lovable-import-form";
 import { LovableFallbackActions } from "@/components/admin/lovable-fallback-actions";
 import { createFileRoute } from "@tanstack/react-router";
@@ -519,6 +520,7 @@ function Admin() {
 
                         <QaPanel app={a} onAccept={acceptQa} />
                         <DesignDiagnostics app={a} />
+                        <AiChangeCenter reference={a.reference} company={a.company} designSpec={a.design_spec} />
                         <LovableFallbackActions orderNumber={a.reference} buildBrief={fallbackBrief(a)} />
                         <LovableImportForm reference={a.reference} adminKey={savedKey} />
 
@@ -633,7 +635,8 @@ function Admin() {
                               Ny design
                             </Button>
                           )}
-                          <LovableFallbackActions orderNumber={a.reference} buildBrief={fallbackBrief(a)} />
+                          <AiChangeCenter reference={a.reference} company={a.company} designSpec={a.design_spec} />
+                        <LovableFallbackActions orderNumber={a.reference} buildBrief={fallbackBrief(a)} />
                           {a.preview_url && (
                             <Button size="sm" variant="outline" onClick={() => openMailPreview(a.reference)} disabled={previewingRef === a.reference}>
                               {previewingRef === a.reference ? <Loader2 className="h-4 w-4 animate-spin" /> : <Eye className="h-4 w-4" />}
