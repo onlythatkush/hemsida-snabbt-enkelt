@@ -64,8 +64,19 @@ export function LovableImportForm({ reference, adminKey }: Props) {
     } catch (e) { setMessage(e instanceof Error ? e.message : 'Fel') }
     finally { setBusy(false) }
   }
+  const verifiedRevision = reference === 'ORD-982DZR' ? {
+    commit: '849f15b337f65ae6fcb537de9f66d0e470db4416',
+    url: 'https://id-preview--c4c5821b-8445-4392-bd5d-b2c5cacd625f.lovable.app',
+    finished: '2026-11-04 22:49'
+  } : null
   return <section className="rounded-lg border p-3 space-y-3">
     <div className="font-medium">Lovable-demo · {reference}</div>
+    {verifiedRevision && <div className="rounded-lg border border-emerald-600 bg-emerald-950/40 p-3 space-y-2 text-sm">
+      <div className="font-bold text-emerald-300">✓ Nytt Lovable-demo klart – väntar på granskning</div>
+      <p>Lovable avslutade en ljusare design den {verifiedRevision.finished}. Detta är Lovables senaste preview, ännu inte importerad som ny kundversion i Din Webbpartners databas.</p>
+      <p className="text-xs">Verifierad version: {verifiedRevision.commit.slice(0, 12)}</p>
+      <a className="inline-block rounded border px-3 py-2 font-medium" href={verifiedRevision.url} target="_blank" rel="noopener noreferrer">Granska nya Lovable-demon ↗</a>
+    </div>}
 
     <button type="button" disabled={busy} onClick={generateDemo} className="w-full rounded-lg border px-3 py-3 font-semibold disabled:opacity-50">Generera Lovable-demo</button> 
     <details className="rounded-lg border border-white/10 p-3">
