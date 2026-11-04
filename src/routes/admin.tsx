@@ -1,3 +1,4 @@
+import { LovableFallbackActions } from "@/components/admin/lovable-fallback-actions";
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { SiteHeader, SiteFooter } from "@/components/site-header";
@@ -126,6 +127,22 @@ const statusLabels: Record<string, string> = {
   delivered: "Levererad",
   archived: "Arkiverad",
 };
+
+function fallbackBrief(a: Application): string {
+  return [
+    "Build a polished, responsive Swedish business website from the following customer requirements.",
+    "Do not invent testimonials, prices, awards or business facts. Do not connect production systems or send emails.",
+    "Business: " + a.company,
+    "Description: " + a.description,
+    "Website type: " + a.website_type,
+    "Colors: " + (a.colors || "Choose suitable palette"),
+    "Additional requirements: " + (a.extra_requests || "None"),
+    "Business location: " + (a.address || "Not specified"),
+    "Social links: " + (a.social_links || "None"),
+    "Build responsive pages, accessible navigation, service sections, calls to action and a functional contact approach.",
+    "Do not include generator branding except legally required attribution.",
+  ].join("\\n\\n");
+}
 
 function Admin() {
   const [key, setKey] = useState("");
@@ -501,6 +518,7 @@ function Admin() {
 
                         <QaPanel app={a} onAccept={acceptQa} />
                         <DesignDiagnostics app={a} />
+                        <LovableFallbackActions orderNumber={a.reference} buildBrief={fallbackBrief(a)} />
 
                         {(a.status === "reviewing" || a.status === "new") ? (
                           <Button className="w-full" onClick={() => createPreview(a.reference)} disabled={buildingRef === a.reference}>
@@ -613,6 +631,7 @@ function Admin() {
                               Ny design
                             </Button>
                           )}
+                          <LovableFallbackActions orderNumber={a.reference} buildBrief={fallbackBrief(a)} />
                           {a.preview_url && (
                             <Button size="sm" variant="outline" onClick={() => openMailPreview(a.reference)} disabled={previewingRef === a.reference}>
                               {previewingRef === a.reference ? <Loader2 className="h-4 w-4 animate-spin" /> : <Eye className="h-4 w-4" />}
