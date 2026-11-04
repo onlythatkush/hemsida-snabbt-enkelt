@@ -1,4 +1,4 @@
-import { peterLovableImport } from "@/lib/lovable/peter-import";
+import { LovableImportForm } from "@/components/admin/lovable-import-form";
 import { LovableFallbackActions } from "@/components/admin/lovable-fallback-actions";
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
@@ -213,20 +213,6 @@ function Admin() {
     const body = await res.json();
     setItems((prev) => prev.map((x) => x.reference === reference ? body.application : x));
     toast.success("Sparat");
-  }
-
-  async function importLovable(reference: string) {
-    if (reference !== peterLovableImport.reference) return;
-    try {
-      const res = await fetch("/api/admin/lovable-import", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "x-admin-key": savedKey },
-        body: JSON.stringify(peterLovableImport),
-      });
-      const body = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(body.error || "Importen misslyckades");
-      toast.success("Lovable-design och projektmanifest sparade. Källfiler återstår.");
-    } catch (e: any) { toast.error(e.message || "Kunde inte importera"); }
   }
 
   async function createPreview(reference: string, action: "create-preview" | "regenerate-design" = "create-preview") {
@@ -534,13 +520,7 @@ function Admin() {
                         <QaPanel app={a} onAccept={acceptQa} />
                         <DesignDiagnostics app={a} />
                         <LovableFallbackActions orderNumber={a.reference} buildBrief={fallbackBrief(a)} />
-                        {a.reference === peterLovableImport.reference && (
-                          <div className="rounded-lg border p-3 space-y-2">
-                            <p className="text-sm font-medium">Lovable: Peters däck & fälgar</p>
-                            <p className="text-xs text-muted-foreground">Spara designbrief, projekt-ID och fillista på ordern. Denna åtgärd överför ännu inte själva källfilerna.</p>
-                            <Button variant="outline" className="w-full" onClick={() => importLovable(a.reference)}>Importera Lovable-projektinfo</Button>
-                          </div>
-                        )}
+                        <LovableImportForm reference={a.reference} adminKey={savedKey} />
 
                         {(a.status === "reviewing" || a.status === "new") ? (
                           <Button className="w-full" onClick={() => createPreview(a.reference)} disabled={buildingRef === a.reference}>
