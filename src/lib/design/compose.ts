@@ -1,4 +1,5 @@
 import { analyzeArt } from "./art";
+import type { DesignPlan } from "./analyze-application";
 import { planAssets } from "./assets";
 import { contrast, extractColors, hexToHsl } from "./color";
 import { ctaPrimary, ctaSecondary, heroSub, heroTitle, tagline } from "./copy";
@@ -59,7 +60,7 @@ export function chooseFamily(
 
 export function composeDesignSpec(
   app: ApplicationInput,
-  override?: { family?: FamilyId; revision?: number; directives?: RevisionDirectives },
+  override?: { family?: FamilyId; revision?: number; directives?: RevisionDirectives; designPlan?: DesignPlan },
 ): DesignSpec {
   const directives = override?.directives;
   // Deterministic per (application, revision): pressing "Gör ny hemsida" bumps
@@ -67,7 +68,7 @@ export function composeDesignSpec(
   const revision = Math.max(1, Math.floor(override?.revision ?? 1));
   const seed = hashSeed(`${app.reference || app.company || "dwp"}#r${revision}`);
   const description = app.description || "";
-  const { industry } = detectIndustry(app.website_type, description, app.extra_requests, app.company);
+  const industry = override?.designPlan?.industry ?? detectIndustry(app.website_type, description, app.extra_requests, app.company).industry;
   const { tone } = detectTone(description, app.extra_requests, app.colors, app.website_type);
   const local = isLocal(description, app.extra_requests, app.address);
   const { images, photoCount, rejected } = planAssets(app.file_names || []);
@@ -75,7 +76,7 @@ export function composeDesignSpec(
 
   const art = analyzeArt(industry, description, app.extra_requests, app.website_type);
 
-  let chosen = override?.family || chooseFamily(industry, tone, seed, photoCount, art).family;
+  let chosen = override?.family || override?.designPlan?.template || chooseFamily(industry, tone, seed, photoCount, art).family;
   // A customer reply asking for a lighter/darker expression must actually change
   // the page, so switch to the best-scoring family in the requested mode.
   if (!override?.family && directives?.mode && FAMILIES[chosen].base.mode !== directives.mode) {
@@ -87,7 +88,7 @@ export function composeDesignSpec(
   }
   const familyDef = FAMILIES[chosen];
   // Pale colours make poor primaries; the strongest colour leads, pale ones become tints.
-  const allColors = extractColors(app.colors);
+  const allColors = extractColors(override?.designPlan?.style.colors.join(", ") || app.colors);
   const strong = allColors.filter((c) => contrast(c, "#ffffff") >= 2.2);
   const pale = allColors.filter((c) => contrast(c, "#ffffff") < 2.2);
   // Keep the order the customer wrote them in, but let a saturated colour lead
@@ -136,12 +137,13 @@ export function composeDesignSpec(
     seed,
   });
 
+  const requestedSections = override?.designPlan?.pageStructure;
   const dropped = new Set(directives?.dropSections || []);
-  const kept = built.filter((s) => !dropped.has(s.id));
+  const kept = built.filter((s) => !dropped.has(s.id) && (!requestedSections || requestedSections.includes(s.type) || s.type === "contact"));
   const variation = buildVariation(chosen, seed, kept.map((s) => s.id));
-  const sections = [...kept].sort(
-    (a, b) => variation.sectionOrder.indexOf(a.id) - variation.sectionOrder.indexOf(b.id),
-  );
+  const sections = [...kept].sort((a, b) => requestedSections
+    ? requestedSections.indexOf(a.type) - requestedSections.indexOf(b.type)
+    : variation.sectionOrder.indexOf(a.id) - variation.sectionOrder.indexOf(b.id));
   const tokens = buildTokens(type, shape, tone);
 
   const generatedAt = new Date().toISOString();
@@ -183,6 +185,9 @@ export function composeDesignSpec(
     ...(directives ? { directives, revisionNotes: directives.summary } : {}),
   };
 
+  if (override?.designPlan) {
+    (spec as DesignSpec & { designPlan?: DesignPlan }).designPlan = override.designPlan;
+  }
   spec.qa = evaluateQuality(spec);
   spec.engine = {
     version: DESIGN_SPEC_VERSION,
