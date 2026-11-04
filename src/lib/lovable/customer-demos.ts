@@ -191,39 +191,39 @@ export const lovableDemos: Record<string, any> = { "ORD-982DZR": {
   "imagery": [
     {
       "key": "hero",
-      "path": "src/assets/hero.jpg",
+      "path": "/dwp-assets/ORD-982DZR/hero.jpg",
       "width": 1920,
       "height": 1088,
       "subject": "Närbild på en elegant svart fälg med lågprofildäck i dramatiskt, mörkt ljus med blå reflexer."
     },
     {
       "key": "tires",
-      "path": "src/assets/tires.jpg",
+      "path": "/dwp-assets/ORD-982DZR/tires.jpg",
       "subject": "Rad av nya sommar- och vinterdäck med tydligt mönster i verkstadsmiljö."
     },
     {
       "key": "rims",
-      "path": "src/assets/rims.jpg",
+      "path": "/dwp-assets/ORD-982DZR/rims.jpg",
       "subject": "Moderna lättmetallfälgar på rad, blankpolerade."
     },
     {
       "key": "package",
-      "path": "src/assets/package.jpg",
+      "path": "/dwp-assets/ORD-982DZR/package.jpg",
       "subject": "Komplett hjul – däck monterat på fälg – redo att sättas på bilen."
     },
     {
       "key": "balancing",
-      "path": "src/assets/balancing.jpg",
+      "path": "/dwp-assets/ORD-982DZR/balancing.jpg",
       "subject": "Hjul i balanseringsmaskin i verkstad."
     },
     {
       "key": "puncture",
-      "path": "src/assets/puncture.jpg",
+      "path": "/dwp-assets/ORD-982DZR/puncture.jpg",
       "subject": "Närbild på punkteringslagning av ett däck."
     },
     {
       "key": "hotel",
-      "path": "src/assets/hotel.jpg",
+      "path": "/dwp-assets/ORD-982DZR/hotel.jpg",
       "subject": "Prydligt staplade däck i förvaringsställ (däckhotell)."
     }
   ],
