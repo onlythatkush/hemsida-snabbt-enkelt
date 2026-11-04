@@ -25,6 +25,7 @@ export const Route = createFileRoute('/api/admin/lovable-import')({
       const data = await request.formData().catch(() => null)
       const reference = String(data?.get('reference') ?? '')
       const archive = data?.get('archive')
+      const requestedCommit = String(data?.get('commit') ?? '')
       if (!/^ORD-[A-Z0-9]{4,20}$/.test(reference) || !(archive instanceof File) ||
           !/\.zip$/i.test(archive.name) || archive.size > 20 * 1024 * 1024 || archive.size === 0) {
         return Response.json({ error: 'Choose a ZIP archive up to 20 MB and a valid order' }, { status: 400 })
@@ -36,8 +37,12 @@ export const Route = createFileRoute('/api/admin/lovable-import')({
       try {
         const existing = await sql`SELECT reference FROM public.project_applications WHERE reference=${reference} LIMIT 1`
         if (!existing.length) return Response.json({ error: 'Order not found' }, { status: 404 })
+        const manifest = await sql`SELECT lovable_commit FROM public.lovable_project_imports WHERE reference=${reference} LIMIT 1`
+        if (!manifest.length || manifest[0].lovable_commit !== requestedCommit) {
+          return Response.json({ error: 'Spara projektinformationen först och välj en ZIP från samma kodversion' }, { status: 409 })
+        }
         const storage = createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } }).storage
-        const destination = reference + '/lovable-source-' + crypto.randomUUID() + '.zip'
+        const destination = reference + '/lovable-source-' + requestedCommit + '-' + crypto.randomUUID() + '.zip'
         const uploaded = await storage.from('project-files').upload(destination, archive, {
           contentType: 'application/zip', upsert: false,
         })
@@ -46,7 +51,7 @@ export const Route = createFileRoute('/api/admin/lovable-import')({
           const updated = await sql`
             UPDATE public.lovable_project_imports SET source_import_status='source_archive_saved',
             updated_at=now(), design_metadata=design_metadata || ${sql.json({ sourceArchivePath: destination, sourceArchiveBytes: archive.size } as any)}
-            WHERE reference=${reference} RETURNING reference
+            WHERE reference=${reference} AND lovable_commit=${requestedCommit} RETURNING reference
           `
           if (!updated.length) {
             await storage.from('project-files').remove([destination])
