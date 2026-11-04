@@ -1,3 +1,4 @@
+import { lovableDemos } from '@/lib/lovable/customer-demos'
 import { createClient } from '@supabase/supabase-js'
 import { createFileRoute } from '@tanstack/react-router'
 import { z } from 'zod'
@@ -8,7 +9,7 @@ import { listVersions, nextRevision, recordDesignVersion } from '@/lib/hub/versi
 
 const createPreviewSchema = z.object({
   reference: z.string().min(4).max(40),
-  action: z.enum(['create-preview', 'regenerate-design']),
+  action: z.enum(['create-preview', 'regenerate-design', 'lovable-demo']),
   family: z.string().max(40).optional(),
 })
 
@@ -132,13 +133,15 @@ export const Route = createFileRoute('/api/admin/applications')({
           // Derived from the immutable history first so a revision number is never reused.
           const revision = await nextRevision(sql, app.reference, previousRevision).catch(() => previousRevision + 1)
 
+          const demo = input.action === 'lovable-demo' ? lovableDemos[input.reference] : null
+          if (input.action === 'lovable-demo' && !demo) return Response.json({ error: 'Ingen Lovable-demo för denna order' }, { status: 404 })
           const spec = composeDesignSpec(
             {
               reference: app.reference,
               company: app.company,
               description: app.description,
               website_type: app.website_type,
-              colors: app.colors,
+              colors: demo?.palette?.accent || app.colors,
               extra_requests: app.extra_requests,
               social_links: app.social_links,
               address: app.address,
@@ -149,6 +152,16 @@ export const Route = createFileRoute('/api/admin/applications')({
             { revision, ...(input.family ? { family: input.family as any } : {}) },
           )
 
+          if (demo) {
+            spec.brand.heroTitle = demo.hero.headline
+            spec.brand.heroSub = demo.hero.subheadline
+            spec.palette.primary = demo.palette.accent
+            spec.palette.bg = demo.palette.background
+            spec.palette.surface = demo.palette.surface
+            spec.palette.ink = demo.palette.foreground
+            spec.palette.mode = demo.palette.mode
+            spec.brand.phone = app.phone || demo.customerFacts.phone.display
+          }
           const token: string =
             app.preview_token && String(app.preview_token).length >= 32
               ? String(app.preview_token)
