@@ -1,3 +1,4 @@
+import { LovableImportForm } from "@/components/admin/lovable-import-form";
 import { LovableFallbackActions } from "@/components/admin/lovable-fallback-actions";
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
@@ -519,6 +520,7 @@ function Admin() {
                         <QaPanel app={a} onAccept={acceptQa} />
                         <DesignDiagnostics app={a} />
                         <LovableFallbackActions orderNumber={a.reference} buildBrief={fallbackBrief(a)} />
+                        <LovableImportForm reference={a.reference} adminKey={savedKey} />
 
                         {(a.status === "reviewing" || a.status === "new") ? (
                           <Button className="w-full" onClick={() => createPreview(a.reference)} disabled={buildingRef === a.reference}>
