@@ -73,8 +73,8 @@ export const lovableDemos: Record<string, any> = { "ORD-982DZR": {
     "mode": "dark",
     "accent": "#2563eb",
     "accentGlow": "#5b8def",
-    "background": "#0d1117",
-    "surface": "#161b24",
+    "background": "#2b303c",
+    "surface": "#383e4c",
     "foreground": "#f4f6fa",
     "mutedForeground": "#9aa3b2",
     "border": "#262d3a",
@@ -262,7 +262,7 @@ export const lovableDemos: Record<string, any> = { "ORD-982DZR": {
     }
   ],
   "visualDirection": {
-    "mood": "Mörk, modern verkstadskänsla med blå accent – tekniskt men personligt.",
+    "mood": "Ljusare stålgrå modern verkstadskänsla med blå accent – tekniskt men personligt.",
     "layout": "Helskärmshero med bild, kortrutnät i tre kolumner för produkter och tjänster, tydligt ring-band, kontaktsida med karta.",
     "components": [
       "sticky header med blur",
