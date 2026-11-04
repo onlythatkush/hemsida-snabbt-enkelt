@@ -5,16 +5,17 @@ import { INDUSTRY_KEYWORDS } from './keywords'
 
 const industries = Object.keys(INDUSTRY_KEYWORDS) as [keyof typeof INDUSTRY_KEYWORDS, ...(keyof typeof INDUSTRY_KEYWORDS)[]]
 const families = Object.keys(FAMILIES) as [keyof typeof FAMILIES, ...(keyof typeof FAMILIES)[]]
+const stringList = z.preprocess((value) => typeof value === 'string' ? [value] : value, z.array(z.string()))
 export const DesignPlanSchema = z.object({
   mainBusiness: z.string(),
   industry: z.enum(industries),
-  services: z.array(z.string()),
-  targetAudience: z.array(z.string()),
-  style: z.object({ tone: z.string(), colors: z.array(z.string()), imageStyle: z.string() }),
+  services: stringList,
+  targetAudience: stringList,
+  style: z.object({ tone: z.string(), colors: stringList, imageStyle: z.string() }),
   customerGoal: z.string(),
   template: z.enum(families),
-  pageStructure: z.array(z.string()),
-  keywords: z.array(z.string()),
+  pageStructure: stringList,
+  keywords: stringList,
   confidence: z.number().min(0).max(1),
 })
 export type DesignPlan = z.infer<typeof DesignPlanSchema>
@@ -29,7 +30,7 @@ export async function analyzeApplication(app: ApplicationInput): Promise<DesignP
       model: process.env.OPENAI_DESIGN_MODEL || 'gpt-4.1-mini',
       response_format: { type: 'json_object' },
       messages: [
-        { role: 'system', content: 'Return only JSON with mainBusiness, industry, services, targetAudience, style (tone, colors, imageStyle), customerGoal, template, pageStructure, keywords, confidence. Use Swedish. Choose industry from ' + industries.join(', ') + '. Choose template from ' + families.join(', ') + '. Only describe services supported by the customer application. Do not confuse cleaning or moving with automotive. pageStructure must include hero, services, contact.' },
+        { role: 'system', content: 'Return only JSON with mainBusiness, industry, services (ARRAY of strings), targetAudience (ARRAY of strings), style (tone, colors (ARRAY of strings), imageStyle), customerGoal, template, pageStructure (ARRAY of strings), keywords (ARRAY of strings), confidence. Use Swedish. Choose industry from ' + industries.join(', ') + '. Choose template from ' + families.join(', ') + '. Only describe services supported by the customer application. Do not confuse cleaning or moving with automotive. pageStructure must include hero, services, contact.' },
         { role: 'user', content: JSON.stringify(app) },
       ],
     }),
