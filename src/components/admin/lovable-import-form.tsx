@@ -64,10 +64,10 @@ export function LovableImportForm({ reference, adminKey }: Props) {
     } catch (e) { setMessage(e instanceof Error ? e.message : 'Fel') }
     finally { setBusy(false) }
   }
-  return <details className="rounded-lg border p-3 space-y-2">
-    <summary className="cursor-pointer font-medium">Importera färdigt Lovable-projekt</summary>
-    <p className="text-xs text-muted-foreground py-2">För alla order. Sparar projektkoppling och designbrief; detta importerar ännu inte källkoden. Ingen ny AI-generering eller publicering.</p>
-    <div className="grid gap-2">\n      <button type="button" disabled={busy} onClick={generateDemo} className="rounded border px-3 py-2 font-semibold">Generera Lovable-demo för {reference}</button>
+  return <section className="rounded-lg border p-3 space-y-3">
+    <div className="font-medium">Lovable-demo · {reference}</div>
+
+    <button type="button" disabled={busy} onClick={generateDemo} className="w-full rounded-lg border px-3 py-3 font-semibold disabled:opacity-50">Generera Lovable-demo</button>\n    <details className="rounded-lg border border-white/10 p-3">\n      <summary className="cursor-pointer text-sm text-muted-foreground">Visa avancerade inställningar</summary>\n      <div className="grid gap-2 pt-3">
       <label className="text-xs">Lovable projekt-ID<input className="w-full rounded border p-2" value={projectId} onChange={e => setProjectId(e.target.value)} placeholder="UUID" /></label>
       <label className="text-xs">Commit SHA<input className="w-full rounded border p-2" value={commit} onChange={e => setCommit(e.target.value)} placeholder="40 tecken" /></label>
       <label className="text-xs">Lovable preview-URL<input className="w-full rounded border p-2" value={previewUrl} onChange={e => setPreviewUrl(e.target.value)} placeholder="https://" /></label>
