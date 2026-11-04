@@ -266,6 +266,56 @@ export const Route = createFileRoute('/api/public/inbound-email')({
               return Response.json({ ok: true, reference: match.reference, skipped: 'design_locked' })
             }
 
+            // Three completed customer-driven design revisions per order. Questions and
+            // approvals never consume the quota. Count only successful revisions,
+            // not inbound messages or failed attempts.
+            const revisionCount = await sql<{ count: string }[]>`
+              SELECT count(*)::text AS count
+              FROM public.customer_change_requests
+              WHERE upper(reference) = ${app.reference.toUpperCase()}
+                AND category = 'design_changes'
+                AND status IN ('applied', 'sent')
+            `
+            if (Number(revisionCount[0]?.count ?? 0) >= 3) {
+              await sql`
+                UPDATE public.customer_change_requests
+                SET status='needs_review', processed_at=now(),
+                    intent_reason='Tre automatiska ändringsomgångar använda – personlig genomgång krävs'
+                WHERE id=${changeRequestId}
+              `
+              await sql`
+                UPDATE public.project_applications
+                SET status='reviewing',
+                    review_note='Tre automatiska ändringsomgångar använda – kontakta kunden för en kort genomgång',
+                    updated_at=now()
+                WHERE reference=${app.reference}
+              `
+              await logEvent(sql, app.reference, 'revision_limit_reached',
+                'Tre ändringsomgångar använda – kunden behöver kontaktas',
+                { changeRequestId, completedRevisions: Number(revisionCount[0]?.count ?? 0) })
+              let mail: any = { sent: false }
+              if (mailAllowed) {
+                mail = await sendHubEmail(sql, {
+                  reference: app.reference,
+                  kind: 'revision_limit_ack',
+                  templateKey: 'question-ack',
+                  data: {
+                    eyebrow: 'Personlig genomgång',
+                    heading: 'Vi hjälper dig vidare personligen',
+                    intro: 'Tack för dina synpunkter! Vi har nu gått igenom tre ändringsomgångar. För att förenkla processen och få allt precis som du vill ha det kontaktar vi dig för en kort genomgång innan vi gör fler ändringar.',
+                    name: app.name,
+                    company: String(app.company || '').replace('[TEST] ', ''),
+                    reference: app.reference,
+                  },
+                  recipient: app.email,
+                  company: app.company,
+                  changeRequestId,
+                  idempotencyKey: `revision-limit-${changeRequestId}`,
+                })
+              }
+              return Response.json({ ok: true, reference: app.reference, revisionLimitReached: true, needsReview: true, mailed: mail.sent === true })
+            }
+
             // ---------- A) design_changes: real regeneration ----------
             const outcome = await runRevisionJob(sql, {
               app,
