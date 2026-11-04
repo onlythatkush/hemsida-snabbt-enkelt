@@ -2,6 +2,9 @@ import { createFileRoute } from '@tanstack/react-router'
 import { z } from 'zod'
 import { preflight, withCors } from '@/lib/cors'
 import { classifyDbError, hubSql, hubStore, logEvent } from '@/lib/hub/db'
+import { DESIGN_SPEC_VERSION, composeDesignSpec } from '@/lib/design/compose'
+import { recordDesignVersion } from '@/lib/hub/versions'
+import { sendHubEmail } from '@/lib/hub/mail'
 
 /** Server-authoritative reference. The browser never invents one. */
 function generateReference(): string {
@@ -134,9 +137,82 @@ async function handlePost(request: Request): Promise<Response> {
           }, { status: 500 })
         }
         await logEvent(sql2, reference, 'application_received', 'Ansökan mottagen', { store: hubStore() })
+
+        // Reuse the existing admin/revision design engine for the first preview.
+        // A generation or email failure must never undo a successfully saved order.
+        let previewGenerated = false
+        let previewSent = false
+        try {
+          const revision = 1
+          const spec = composeDesignSpec({
+            reference,
+            company: parsed.company,
+            description: parsed.description,
+            website_type: parsed.websiteType,
+            colors: parsed.colors,
+            extra_requests: parsed.extraRequests,
+            social_links: parsed.socialLinks,
+            address: parsed.address,
+            email: parsed.email,
+            phone: parsed.phone,
+            file_names: [],
+          }, { revision })
+          const token = crypto.randomUUID().replaceAll('-', '') + crypto.randomUUID().replaceAll('-', '')
+          const origin = new URL(request.url).origin
+          const previewUrl = origin + '/kund-preview/' + encodeURIComponent(reference)
+            + '?token=' + token + '&v=1-' + Date.now().toString(36)
+          const qa = spec.qa
+
+          await sql2`
+            UPDATE public.project_applications
+            SET preview_token=${token}, preview_url=${previewUrl},
+                design_spec=${sql2.json(spec as any)}, design_family=${spec.family},
+                design_revision=${revision}, qa_status=${qa?.status ?? null},
+                qa_score=${qa?.score ?? null},
+                qa_report=${qa ? sql2.json({ ...qa, designVersion: DESIGN_SPEC_VERSION, revision } as any) : null},
+                qa_accepted_at=NULL, status='preview', updated_at=now()
+            WHERE reference=${reference}
+          `
+          await recordDesignVersion(sql2, {
+            reference, revision, designSpec: spec, designFamily: spec.family,
+            designVersion: DESIGN_SPEC_VERSION, previewUrl,
+            qaStatus: qa?.status ?? null, qaScore: qa?.score ?? null,
+            qaReport: qa ? { ...qa, designVersion: DESIGN_SPEC_VERSION, revision } : null,
+            source: 'admin',
+          })
+          previewGenerated = true
+          await logEvent(sql2, reference, 'revision_generated', 'Första hemsideförslaget skapat automatiskt', {
+            revision, family: spec.family, qaStatus: qa?.status, qaScore: qa?.score,
+          })
+
+          // Preserve the existing QA gate: only a ready design is sent automatically.
+          if (qa?.status === 'ready') {
+            const sent = await sendHubEmail(sql2, {
+              reference, kind: 'preview_ready', templateKey: 'preview-ready',
+              data: { name: parsed.name, company: parsed.company, previewUrl, reference },
+              recipient: parsed.email, company: parsed.company, previewUrl, revision,
+              idempotencyKey: `preview-${reference}-r1`,
+            })
+            previewSent = sent.sent || sent.duplicate === true
+            if (!previewSent) {
+              await logEvent(sql2, reference, 'preview_send_pending', 'Förhandsgranskning väntar på utskick', {
+                revision, reason: sent.reason,
+              })
+            }
+          } else {
+            await logEvent(sql2, reference, 'preview_needs_admin', 'Förhandsgranskning kräver kvalitetsgranskning', {
+              revision, qaStatus: qa?.status, qaScore: qa?.score,
+            })
+          }
+        } catch (error) {
+          console.error('Initial preview generation failed', reference, error)
+          await logEvent(sql2, reference, 'preview_generation_failed', 'Automatisk förhandsgranskning misslyckades', {
+            error: String((error as Error)?.message || error).slice(0, 200),
+          })
+        }
         await sql2.end()
 
-        return Response.json({ success: true, reference })
+        return Response.json({ success: true, reference, previewGenerated, previewSent })
       }
     }
   }
