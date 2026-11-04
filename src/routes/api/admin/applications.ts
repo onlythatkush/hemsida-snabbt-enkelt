@@ -9,7 +9,7 @@ import { listVersions, nextRevision, recordDesignVersion } from '@/lib/hub/versi
 
 const createPreviewSchema = z.object({
   reference: z.string().min(4).max(40),
-  action: z.enum(['create-preview', 'regenerate-design', 'lovable-demo', 'ai-adjust']),
+  action: z.enum(['create-preview', 'regenerate-design', 'lovable-demo', 'ai-adjust', 'prepare-lovable']),
   changeRequest: z.string().max(2000).optional(),
   family: z.string().max(40).optional(),
 })
@@ -133,6 +133,17 @@ export const Route = createFileRoute('/api/admin/applications')({
           )
           // Derived from the immutable history first so a revision number is never reused.
           const revision = await nextRevision(sql, app.reference, previousRevision).catch(() => previousRevision + 1)
+
+          if (input.action === 'prepare-lovable') {
+            const wish = (input.changeRequest || '').trim()
+            if (!wish) return Response.json({ error: 'Skriv kundens önskemål först' }, { status: 400 })
+            const note = 'Lovable: instruktion förberedd – väntar på manuell överföring'
+            await sql`UPDATE public.project_applications SET review_note=${note}, updated_at=now() WHERE reference=${app.reference}`
+            await sql`INSERT INTO public.application_events (reference, event_type, label, details)
+              VALUES (${app.reference}, 'lovable_brief_prepared', 'Lovable-instruktion förberedd, ännu inte skickad',
+              ${sql.json({ request: wish, mode: 'manual', sent: false } as any)})`
+            return Response.json({ ok: true, state: 'ready_to_send', message: note })
+          }
 
           if (input.action === 'ai-adjust') {
             const wish = (input.changeRequest || '').trim().toLowerCase()
