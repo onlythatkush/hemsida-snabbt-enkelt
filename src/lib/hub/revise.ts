@@ -55,6 +55,19 @@ export async function runRevisionJob(
 
     // The generator always rebuilds from the customer's own application data
     // plus the accumulated directives — never from a stale stored render.
+    // Preserve the imported Lovable design and its real assets during customer revisions.
+    // Never silently rebuild a Lovable order from generic industry templates.
+    const isLovable = Array.isArray(app.design_spec?.images) &&
+      app.design_spec.images.some((image: any) => typeof image.url === 'string' && image.url.includes('/dwp-assets/' + app.reference + '/'))
+    if (isLovable && (directives.unparsed || directives.moreImages || (directives.summary || []).some((text: string) => /text|bild|foto|logga|telefon|adress|tjänst|rubrik|lägg till|byt ut/i.test(text)))) {
+      await sql`UPDATE public.customer_change_requests SET status='needs_review', processed_at=now(),
+        intent_reason='Lovable-ändringen kräver granskning för att bevara kundens originaldesign' WHERE id=${changeRequestId}`
+      await sql`UPDATE public.project_applications SET status='reviewing',
+        review_note='Lovable-ändring kräver manuell granskning innan ny preview skickas', updated_at=now()
+        WHERE reference=${app.reference}`
+      await finishJob(sql, job.id, 'needs_review', { detail: { reason: 'lovable_unsupported_change' } })
+      return { ok: true, autoSent: false, autoSendReason: 'lovable_change_needs_review' }
+    }
     const spec = composeDesignSpec(
       {
         reference: app.reference,
@@ -80,7 +93,7 @@ export async function runRevisionJob(
       `${origin}/kund-preview/${encodeURIComponent(app.reference)}?token=${token}` +
       `&v=${revision}-${Date.now().toString(36)}`
 
-    const qa = spec.qa
+    if (isLovable) {\n      const original = app.design_spec\n      const preserved = structuredClone(original)\n      preserved.revision = revision\n      if (directives.mode) preserved.palette.mode = directives.mode\n      if (directives.addColors?.length && /^#[0-9a-f]{6}$/i.test(directives.addColors[0])) preserved.palette.primary = directives.addColors[0]\n      if (directives.headingScale) preserved.type.headingScale = Math.max(0.75, Math.min(1.3, Number(preserved.type.headingScale || 1) + directives.headingScale))\n      if (directives.dropSections?.length) preserved.sections = preserved.sections.filter((section: any) => !directives.dropSections.includes(section.id))\n      Object.assign(spec, preserved)\n    }\n    const qa = spec.qa
     await recordDesignVersion(sql, {
       reference: app.reference,
       revision,
