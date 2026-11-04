@@ -520,7 +520,7 @@ function Admin() {
 
                         <QaPanel app={a} onAccept={acceptQa} />
                         <DesignDiagnostics app={a} />
-                        <AiChangeCenter reference={a.reference} company={a.company} designSpec={a.design_spec} adminKey={savedKey} />
+                        <AiChangeCenter reference={a.reference} company={a.company} designSpec={a.design_spec} adminKey={savedKey} reviewNote={a.review_note} />
                         <LovableFallbackActions orderNumber={a.reference} buildBrief={fallbackBrief(a)} />
                         <LovableImportForm reference={a.reference} adminKey={savedKey} />
 
@@ -635,7 +635,7 @@ function Admin() {
                               Ny design
                             </Button>
                           )}
-                          <AiChangeCenter reference={a.reference} company={a.company} designSpec={a.design_spec} adminKey={savedKey} />
+                          <AiChangeCenter reference={a.reference} company={a.company} designSpec={a.design_spec} adminKey={savedKey} reviewNote={a.review_note} />
                         <LovableFallbackActions orderNumber={a.reference} buildBrief={fallbackBrief(a)} />
                           {a.preview_url && (
                             <Button size="sm" variant="outline" onClick={() => openMailPreview(a.reference)} disabled={previewingRef === a.reference}>
