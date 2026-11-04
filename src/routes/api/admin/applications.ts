@@ -9,7 +9,8 @@ import { listVersions, nextRevision, recordDesignVersion } from '@/lib/hub/versi
 
 const createPreviewSchema = z.object({
   reference: z.string().min(4).max(40),
-  action: z.enum(['create-preview', 'regenerate-design', 'lovable-demo']),
+  action: z.enum(['create-preview', 'regenerate-design', 'lovable-demo', 'ai-adjust']),
+  changeRequest: z.string().max(2000).optional(),
   family: z.string().max(40).optional(),
 })
 
@@ -132,6 +133,31 @@ export const Route = createFileRoute('/api/admin/applications')({
           )
           // Derived from the immutable history first so a revision number is never reused.
           const revision = await nextRevision(sql, app.reference, previousRevision).catch(() => previousRevision + 1)
+
+          if (input.action === 'ai-adjust') {
+            const wish = (input.changeRequest || '').trim().toLowerCase()
+            if (!wish || !/(ljus|mörk|bright|light|dark)/i.test(wish)) {
+              return Response.json({ error: 'Vår AI kan ännu bara göra säkra justeringar av ljus och mörka toner. Skicka andra önskemål till granskning.' }, { status: 422 })
+            }
+            if (!app.design_spec || !app.preview_url) return Response.json({ error: 'Ingen befintlig design att justera' }, { status: 409 })
+            const brighten = /ljusare|ljus|för mörk|mindre mörk|bright|lighter/i.test(wish)
+            const darken = /mörkare|darken|darker/i.test(wish) && !brighten
+            if (!brighten && !darken) return Response.json({ error: 'Ändringsönskemålet behöver granskas manuellt' }, { status: 422 })
+            const spec = structuredClone(app.design_spec)
+            const oldOverlay = Number(spec.motif?.overlay ?? 0.48)
+            spec.motif = { ...(spec.motif || {}), overlay: brighten ? Math.max(0.12, oldOverlay - 0.22) : Math.min(0.78, oldOverlay + 0.15) }
+            spec.palette = { ...(spec.palette || {}), mode: brighten ? 'light' : 'dark' }
+            if (brighten) Object.assign(spec.palette, { bg: '#f6f8fc', surface: '#ffffff', surfaceAlt: '#edf2f9', ink: '#17243b', muted: '#52627a', border: '#d9e2ee' })
+            spec.revision = revision
+            spec.generatedAt = new Date().toISOString()
+            // An automatic style edit is not a verified visual QA pass.
+            spec.qa = { ...(spec.qa || {}), status: 'review', score: null, checks: [{ id: 'visual-review', label: 'Kontrollera ljusstyrka, bildkontrast och mobilvy före kundutskick', level: 'warn' }] }
+            const token = app.preview_token && String(app.preview_token).length >= 32 ? String(app.preview_token) : crypto.randomUUID().replaceAll('-', '') + crypto.randomUUID().replaceAll('-', '')
+            const previewUrl = origin + '/kund-preview/' + encodeURIComponent(app.reference) + '?token=' + token + '&v=' + revision + '-' + Date.now().toString(36)
+            await recordDesignVersion(sql, { reference: app.reference, revision, designSpec: spec, designFamily: spec.family, designVersion: DESIGN_SPEC_VERSION, previewUrl, qaStatus: 'review', qaScore: null, qaReport: spec.qa, source: 'admin' })
+            const rows = await sql`UPDATE public.project_applications SET preview_token=${token}, preview_url=${previewUrl}, design_spec=${sql.json(spec as any)}, design_revision=${revision}, qa_status='review', qa_score=NULL, qa_report=${sql.json(spec.qa as any)}, qa_accepted_at=NULL, status='changes', updated_at=now() WHERE reference=${app.reference} RETURNING *`
+            return Response.json({ application: rows[0], diagnostics: { revision, qaStatus: 'review', message: 'AI-justering skapad. Granska innan kundutskick.' } })
+          }
 
           const demo = input.action === 'lovable-demo' ? lovableDemos[input.reference] : null
           if (input.action === 'lovable-demo' && !demo) return Response.json({ error: 'Ingen Lovable-demo för denna order' }, { status: 404 })
