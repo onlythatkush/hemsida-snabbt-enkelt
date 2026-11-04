@@ -14,6 +14,9 @@ export type MailKind =
   | 'approval_confirmed'
   | 'question_ack'
   | 'question_answer'
+  | 'revision_limit_ack'
+  | 'contact_confirmation'
+  | 'contact_notification'
 
 /** Never falls back to the unverified resend.dev sender — it 403s for customers. */
 export function hubSender() {
@@ -62,6 +65,8 @@ export async function sendHubEmail(
     revision?: number | null
     changeRequestId?: string | null
     idempotencyKey: string
+    /** Overrides the default reply+ORD address (e.g. admin notices must reply to the customer). */
+    replyTo?: string | null
     fetchImpl?: typeof fetch
   },
 ): Promise<SendResult> {
@@ -106,7 +111,7 @@ export async function sendHubEmail(
       body: JSON.stringify({
         from: sender,
         to: [recipient],
-        reply_to: replyAddressFor(input.reference),
+        reply_to: input.replyTo || replyAddressFor(input.reference),
         subject: rendered.subject,
         html: rendered.html,
         text: rendered.text,
@@ -143,6 +148,9 @@ function mailLabel(kind: MailKind, revision?: number | null) {
     case 'approval_confirmed': return 'Bekräftelse på godkännande skickad'
     case 'question_ack': return 'Kvittens på fråga skickad'
     case 'question_answer': return 'Automatsvar på fråga skickat'
+    case 'revision_limit_ack': return 'Besked om personlig genomgång skickat'
+    case 'contact_confirmation': return 'Bekräftelsemejl till kund skickat'
+    case 'contact_notification': return 'Notis om ny förfrågan skickad till admin'
     default: return 'Mail skickat'
   }
 }
