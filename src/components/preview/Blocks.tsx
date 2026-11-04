@@ -440,6 +440,7 @@ export function ContactBlock({ ctx, section }: { ctx: Ctx; section: Section }) {
             {b.socialLinks}
           </div>
         ) : null}
+      </div>
       {b.address ? (
         <div className="lg:col-span-2 overflow-hidden" style={{ borderRadius: "var(--r-lg)", border: `1px solid ${rgba("#ffffff", 0.24)}` }}>
           <iframe
@@ -455,7 +456,6 @@ export function ContactBlock({ ctx, section }: { ctx: Ctx; section: Section }) {
           </a>
         </div>
       ) : null}
-      </div>
     </div>
   );
 }
