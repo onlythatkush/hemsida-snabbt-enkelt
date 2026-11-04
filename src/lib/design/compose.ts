@@ -139,11 +139,20 @@ export function composeDesignSpec(
 
   const requestedSections = override?.designPlan?.pageStructure;
   const dropped = new Set(directives?.dropSections || []);
-  const kept = built.filter((s) => !dropped.has(s.id) && (!requestedSections || requestedSections.includes(s.type) || s.type === "contact"));
+  // The AI plan guides section priority; it must never discard useful generated sections.
+  // Previously a short pageStructure (hero/services/contact) removed every other section,
+  // producing a 3-section page that QA correctly blocked.
+  const kept = built.filter((s) => !dropped.has(s.id));
   const variation = buildVariation(chosen, seed, kept.map((s) => s.id));
-  const sections = [...kept].sort((a, b) => requestedSections
-    ? requestedSections.indexOf(a.type) - requestedSections.indexOf(b.type)
-    : variation.sectionOrder.indexOf(a.id) - variation.sectionOrder.indexOf(b.id));
+  const rank = (type: string) => {
+    if (!requestedSections?.length) return Number.MAX_SAFE_INTEGER;
+    const index = requestedSections.indexOf(type);
+    return index < 0 ? requestedSections.length : index;
+  };
+  const sections = [...kept].sort((a, b) => {
+    const priority = rank(a.type) - rank(b.type);
+    return priority || variation.sectionOrder.indexOf(a.id) - variation.sectionOrder.indexOf(b.id);
+  });
   const tokens = buildTokens(type, shape, tone);
 
   const generatedAt = new Date().toISOString();
