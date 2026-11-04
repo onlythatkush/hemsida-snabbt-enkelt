@@ -14,6 +14,22 @@ export function LovableImportForm({ reference, adminKey }: Props) {
   const [archive, setArchive] = useState<File | null>(null)
   const [busy, setBusy] = useState(false)
   const [message, setMessage] = useState('')
+  async function generateDemo() {
+    setBusy(true); setMessage('')
+    try {
+      const response = await fetch('/api/admin/applications', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-admin-key': adminKey },
+        body: JSON.stringify({ reference, action: 'lovable-demo' }),
+      })
+      const result = await response.json()
+      if (!response.ok) throw new Error(result.error || 'Kunde inte skapa Lovable-demo')
+      setMessage('Kundkopplad förhandsgranskning skapad.')
+      if (result.application?.preview_url) window.open(result.application.preview_url, '_blank', 'noopener,noreferrer')
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : 'Kunde inte skapa demo')
+    } finally { setBusy(false) }
+  }
   async function save() {
     setBusy(true); setMessage('')
     try {
@@ -51,7 +67,7 @@ export function LovableImportForm({ reference, adminKey }: Props) {
   return <details className="rounded-lg border p-3 space-y-2">
     <summary className="cursor-pointer font-medium">Importera färdigt Lovable-projekt</summary>
     <p className="text-xs text-muted-foreground py-2">För alla order. Sparar projektkoppling och designbrief; detta importerar ännu inte källkoden. Ingen ny AI-generering eller publicering.</p>
-    <div className="grid gap-2">
+    <div className="grid gap-2">\n      <button type="button" disabled={busy} onClick={generateDemo} className="rounded border px-3 py-2 font-semibold">Generera Lovable-demo för {reference}</button>
       <label className="text-xs">Lovable projekt-ID<input className="w-full rounded border p-2" value={projectId} onChange={e => setProjectId(e.target.value)} placeholder="UUID" /></label>
       <label className="text-xs">Commit SHA<input className="w-full rounded border p-2" value={commit} onChange={e => setCommit(e.target.value)} placeholder="40 tecken" /></label>
       <label className="text-xs">Lovable preview-URL<input className="w-full rounded border p-2" value={previewUrl} onChange={e => setPreviewUrl(e.target.value)} placeholder="https://" /></label>
