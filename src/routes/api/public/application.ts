@@ -1,3 +1,4 @@
+import { analyzeApplication } from '@/lib/design/analyze-application'
 import { createFileRoute } from '@tanstack/react-router'
 import { z } from 'zod'
 import { preflight, withCors } from '@/lib/cors'
@@ -144,7 +145,7 @@ async function handlePost(request: Request): Promise<Response> {
         let previewSent = false
         try {
           const revision = 1
-          const spec = composeDesignSpec({
+          const application = {
             reference,
             company: parsed.company,
             description: parsed.description,
@@ -156,7 +157,9 @@ async function handlePost(request: Request): Promise<Response> {
             email: parsed.email,
             phone: parsed.phone,
             file_names: [],
-          }, { revision })
+          }
+          const designPlan = await analyzeApplication(application)
+          const spec = composeDesignSpec(application, { revision, designPlan })
           const token = crypto.randomUUID().replaceAll('-', '') + crypto.randomUUID().replaceAll('-', '')
           const origin = new URL(request.url).origin
           const previewUrl = origin + '/kund-preview/' + encodeURIComponent(reference)
