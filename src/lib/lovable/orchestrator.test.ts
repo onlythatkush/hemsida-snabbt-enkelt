@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, mock } from 'bun:test'
 import { buildBrief, decide, fetchProjectMetadata, previewMatchesProject } from './orchestrator'
 
 describe('lovable orchestrator', () => {
@@ -24,14 +24,14 @@ describe('lovable orchestrator', () => {
   })
   it('returns configuration_required without secrets and never calls the API', async () => {
     delete process.env.LOVABLE_ACCOUNT_API_KEY
-    const f = vi.fn()
+    const f = mock()
     const r = await fetchProjectMetadata('x', f as any)
     expect(r).toMatchObject({ ok: false, status: 'configuration_required' })
     expect(f).not.toHaveBeenCalled()
   })
   it('surfaces real API errors instead of success', async () => {
     process.env.LOVABLE_API_KEY = 'a'; process.env.LOVABLE_ACCOUNT_API_KEY = 'b'
-    const f = vi.fn(async () => new Response(JSON.stringify({ detail: 'nope', request_id: 'r1' }), { status: 403 }))
+    const f = mock(async () => new Response(JSON.stringify({ detail: 'nope', request_id: 'r1' }), { status: 403 }))
     const r = await fetchProjectMetadata('x', f as any)
     expect(r).toMatchObject({ ok: false, status: 'failed' })
     expect((r as any).error).toContain('403')
