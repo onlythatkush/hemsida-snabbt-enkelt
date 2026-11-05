@@ -1,4 +1,4 @@
-import { lovableDemos } from '@/lib/lovable/customer-demos'
+import { associate, getBuild, orchestrate } from '@/lib/lovable/orchestrator'
 import { createClient } from '@supabase/supabase-js'
 import { createFileRoute } from '@tanstack/react-router'
 import { z } from 'zod'
@@ -9,8 +9,13 @@ import { listVersions, nextRevision, recordDesignVersion } from '@/lib/hub/versi
 
 const createPreviewSchema = z.object({
   reference: z.string().min(4).max(40),
-  action: z.enum(['create-preview', 'regenerate-design', 'lovable-demo', 'ai-adjust', 'prepare-lovable']),
+  action: z.enum(['create-preview', 'regenerate-design', 'lovable-demo', 'lovable-associate', 'ai-adjust', 'prepare-lovable']),
   changeRequest: z.string().max(2000).optional(),
+  association: z.object({
+    projectId: z.string(), commit: z.string(), previewUrl: z.string(),
+    files: z.array(z.object({ path: z.string().min(1).max(300), binary: z.boolean() })).max(2000).optional(),
+    confirm: z.boolean().default(false),
+  }).optional(),
   family: z.string().max(40).optional(),
 })
 
@@ -44,6 +49,18 @@ export const Route = createFileRoute('/api/admin/applications')({
           const url = new URL(request.url)
           const file = url.searchParams.get('file')
           const timeline = url.searchParams.get('timeline')
+          const lovableBuild = url.searchParams.get('lovableBuild')
+          if (lovableBuild) {
+            if (!/^[A-Z0-9-]{4,40}$/.test(lovableBuild)) return Response.json({ error: 'Invalid reference' }, { status: 400 })
+            try {
+              const build = await withHubRead((sql) => getBuild(sql, lovableBuild))
+              return Response.json({ build }, { headers: { 'cache-control': 'no-store' } })
+            } catch (e) {
+              const msg = String((e as any)?.message || e)
+              if (/lovable_builds/.test(msg)) return Response.json({ status: 'schema_missing', error: 'Tabellen lovable_builds saknas. Godkänn och kör migrationen först.' }, { status: 503 })
+              throw e
+            }
+          }
 
           if (timeline) {
             if (!/^[A-Z0-9-]{4,40}$/.test(timeline)) {
@@ -119,6 +136,21 @@ export const Route = createFileRoute('/api/admin/applications')({
           if (!found.length) return Response.json({ error: 'Application not found' }, { status: 404 })
           const app = found[0] as any
 
+          if (input.action === 'lovable-demo' || input.action === 'lovable-associate') {
+            try {
+              const r = input.action === 'lovable-demo'
+                ? await orchestrate(sql, app)
+                : input.association
+                  ? await associate(sql, { reference: app.reference, ...input.association })
+                  : { httpStatus: 400, body: { error: 'Koppling saknas' } }
+              return Response.json(r.body, { status: r.httpStatus })
+            } catch (e) {
+              const msg = String((e as any)?.message || e)
+              if (/lovable_builds/.test(msg)) return Response.json({ status: 'schema_missing', error: 'Tabellen lovable_builds saknas. Godkänn och kör migrationen först.' }, { status: 503 })
+              throw e
+            }
+          }
+
           if (input.action === 'regenerate-design' && app.design_locked) {
             return Response.json({ error: 'Designen är låst för denna kund' }, { status: 409 })
           }
@@ -170,15 +202,13 @@ export const Route = createFileRoute('/api/admin/applications')({
             return Response.json({ application: rows[0], diagnostics: { revision, qaStatus: 'review', message: 'AI-justering skapad. Granska innan kundutskick.' } })
           }
 
-          const demo = input.action === 'lovable-demo' ? lovableDemos[input.reference] : null
-          if (input.action === 'lovable-demo' && !demo) return Response.json({ error: 'Ingen Lovable-demo för denna order' }, { status: 404 })
           const spec = composeDesignSpec(
             {
               reference: app.reference,
               company: app.company,
               description: app.description,
               website_type: app.website_type,
-              colors: demo?.palette?.accent || app.colors,
+              colors: app.colors,
               extra_requests: app.extra_requests,
               social_links: app.social_links,
               address: app.address,
@@ -189,66 +219,6 @@ export const Route = createFileRoute('/api/admin/applications')({
             { revision, ...(input.family ? { family: input.family as any } : {}) },
           )
 
-          if (demo) {
-            // Customer-specific Lovable proposals must never inherit stock copy,
-            // galleries, contact data or service lists from a generic industry template.
-            spec.brand.company = demo.company.name
-            spec.brand.tagline = demo.company.tagline
-            spec.brand.heroTitle = demo.hero.headline
-            spec.brand.heroSub = demo.hero.subheadline
-            spec.brand.ctaPrimary = demo.hero.primaryCta === 'book' ? 'Boka däckbyte' : 'Ring oss'
-            spec.brand.ctaSecondary = 'Ring ' + demo.customerFacts.phone.display
-            spec.brand.phone = demo.customerFacts.phone.display
-            spec.brand.address = demo.customerFacts.address.full
-            spec.brand.email = demo.customerFacts.email || undefined
-            spec.brand.socialLinks = undefined
-            spec.palette.mode = demo.palette.mode
-            spec.palette.primary = demo.palette.accent
-            spec.palette.accent = demo.palette.accentGlow || demo.palette.accent
-            spec.palette.bg = demo.palette.background
-            spec.palette.surface = demo.palette.surface
-            spec.palette.surfaceAlt = demo.palette.surface
-            spec.palette.ink = demo.palette.foreground
-            spec.palette.muted = demo.palette.mutedForeground
-            spec.palette.border = demo.palette.border
-            spec.palette.onPrimary = demo.palette.onAccent
-            spec.palette.primarySoft = '#1b315c'
-            spec.type.headingFamily = demo.typography.display.family
-            spec.type.bodyFamily = demo.typography.body.family
-            spec.type.headingCase = 'none'
-            spec.fonts = [demo.typography.display.family, demo.typography.body.family]
-            spec.motif = { ...spec.motif!, imageFilter: 'none', ctaStyle: 'pill', divider: 'hairline', overlay: 0.48 }
-            spec.stockSet = undefined
-            spec.art = { subjects: ['tires', 'rims', 'workshop'], keywords: [], mood: 'neutral', requireHeroMedia: true }
-            const assetOrigin = new URL(demo.previewUrl).origin
-            const assetImages = (demo.imagery || []).filter((image: any) =>
-              typeof image.path === 'string' && image.path.startsWith('/dwp-assets/' + input.reference + '/')
-            )
-            spec.images = assetImages.map((image: any, index: number) => ({
-              path: image.path, name: image.key,
-              role: index === 0 ? 'hero' as const : 'feature' as const,
-              url: assetOrigin + image.path,
-            }))
-            const imageIndex = (key: string) => Math.max(0, assetImages.findIndex((image: any) => image.key === key))
-            spec.sections = [
-              { id: 'hero', type: 'hero', eyebrow: demo.hero.eyebrow, images: [imageIndex('hero')] },
-              ...demo.sections.filter((section: any) => section.items?.length).map((section: any) => ({
-                id: section.id, type: 'services' as const, eyebrow: section.eyebrow,
-                title: section.title, tone: 'base' as const,
-                items: section.items.map((item: any) => ({ title: item.title, body: item.text })),
-                images: section.items.map((item: any) => imageIndex(item.image)),
-              })),
-              ...demo.sections.filter((section: any) => section.id === 'cta-band').map((section: any) => ({
-                id: 'cta-band', type: 'local' as const, eyebrow: 'Kontakta oss',
-                title: section.title, body: section.text, tone: 'base' as const,
-              })),
-              ...demo.sections.filter((section: any) => section.id === 'contact').map((section: any) => ({
-                id: 'contact', type: 'contact' as const, eyebrow: section.eyebrow,
-                title: section.title, body: section.text, tone: 'contrast' as const,
-              })),
-            ]
-            spec.engine = { ...spec.engine!, heroSource: 'customer', heroAsset: 'hero.jpg', stockSet: undefined }
-          }
           const token: string =
             app.preview_token && String(app.preview_token).length >= 32
               ? String(app.preview_token)

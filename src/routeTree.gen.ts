@@ -19,6 +19,7 @@ import { Route as KundPreviewReferenceRouteImport } from './routes/kund-preview.
 import { Route as PortfolioSlugRouteImport } from './routes/portfolio.$slug'
 import { Route as ApiAdminApplicationsRouteImport } from './routes/api/admin/applications'
 import { Route as ApiAdminEmailHealthRouteImport } from './routes/api/admin/email-health'
+import { Route as ApiAdminLovableImportRouteImport } from './routes/api/admin/lovable-import'
 import { Route as ApiAdminReprocessRouteImport } from './routes/api/admin/reprocess'
 import { Route as ApiAdminSeedTestGalleryRouteImport } from './routes/api/admin/seed-test-gallery'
 import { Route as ApiAdminSendPreviewRouteImport } from './routes/api/admin/send-preview'
@@ -82,6 +83,11 @@ const ApiAdminApplicationsRoute = ApiAdminApplicationsRouteImport.update({
 const ApiAdminEmailHealthRoute = ApiAdminEmailHealthRouteImport.update({
   id: '/api/admin/email-health',
   path: '/api/admin/email-health',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAdminLovableImportRoute = ApiAdminLovableImportRouteImport.update({
+  id: '/api/admin/lovable-import',
+  path: '/api/admin/lovable-import',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiAdminReprocessRoute = ApiAdminReprocessRouteImport.update({
@@ -171,6 +177,7 @@ export interface FileRoutesByFullPath {
   '/portfolio/$slug': typeof PortfolioSlugRoute
   '/api/admin/applications': typeof ApiAdminApplicationsRoute
   '/api/admin/email-health': typeof ApiAdminEmailHealthRoute
+  '/api/admin/lovable-import': typeof ApiAdminLovableImportRoute
   '/api/admin/reprocess': typeof ApiAdminReprocessRoute
   '/api/admin/seed-test-gallery': typeof ApiAdminSeedTestGalleryRoute
   '/api/admin/send-preview': typeof ApiAdminSendPreviewRoute
@@ -197,6 +204,7 @@ export interface FileRoutesByTo {
   '/portfolio/$slug': typeof PortfolioSlugRoute
   '/api/admin/applications': typeof ApiAdminApplicationsRoute
   '/api/admin/email-health': typeof ApiAdminEmailHealthRoute
+  '/api/admin/lovable-import': typeof ApiAdminLovableImportRoute
   '/api/admin/reprocess': typeof ApiAdminReprocessRoute
   '/api/admin/seed-test-gallery': typeof ApiAdminSeedTestGalleryRoute
   '/api/admin/send-preview': typeof ApiAdminSendPreviewRoute
@@ -224,6 +232,7 @@ export interface FileRoutesById {
   '/portfolio/$slug': typeof PortfolioSlugRoute
   '/api/admin/applications': typeof ApiAdminApplicationsRoute
   '/api/admin/email-health': typeof ApiAdminEmailHealthRoute
+  '/api/admin/lovable-import': typeof ApiAdminLovableImportRoute
   '/api/admin/reprocess': typeof ApiAdminReprocessRoute
   '/api/admin/seed-test-gallery': typeof ApiAdminSeedTestGalleryRoute
   '/api/admin/send-preview': typeof ApiAdminSendPreviewRoute
@@ -252,6 +261,7 @@ export interface FileRouteTypes {
     | '/portfolio/$slug'
     | '/api/admin/applications'
     | '/api/admin/email-health'
+    | '/api/admin/lovable-import'
     | '/api/admin/reprocess'
     | '/api/admin/seed-test-gallery'
     | '/api/admin/send-preview'
@@ -278,6 +288,7 @@ export interface FileRouteTypes {
     | '/portfolio/$slug'
     | '/api/admin/applications'
     | '/api/admin/email-health'
+    | '/api/admin/lovable-import'
     | '/api/admin/reprocess'
     | '/api/admin/seed-test-gallery'
     | '/api/admin/send-preview'
@@ -304,6 +315,7 @@ export interface FileRouteTypes {
     | '/portfolio/$slug'
     | '/api/admin/applications'
     | '/api/admin/email-health'
+    | '/api/admin/lovable-import'
     | '/api/admin/reprocess'
     | '/api/admin/seed-test-gallery'
     | '/api/admin/send-preview'
@@ -331,6 +343,7 @@ export interface RootRouteChildren {
   PortfolioSlugRoute: typeof PortfolioSlugRoute
   ApiAdminApplicationsRoute: typeof ApiAdminApplicationsRoute
   ApiAdminEmailHealthRoute: typeof ApiAdminEmailHealthRoute
+  ApiAdminLovableImportRoute: typeof ApiAdminLovableImportRoute
   ApiAdminReprocessRoute: typeof ApiAdminReprocessRoute
   ApiAdminSeedTestGalleryRoute: typeof ApiAdminSeedTestGalleryRoute
   ApiAdminSendPreviewRoute: typeof ApiAdminSendPreviewRoute
@@ -417,6 +430,13 @@ declare module '@tanstack/react-router' {
       path: '/api/admin/email-health'
       fullPath: '/api/admin/email-health'
       preLoaderRoute: typeof ApiAdminEmailHealthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/lovable-import': {
+      id: '/api/admin/lovable-import'
+      path: '/api/admin/lovable-import'
+      fullPath: '/api/admin/lovable-import'
+      preLoaderRoute: typeof ApiAdminLovableImportRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/admin/reprocess': {
@@ -531,6 +551,7 @@ const rootRouteChildren: RootRouteChildren = {
   PortfolioSlugRoute: PortfolioSlugRoute,
   ApiAdminApplicationsRoute: ApiAdminApplicationsRoute,
   ApiAdminEmailHealthRoute: ApiAdminEmailHealthRoute,
+  ApiAdminLovableImportRoute: ApiAdminLovableImportRoute,
   ApiAdminReprocessRoute: ApiAdminReprocessRoute,
   ApiAdminSeedTestGalleryRoute: ApiAdminSeedTestGalleryRoute,
   ApiAdminSendPreviewRoute: ApiAdminSendPreviewRoute,
